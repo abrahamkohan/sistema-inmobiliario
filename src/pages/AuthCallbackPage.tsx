@@ -6,27 +6,22 @@ export function AuthCallbackPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Parsear el hash de la URL para detectar el tipo
-    const hash = window.location.hash
-    const params = new URLSearchParams(hash.replace('#', ''))
-    const type = params.get('type')
-
-    if (type === 'recovery') {
-      // Procesar la sesión del hash y redirigir a reset
-      supabase.auth.getSession().then(() => {
+    // Escuchar eventos de auth — PASSWORD_RECOVERY llega cuando el link es de reset
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
         navigate('/reset-password', { replace: true })
-      })
-      return
-    }
-
-    // Para invite u otros tipos, iniciar sesión y redirigir al inicio
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        navigate('/', { replace: true })
-      } else {
+      } else if (event === 'SIGNED_IN') {
         navigate('/', { replace: true })
       }
     })
+
+    // PKCE flow: el código viene como query param ?code=XXX
+    const code = new URLSearchParams(window.location.search).get('code')
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code)
+    }
+
+    return () => subscription.unsubscribe()
   }, [navigate])
 
   return (

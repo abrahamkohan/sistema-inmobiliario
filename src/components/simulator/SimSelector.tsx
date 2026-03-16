@@ -1,6 +1,7 @@
 // src/components/simulator/SimSelector.tsx
 import { useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -8,7 +9,6 @@ import { useProjects } from '@/hooks/useProjects'
 import { useTypologies } from '@/hooks/useTypologies'
 import { useClients } from '@/hooks/useClients'
 import { useSimStore } from '@/simulator/store'
-import { centsToUsd } from '@/utils/money'
 
 export function SimSelector() {
   const { data: projects = [] } = useProjects()
@@ -25,29 +25,30 @@ export function SimSelector() {
   const NONE = 'none'
   const [cocheraId, setCocheraId] = useState<string>(NONE)
   const [bauleraId, setBauleraId] = useState<string>(NONE)
+  const [priceInput, setPriceInput] = useState<string>('')
 
   // Reset extras when project changes
   useEffect(() => {
     setCocheraId(NONE)
     setBauleraId(NONE)
+    setPriceInput('')
   }, [projectId])
 
-  // Auto-load baseValues when typology/cochera/baulera changes
   useEffect(() => {
-    if (!typologyId) return
-    const typology = units.find((t) => t.id === typologyId)
-    if (!typology) return
+    setPriceInput('')
+  }, [typologyId])
 
-    const cochera = cocheras.find((t) => t.id === cocheraId && cocheraId !== NONE)
-    const baulera = bauleras.find((t) => t.id === bauleraId && bauleraId !== NONE)
-
-    setBaseValues({
-      price_usd: centsToUsd(typology.price_usd),
-      cochera_price: cochera ? centsToUsd(cochera.price_usd) : 0,
-      baulera_price: baulera ? centsToUsd(baulera.price_usd) : 0,
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typologyId, cocheraId, bauleraId, projectId])
+  function handlePriceChange(val: string) {
+    setPriceInput(val)
+    const price = parseFloat(val)
+    if (!isNaN(price) && price > 0) {
+      setBaseValues({
+        price_usd: price,
+        cochera_price: 0,
+        baulera_price: 0,
+      })
+    }
+  }
 
   function handleProjectChange(pid: string) {
     setSelection(pid, '', clientId ?? '')
@@ -109,6 +110,21 @@ export function SimSelector() {
           </Select>
         </div>
       </div>
+
+      {/* Precio manual */}
+      {typologyId && (
+        <div className="grid gap-1.5 sm:max-w-[200px]">
+          <Label className="text-xs text-gray-500">Precio USD *</Label>
+          <Input
+            type="number"
+            min={1}
+            step={1}
+            placeholder="Ej: 85000"
+            value={priceInput}
+            onChange={(e) => handlePriceChange(e.target.value)}
+          />
+        </div>
+      )}
 
       {/* Row 2: Cochera + Baulera (only shown if project has them) */}
       {(cocheras.length > 0 || bauleras.length > 0) && (

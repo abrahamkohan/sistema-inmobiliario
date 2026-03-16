@@ -36,11 +36,13 @@ export function LoginPage() {
       }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#14223A', margin: '0 0 6px' }}>
-            Iniciar sesión
-          </h1>
+          <img
+            src="/logo 2.svg"
+            alt="Kohan & Campos"
+            style={{ height: 28, margin: '0 auto 20px', display: 'block' }}
+          />
           <p style={{ fontSize: 14, color: '#828b9c', margin: 0 }}>
-            Sistema Inmobiliario
+            Iniciar sesión
           </p>
         </div>
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Capa_2" data-name="Capa 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 425.69 35.34">
+  <defs>
+    <style>
+      .cls-1 {
+        letter-spacing: .26em;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        fill: #fff;
+        font-family: GoodlyRegular, Goodly;
+        font-size: 32.14px;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        isolation: isolate;
+      }
+
+      .cls-2 {
+        letter-spacing: .3em;
+      }
+
+      .cls-3 {
+        letter-spacing: .32em;
+      }
+    </style>
+  </defs>
+  <g id="Capa_1-2" data-name="Capa 1-2">
+    <g class="cls-4">
+      <text class="cls-1" transform="translate(0 27.34)"><tspan x="0" y="0">K</tspan></text>
+      <text class="cls-2" transform="translate(27.55 27.34)"><tspan x="0" y="0">OHAN &amp;</tspan></text>
+      <text class="cls-3" transform="translate(205.87 27.34)"><tspan x="0" y="0"> </tspan></text>
+      <text class="cls-2" transform="translate(226.44 27.34)"><tspan x="0" y="0">CAMPOS</tspan></text>
+    </g>
+  </g>
+</svg>

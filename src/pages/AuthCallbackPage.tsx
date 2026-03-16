@@ -6,14 +6,27 @@ export function AuthCallbackPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    // Parsear el hash de la URL para detectar el tipo
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.replace('#', ''))
+    const type = params.get('type')
+
+    if (type === 'recovery') {
+      // Procesar la sesión del hash y redirigir a reset
+      supabase.auth.getSession().then(() => {
         navigate('/reset-password', { replace: true })
-      } else if (event === 'SIGNED_IN') {
+      })
+      return
+    }
+
+    // Para invite u otros tipos, iniciar sesión y redirigir al inicio
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        navigate('/', { replace: true })
+      } else {
         navigate('/', { replace: true })
       }
     })
-    return () => subscription.unsubscribe()
   }, [navigate])
 
   return (

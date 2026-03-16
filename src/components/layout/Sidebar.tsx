@@ -38,9 +38,6 @@ function NavItem({ to, label, icon: Icon, end }: { to: string; label: string; ic
   )
 }
 
-function Divider() {
-  return <div className="border-t border-sidebar-border opacity-40" />
-}
 
 export function Sidebar() {
   const { data: consultora } = useConsultoraConfig()

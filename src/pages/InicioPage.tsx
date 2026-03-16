@@ -29,6 +29,7 @@ class HandleOnlyPointerSensor extends PointerSensor {
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
+import { BarChart as BarChartIcon } from 'lucide-react'
 import { Card, Heading, Text, Badge, Flex, Grid, Box, Button as RxButton, Tabs } from '@radix-ui/themes'
 import {
   Users, Building2, Calculator, FileText, Plus, ExternalLink,
@@ -339,7 +340,7 @@ function GraficoWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashb
           </Flex>
         ) : data.every((d) => d.total === 0) ? (
           <Flex align="center" justify="center" direction="column" gap="2" style={{ height: 180 }}>
-            <BarChart size={32} style={{ color: 'var(--muted-foreground)', opacity: 0.4 }} />
+            <BarChartIcon size={32} style={{ color: 'var(--muted-foreground)', opacity: 0.4 }} />
             <Text size="1" color="gray">Aún no hay simulaciones registradas</Text>
           </Flex>
         ) : (
@@ -350,7 +351,7 @@ function GraficoWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashb
               <Tooltip
                 cursor={{ fill: 'transparent' }}
                 contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'var(--card)', color: 'var(--foreground)' }}
-                formatter={(v: number) => [`${v} simulaciones`, '']}
+                formatter={(v) => [`${v ?? 0} simulaciones`, '']}
               />
               <Bar dataKey="total" radius={[6, 6, 0, 0]}>
                 {data.map((entry, i) => (

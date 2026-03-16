@@ -8,6 +8,7 @@ import { InformesPage } from '@/pages/InformesPage'
 import { ReporteHtmlPage } from '@/pages/ReporteHtmlPage'
 import { ConfiguracionPage } from '@/pages/ConfiguracionPage'
 import { RecursosPage } from '@/pages/RecursosPage'
+import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
 
 export const router = createBrowserRouter([
   {
@@ -25,4 +26,5 @@ export const router = createBrowserRouter([
   },
   // Full-page routes (no sidebar)
   { path: 'informes/:id', element: <ReporteHtmlPage /> },
+  { path: 'auth/callback', element: <AuthCallbackPage /> },
 ])

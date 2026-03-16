@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Claude / tooling
+.claude/
+.claude-backup/
+.playwright-cli/
+.mcp.json

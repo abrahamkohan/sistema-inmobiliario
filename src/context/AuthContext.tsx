@@ -19,9 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // En recovery no seteamos sesión — el usuario debe ir a resetear contraseña primero
-      if (event === 'PASSWORD_RECOVERY') return
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
 

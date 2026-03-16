@@ -6,16 +6,15 @@ export function AuthCallbackPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Escuchar eventos de auth — PASSWORD_RECOVERY llega cuando el link es de reset
+    // Cualquier link por email (invite, recovery, magic link) → siempre a reset-password
+    // El login normal (formulario) nunca pasa por esta página
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY') {
         navigate('/reset-password', { replace: true })
-      } else if (event === 'SIGNED_IN') {
-        navigate('/', { replace: true })
       }
     })
 
-    // PKCE flow: el código viene como query param ?code=XXX
+    // PKCE: intercambiar el code por sesión
     const code = new URLSearchParams(window.location.search).get('code')
     if (code) {
       supabase.auth.exchangeCodeForSession(code)

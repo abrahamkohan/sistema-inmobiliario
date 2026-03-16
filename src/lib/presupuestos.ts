@@ -15,6 +15,16 @@ export async function getAllPresupuestos(): Promise<PRow[]> {
   return data as unknown as PRow[]
 }
 
+export async function getPresupuestoById(id: string): Promise<PRow> {
+  const { data, error } = await supabase
+    .from('presupuestos')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return data as unknown as PRow
+}
+
 export async function createPresupuesto(input: PInsert): Promise<PRow> {
   const { data, error } = await supabase
     .from('presupuestos')

@@ -9,6 +9,7 @@ import { ReporteHtmlPage } from '@/pages/ReporteHtmlPage'
 import { ConfiguracionPage } from '@/pages/ConfiguracionPage'
 import { RecursosPage } from '@/pages/RecursosPage'
 import { PresupuestosPage } from '@/pages/PresupuestosPage'
+import { PresupuestoPdfPage } from '@/pages/PresupuestoPdfPage'
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
@@ -30,7 +31,8 @@ export const router = createBrowserRouter([
     ],
   },
   // Rutas públicas (sin auth)
-  { path: 'informes/:id', element: <ReporteHtmlPage /> },
+  { path: 'informes/:id',      element: <ReporteHtmlPage /> },
+  { path: 'presupuestos/:id/pdf', element: <PresupuestoPdfPage /> },
   { path: 'auth/callback', element: <AuthCallbackPage /> },
   { path: 'reset-password', element: <ResetPasswordPage /> },
 ])

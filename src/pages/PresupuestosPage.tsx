@@ -1,6 +1,6 @@
 // src/pages/PresupuestosPage.tsx
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Plus, FileText, Copy, Trash2, Pencil, UploadCloud, X as XIcon, Loader2 } from 'lucide-react'
+import { Plus, FileText, Copy, Trash2, Pencil, UploadCloud, X as XIcon, Loader2, FileDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -90,6 +90,9 @@ export function PresupuestosPage() {
                     <td className="px-4 py-3 text-gray-400 text-xs">{new Date(p.created_at).toLocaleDateString('es-PY')}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1.5 justify-center">
+                        <Button variant="outline" size="sm" className="text-xs" onClick={() => window.open(`/presupuestos/${p.id}/pdf`, '_blank')}>
+                          <FileDown className="h-3 w-3 mr-1" />PDF
+                        </Button>
                         <Button variant="outline" size="sm" className="text-xs" onClick={() => openEdit(p)}>
                           <Pencil className="h-3 w-3 mr-1" />Editar
                         </Button>
@@ -127,6 +130,9 @@ export function PresupuestosPage() {
                   <p className="text-xs text-gray-400">{fmt(p.precio_usd)} · {new Date(p.created_at).toLocaleDateString('es-PY')}</p>
                 </div>
                 <div className="flex gap-2 pt-1 border-t">
+                  <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => window.open(`/presupuestos/${p.id}/pdf`, '_blank')}>
+                    <FileDown className="h-3 w-3 mr-1" />PDF
+                  </Button>
                   <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => openEdit(p)}>
                     <Pencil className="h-3 w-3 mr-1" />Editar
                   </Button>

@@ -98,11 +98,10 @@ function MetricColumns({ left, right }: {
 }) {
   const maxRows = Math.max(left.length, right.length)
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+    <div className="metric-grid">
       {/* Left col */}
-      <div style={{ borderRight: `1px solid ${KC.grayBorder}` }}>
+      <div className="metric-col-left">
         {left.map((r, i) => <MetricRow key={i} {...r} />)}
-        {/* Fill empty rows */}
         {Array.from({ length: maxRows - left.length }).map((_, i) => (
           <div key={i} style={{ padding: '10px 24px', borderBottom: `1px solid ${KC.grayBorder}`, backgroundColor: KC.white, minHeight: 44 }} />
         ))}
@@ -168,7 +167,7 @@ function FiscalBlock({ ingresoBruto, gananciaNeta, inversionTotal }: {
       <SectionHeader title="Impacto Fiscal — Vivienda" bg={KC.beigeLight} textColor={KC.doradoText} />
 
       {/* Sub-column headers */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+      <div className="metric-grid">
         {subHeader('Residente en Paraguay', true)}
         {subHeader('No Residente')}
       </div>
@@ -244,7 +243,7 @@ function FiscalVentaBlock({ precioVenta, inversionTotal }: {
     }}>
       <SectionHeader title="Impacto Fiscal — Venta" bg={KC.beigeLight} textColor={KC.doradoText} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+      <div className="metric-grid">
         {subHeader('Residente en Paraguay', true)}
         {subHeader('No Residente')}
       </div>
@@ -344,6 +343,33 @@ export function ReporteHtmlPage() {
         }
         body { margin: 0; }
 
+        /* ── Metric grid — desktop: 2 cols, mobile: 1 col ── */
+        .metric-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+        .metric-col-left {
+          border-right: 1px solid ${KC.grayBorder};
+        }
+
+        @media (max-width: 600px) {
+          .metric-grid {
+            grid-template-columns: 1fr;
+          }
+          .metric-col-left {
+            border-right: none;
+            border-bottom: 2px solid ${KC.grayBorder};
+          }
+          /* Header apilado en mobile */
+          .rpt-hdr {
+            flex-direction: column !important;
+            gap: 12px !important;
+          }
+          .rpt-hdr > div:last-child {
+            text-align: left !important;
+          }
+        }
+
         @media screen {
           .print-footer { display: none !important; }
         }
@@ -379,7 +405,7 @@ export function ReporteHtmlPage() {
         }
       `}</style>
 
-      <div style={{ minHeight: '100vh', backgroundColor: KC.beige, padding: '32px 16px', fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: KC.beige, padding: 'clamp(16px, 4vw, 32px) clamp(8px, 3vw, 16px)', fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}>
 
         {/* Print button */}
         <div className="no-print" style={{ maxWidth: 760, margin: '0 auto 16px', display: 'flex', justifyContent: 'flex-end' }}>

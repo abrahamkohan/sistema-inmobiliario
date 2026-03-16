@@ -1,5 +1,5 @@
 // src/pages/InformesPage.tsx
-import { Globe, Loader2 } from 'lucide-react'
+import { Globe, Loader2, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAllSimulations } from '@/hooks/useSimulations'
 import type { Database } from '@/types/database'
@@ -17,6 +17,9 @@ export function InformesPage() {
     )
   }
 
+  const regular = simulations.filter((s) => s.client_id != null)
+  const casual  = simulations.filter((s) => s.client_id == null)
+
   return (
     <div className="p-6 flex flex-col gap-6">
       <h1 className="text-2xl font-semibold text-gray-900">Informes</h1>
@@ -27,36 +30,66 @@ export function InformesPage() {
           <p className="text-gray-300 text-xs">Generá una desde el Simulador.</p>
         </div>
       ) : (
-        <div className="rounded-lg border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Cliente</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Proyecto</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Tipología</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Fecha</th>
-                <th className="text-center px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {simulations.map((sim) => (
-                <SimRowItem key={sim.id} sim={sim} />
-              ))}
-            </tbody>
-          </table>
+        <div className="flex flex-col gap-8">
+          {regular.length > 0 && (
+            <SimTable title="Simulaciones" sims={regular} />
+          )}
+
+          {casual.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Proyectos Casuales</h2>
+                <div className="flex-1 border-t border-gray-200" />
+              </div>
+              <SimTable sims={casual} />
+            </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
+function SimTable({ title, sims }: { title?: string; sims: SimRow[] }) {
+  return (
+    <div className="flex flex-col gap-3">
+      {title && <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">{title}</h2>}
+      <div className="rounded-lg border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 border-b">
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Cliente</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Proyecto</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Tipología</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Fecha</th>
+              <th className="text-center px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {sims.map((sim) => (
+              <SimRowItem key={sim.id} sim={sim} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 function SimRowItem({ sim }: { sim: SimRow }) {
-  const snap = sim.snapshot_project as Record<string, unknown>
+  const snap    = sim.snapshot_project  as Record<string, unknown>
   const snapTyp = sim.snapshot_typology as Record<string, unknown>
-  const projectName = (snap?.name as string) ?? '—'
-  const typologyName = (snapTyp?.name as string) ?? '—'
-  const date = new Date(sim.created_at).toLocaleDateString('es-PY')
-  const displayClient = (sim as SimRow & { client_name?: string | null }).client_name ?? sim.client_id.slice(0, 8) + '...'
+  const isCasual = sim.client_id == null
+
+  const projectName  = (snap?.name as string)    ?? '—'
+  const typologyName = (snapTyp?.name as string)  ?? '—'
+  const date         = new Date(sim.created_at).toLocaleDateString('es-PY')
+
+  // For casual sims, use _cliente from snapshot; for regular, use client_name or short id
+  const displayClient = isCasual
+    ? ((snap?._cliente as string) ?? '—')
+    : ((sim as SimRow & { client_name?: string | null }).client_name ?? (sim.client_id?.slice(0, 8) + '...'))
 
   return (
     <tr className="hover:bg-gray-50 transition-colors">

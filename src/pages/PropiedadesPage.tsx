@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router'
 import { Search, Plus, Home } from 'lucide-react'
 import { useProperties } from '@/hooks/useProperties'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
@@ -27,6 +28,7 @@ const FILTROS_TIPO = [
 ]
 
 export function PropiedadesPage() {
+  const navigate = useNavigate()
   const { data: properties = [], isLoading } = useProperties()
   const { data: consultora } = useConsultoraConfig()
   const [search, setSearch] = useState('')
@@ -67,9 +69,8 @@ export function PropiedadesPage() {
           )}
         </div>
         <button
-          disabled
-          title="Próximamente"
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-400 text-sm font-medium cursor-not-allowed"
+          onClick={() => navigate('/propiedades/nueva')}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Nueva propiedad</span>

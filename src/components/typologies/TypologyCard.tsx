@@ -20,12 +20,32 @@ export function TypologyCard({ typology, onEdit, onDelete }: TypologyCardProps) 
 
   return (
     <>
-      <div className="border rounded-lg overflow-hidden flex flex-col">
+      <div className="border rounded-lg p-3 flex flex-col gap-2">
+
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="font-medium text-sm">{typology.name}</p>
+            <p className="text-xs text-muted-foreground">{typology.area_m2} m²</p>
+          </div>
+          <div className="flex gap-1 flex-shrink-0">
+            <Button variant="ghost" size="sm" onClick={() => onEdit(typology)}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost" size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onDelete(typology)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
 
         {/* Thumbnail */}
-        {url && !imgError ? (
+        {url && !imgError && (
           <div
-            className="relative group cursor-zoom-in bg-gray-50"
+            className="relative group cursor-zoom-in rounded-md overflow-hidden bg-gray-50 border"
             style={{ height: 140 }}
             onClick={() => setLightbox(true)}
           >
@@ -39,36 +59,12 @@ export function TypologyCard({ typology, onEdit, onDelete }: TypologyCardProps) 
               <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow transition-opacity" />
             </div>
           </div>
-        ) : url && imgError ? (
-          <div className="flex items-center justify-center bg-gray-50 border-b" style={{ height: 80 }}>
-            <ImageOff className="h-5 w-5 text-gray-300" />
+        )}
+        {url && imgError && (
+          <div className="flex items-center justify-center rounded-md border bg-gray-50" style={{ height: 60 }}>
+            <ImageOff className="h-4 w-4 text-gray-300" />
           </div>
-        ) : null}
-
-        {/* Info */}
-        <div className="p-3 flex flex-col gap-1.5">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="font-medium text-sm">{typology.name}</p>
-              <p className="text-xs text-muted-foreground">{typology.area_m2} m²</p>
-            </div>
-            <div className="flex gap-1 flex-shrink-0">
-              <Button variant="ghost" size="sm" onClick={() => onEdit(typology)}>
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="ghost" size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => onDelete(typology)}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {typology.units_available} unidad{typology.units_available !== 1 ? 'es' : ''} disponible{typology.units_available !== 1 ? 's' : ''}
-          </p>
-        </div>
+        )}
       </div>
 
       {/* Lightbox */}

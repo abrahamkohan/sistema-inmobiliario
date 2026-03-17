@@ -1,5 +1,5 @@
 // src/components/projects/ProjectPhotosSheet.tsx
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Modal } from '@/components/ui/modal'
 import { PhotoGallery } from './PhotoGallery'
 import { PhotoUpload } from './PhotoUpload'
 import { useProjectPhotos } from '@/hooks/useProjectPhotos'
@@ -20,17 +20,11 @@ export function ProjectPhotosSheet({
   const { data: photos = [] } = useProjectPhotos(projectId)
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Fotos — {projectName}</SheetTitle>
-        </SheetHeader>
-
-        <div className="mt-6 flex flex-col gap-4">
-          <PhotoUpload projectId={projectId} sortOrderStart={photos.length} />
-          <PhotoGallery projectId={projectId} />
-        </div>
-      </SheetContent>
-    </Sheet>
+    <Modal open={open} onClose={() => onOpenChange(false)} title={`Fotos — ${projectName}`}>
+      <div className="flex flex-col gap-4">
+        <PhotoUpload projectId={projectId} sortOrderStart={photos.length} />
+        <PhotoGallery projectId={projectId} />
+      </div>
+    </Modal>
   )
 }

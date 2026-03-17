@@ -28,7 +28,7 @@ import { CSS } from '@dnd-kit/utilities'
 
 // ─── Layout storage ────────────────────────────────────────────────────────────
 
-const LS_LAYOUTS = 'dashboard_rgl_layouts_v2'
+const LS_LAYOUTS = 'dashboard_rgl_layouts_v3'
 type Layout  = LayoutItem[]
 type Layouts = { lg: Layout; md: Layout; sm: Layout }
 
@@ -38,22 +38,22 @@ const ROW_HEIGHT  = 52
 
 const DEFAULT_LAYOUTS: Layouts = {
   lg: [
-    { i: 'kpis',      x: 0, y: 0,  w: 12, h: 3,  minW: 6,  minH: 2 },
-    { i: 'radar',     x: 0, y: 3,  w: 8,  h: 7,  minW: 4,  minH: 4 },
-    { i: 'mercado',   x: 8, y: 3,  w: 4,  h: 7,  minW: 3,  minH: 4 },
-    { i: 'grafico',   x: 0, y: 10, w: 7,  h: 5,  minW: 4,  minH: 3 },
-    { i: 'actividad', x: 7, y: 10, w: 5,  h: 5,  minW: 3,  minH: 3 },
-    { i: 'proyectos', x: 0, y: 15, w: 6,  h: 5,  minW: 3,  minH: 3 },
-    { i: 'recursos',  x: 6, y: 15, w: 6,  h: 5,  minW: 4,  minH: 3 },
+    { i: 'kpis',      x: 0, y: 0,  w: 12, h: 2,  minW: 6,  minH: 2 },
+    { i: 'radar',     x: 0, y: 2,  w: 8,  h: 5,  minW: 4,  minH: 3 },
+    { i: 'mercado',   x: 8, y: 2,  w: 4,  h: 5,  minW: 3,  minH: 3 },
+    { i: 'grafico',   x: 0, y: 7,  w: 7,  h: 6,  minW: 4,  minH: 3 },
+    { i: 'actividad', x: 7, y: 7,  w: 5,  h: 6,  minW: 3,  minH: 3 },
+    { i: 'proyectos', x: 0, y: 13, w: 6,  h: 4,  minW: 3,  minH: 3 },
+    { i: 'recursos',  x: 6, y: 13, w: 6,  h: 5,  minW: 4,  minH: 3 },
   ],
   md: [
-    { i: 'kpis',      x: 0, y: 0,  w: 6, h: 4,  minW: 6, minH: 2 },
-    { i: 'mercado',   x: 0, y: 4,  w: 2, h: 9,  minW: 2, minH: 4 },
-    { i: 'radar',     x: 2, y: 4,  w: 4, h: 9,  minW: 3, minH: 4 },
-    { i: 'grafico',   x: 0, y: 13, w: 4, h: 5,  minW: 3, minH: 3 },
-    { i: 'actividad', x: 4, y: 13, w: 2, h: 5,  minW: 2, minH: 3 },
-    { i: 'proyectos', x: 0, y: 18, w: 3, h: 5,  minW: 3, minH: 3 },
-    { i: 'recursos',  x: 3, y: 18, w: 3, h: 5,  minW: 3, minH: 3 },
+    { i: 'kpis',      x: 0, y: 0,  w: 6, h: 3,  minW: 6, minH: 2 },
+    { i: 'mercado',   x: 0, y: 3,  w: 2, h: 7,  minW: 2, minH: 3 },
+    { i: 'radar',     x: 2, y: 3,  w: 4, h: 7,  minW: 3, minH: 3 },
+    { i: 'grafico',   x: 0, y: 10, w: 4, h: 6,  minW: 3, minH: 3 },
+    { i: 'actividad', x: 4, y: 10, w: 2, h: 6,  minW: 2, minH: 3 },
+    { i: 'proyectos', x: 0, y: 16, w: 3, h: 4,  minW: 3, minH: 3 },
+    { i: 'recursos',  x: 3, y: 16, w: 3, h: 5,  minW: 3, minH: 3 },
   ],
   sm: [
     { i: 'kpis',      x: 0, y: 0,  w: 1, h: 5,  minW: 1, minH: 3 },
@@ -165,18 +165,18 @@ function KpisWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboar
     { label: 'Simulaciones',      value: stats?.counts.simulations ?? 0,     icon: Calculator, accent: '#f59e0b' },
   ]
   return (
-    <Grid columns="2" gap="3" style={{ height: '100%' }}>
+    <Grid columns="2" gap="2" style={{ height: '100%' }}>
       {metrics.map(({ label, value, icon: Icon, accent }) => (
-        <Card key={label} size="2" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.05)', borderTop: `3px solid ${accent}`, height: '100%', boxSizing: 'border-box', borderRadius: 14 }}>
-          <Flex direction="column" justify="between" style={{ height: '100%' }}>
-            <Box style={{ background: `${accent}14`, borderRadius: 8, padding: 7, alignSelf: 'flex-start' }}>
-              <Icon size={16} style={{ color: accent }} />
+        <Card key={label} size="1" style={{ borderTop: `3px solid ${accent}`, borderRadius: 12, padding: '10px 14px', boxSizing: 'border-box', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+          <Flex align="center" gap="3">
+            <Box style={{ background: `${accent}16`, borderRadius: 8, padding: 7, flexShrink: 0 }}>
+              <Icon size={15} style={{ color: accent }} />
             </Box>
             <Box>
-              <Heading size="8" weight="bold" style={{ fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+              <Heading size="7" weight="bold" style={{ fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
                 {isLoading ? '—' : value.toLocaleString('es-PY')}
               </Heading>
-              <Text as="p" size="1" color="gray" mt="1">{label}</Text>
+              <Text as="p" size="1" color="gray" style={{ marginTop: 2 }}>{label}</Text>
             </Box>
           </Flex>
         </Card>
@@ -230,7 +230,7 @@ function RadarWidget({ stats, isLoading, compact }: {
         <thead>
           <tr style={{ background: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
             {['Proyecto', 'Estado', 'Precio m²', 'Rentab. est.', 'Unidades'].map((label, i) => (
-              <th key={label} style={{ padding: '10px 16px', textAlign: i === 0 || i === 1 ? 'left' : 'right', fontWeight: 700, fontSize: 11, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <th key={label} style={{ padding: '8px 12px', textAlign: i === 0 || i === 1 ? 'left' : 'right', fontWeight: 700, fontSize: 11, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 {label}
               </th>
             ))}
@@ -250,16 +250,16 @@ function RadarWidget({ stats, isLoading, compact }: {
                 style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer' }}
                 className="hover:bg-muted/50"
               >
-                <td style={{ padding: '12px 16px' }}><Text size="2" weight="bold">{p.name}</Text></td>
-                <td style={{ padding: '12px 16px' }}>
+                <td style={{ padding: '8px 12px' }}><Text size="2" weight="bold">{p.name}</Text></td>
+                <td style={{ padding: '8px 12px' }}>
                   {sb ? <Badge color={sb.color} variant="soft" radius="full">{sb.label}</Badge>
                       : <Badge color="gray" variant="soft" radius="full">{p.status}</Badge>}
                 </td>
-                <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                <td style={{ padding: '8px 12px', textAlign: 'right' }}>
                   {p.avg_price_m2 ? <Text size="2" weight="bold">USD {p.avg_price_m2.toLocaleString('es-PY')}</Text> : <Text size="2" color="gray">—</Text>}
                 </td>
-                <td style={{ padding: '12px 16px', textAlign: 'right' }}><Text size="2" color="gray">—</Text></td>
-                <td style={{ padding: '12px 16px', textAlign: 'right' }}><Text size="2" color="gray">{p.unit_count}</Text></td>
+                <td style={{ padding: '8px 12px', textAlign: 'right' }}><Text size="2" color="gray">—</Text></td>
+                <td style={{ padding: '8px 12px', textAlign: 'right' }}><Text size="2" color="gray">{p.unit_count}</Text></td>
               </tr>
             )
           })}
@@ -298,20 +298,20 @@ function MercadoWidget({ compact }: { compact?: boolean }) {
     )
   }
 
-  // Desktop: vertical stack
+  // Desktop: 2×2 grid
   return (
-    <Flex direction="column" gap="2" style={{ height: '100%' }}>
+    <Grid columns="2" gap="2" style={{ height: '100%' }}>
       {items.map(({ label, value, detail, pct }) => (
-        <Card key={label} size="2" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)', flex: 1, padding: '10px 14px', borderRadius: 12 }}>
-          <Flex justify="between" align="start" mb="1">
-            <Text size="1" color="gray" weight="medium" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</Text>
+        <Card key={label} size="1" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)', padding: '10px 12px', borderRadius: 12 }}>
+          <Flex justify="between" align="center" mb="1">
+            <Text size="1" color="gray" weight="medium" style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 10 }}>{label}</Text>
             {pct !== null && <PctArrow pct={pct} />}
           </Flex>
           <Heading size="4" weight="bold" style={{ fontVariantNumeric: 'tabular-nums', lineHeight: 1, opacity: isLoading ? 0.3 : 1 }}>{value}</Heading>
-          <Text as="p" size="1" color="gray" mt="1">{detail}</Text>
+          <Text as="p" size="1" color="gray" mt="1" style={{ fontSize: 11 }}>{detail}</Text>
         </Card>
       ))}
-    </Flex>
+    </Grid>
   )
 }
 
@@ -319,7 +319,7 @@ function GraficoWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashb
   const data = stats?.simsByMonth ?? []
   const maxVal = Math.max(...data.map((d) => d.total), 1)
   return (
-    <Card size="3" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box', borderRadius: 14 }}>
+    <Card size="1" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box', borderRadius: 14, padding: '8px 4px' }}>
       {isLoading ? (
         <Flex align="center" justify="center" style={{ height: '100%' }}><Text size="1" color="gray">Cargando...</Text></Flex>
       ) : data.every((d) => d.total === 0) ? (
@@ -360,7 +360,7 @@ function ActividadWidget({ stats, isLoading }: { stats: ReturnType<typeof useDas
             const clientName = (sim.clients as { full_name: string } | null)?.full_name ?? '—'
             return (
               <Box key={sim.id} onClick={() => window.open(`/informes/${sim.id}`, '_blank')}
-                style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer', padding: '12px 16px' }}
+                style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer', padding: '8px 12px' }}
                 className="hover:bg-muted/50"
               >
                 <Flex align="center" justify="between">
@@ -409,7 +409,7 @@ function ProyectosWidget({ stats, isLoading }: { stats: ReturnType<typeof useDas
             const sb = STATUS_BADGE[p.status]
             return (
               <Box key={p.id} onClick={() => navigate('/proyectos')}
-                style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer', padding: '12px 16px' }}
+                style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer', padding: '8px 12px' }}
                 className="hover:bg-muted/50"
               >
                 <Flex align="center" justify="between">
@@ -774,7 +774,7 @@ export function InicioPage() {
             breakpoints={BREAKPOINTS}
             cols={COLS}
             rowHeight={ROW_HEIGHT}
-            margin={[12, 12]}
+            margin={[8, 8]}
             containerPadding={[0, 0]}
             layouts={layouts}
             onLayoutChange={handleLayoutChange}

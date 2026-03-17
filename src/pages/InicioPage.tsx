@@ -1,11 +1,11 @@
 // src/pages/InicioPage.tsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router'
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
 } from '@dnd-kit/core'
 import {
-  SortableContext, arrayMove, rectSortingStrategy, useSortable,
+  SortableContext, arrayMove, verticalListSortingStrategy, rectSortingStrategy, useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
@@ -15,7 +15,7 @@ import { BarChart as BarChartIcon } from 'lucide-react'
 import { Card, Heading, Text, Badge, Flex, Grid, Box, Button as RxButton, Tabs } from '@radix-ui/themes'
 import {
   Users, Building2, Calculator, FileText, Plus, ExternalLink,
-  Settings2, LayoutDashboard,
+  Settings2, LayoutDashboard, GripVertical,
   TrendingUp, TrendingDown, Minus, Activity, Home,
   Globe, Newspaper, Database, Wrench,
 } from 'lucide-react'
@@ -603,18 +603,128 @@ function QuickActionsBar() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PAGE — grid asimétrico
+// Secciones arrastrables
+// ══════════════════════════════════════════════════════════════════════════════
+
+type SectionId = 'kpis' | 'radar_mercado' | 'bottom' | 'recursos'
+
+const DEFAULT_SECTIONS: SectionId[] = ['kpis', 'radar_mercado', 'bottom', 'recursos']
+const LS_SECTIONS = 'dashboard_section_order_v1'
+
+function loadSections(): SectionId[] {
+  try {
+    const saved = localStorage.getItem(LS_SECTIONS)
+    if (saved) {
+      const parsed = JSON.parse(saved) as string[]
+      const valid = parsed.filter((id) => DEFAULT_SECTIONS.includes(id as SectionId)) as SectionId[]
+      const missing = DEFAULT_SECTIONS.filter((id) => !valid.includes(id))
+      return [...valid, ...missing]
+    }
+  } catch { /* ignore */ }
+  return DEFAULT_SECTIONS
+}
+
+function SortableSection({ id, editMode, children }: { id: string; editMode: boolean; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        position: 'relative',
+        zIndex: isDragging ? 50 : undefined,
+      }}
+    >
+      {editMode && (
+        <div
+          {...attributes}
+          {...listeners}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10,
+            padding: '3px 14px',
+            borderRadius: '0 0 8px 8px',
+            background: 'var(--color-background)',
+            border: '1px solid var(--border)',
+            borderTop: 'none',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+            cursor: 'grab',
+            color: 'var(--muted-foreground)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+          }}
+        >
+          <GripVertical size={13} />
+          <Text size="1" color="gray" style={{ userSelect: 'none', pointerEvents: 'none' }}>mover</Text>
+        </div>
+      )}
+      <div style={{ paddingTop: editMode ? 24 : 0 }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PAGE — grid asimétrico + secciones arrastrables
 // ══════════════════════════════════════════════════════════════════════════════
 
 export function InicioPage() {
   const [editMode, setEditMode] = useState(false)
+  const [sections, setSections] = useState<SectionId[]>(loadSections)
 
   const { data: stats, isLoading } = useDashboardStats()
   const { data: config } = useConsultoraConfig()
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      setSections((prev) => {
+        const next = arrayMove(prev, prev.indexOf(active.id as SectionId), prev.indexOf(over.id as SectionId))
+        localStorage.setItem(LS_SECTIONS, JSON.stringify(next))
+        return next
+      })
+    }
+  }, [])
+
   const now = new Date()
   const hour = now.getHours()
   const greeting = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches'
+
+  function renderSection(id: SectionId) {
+    switch (id) {
+      case 'kpis':
+        return <ResumenWidget stats={stats} isLoading={isLoading} />
+
+      case 'radar_mercado':
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 20, alignItems: 'start' }} className="dashboard-row-2">
+            <RadarWidget stats={stats} isLoading={isLoading} rentabilidadRef={null} />
+            <MercadoWidget />
+          </div>
+        )
+
+      case 'bottom':
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)', gap: 20, alignItems: 'start' }} className="dashboard-row-3">
+            <GraficoWidget stats={stats} isLoading={isLoading} />
+            <ActividadWidget stats={stats} isLoading={isLoading} />
+            <ProyectosWidget stats={stats} isLoading={isLoading} />
+          </div>
+        )
+
+      case 'recursos':
+        return <RecursosWidget config={config} editMode={editMode} />
+    }
+  }
 
   return (
     <Box p={{ initial: '4', md: '6' }} style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -647,55 +757,38 @@ export function InicioPage() {
         <QuickActionsBar />
       </Box>
 
-      {/* ── Main dashboard grid ── */}
-      <Flex direction="column" gap="5">
+      {editMode && (
+        <Card mb="4" style={{ background: 'var(--muted)', border: '1px solid var(--border)', boxShadow: 'none' }}>
+          <Flex align="center" gap="2">
+            <GripVertical size={15} style={{ color: 'var(--muted-foreground)' }} />
+            <Text size="2" color="gray">
+              Modo edición — arrastrá las secciones desde el handle central para reorganizar.
+            </Text>
+          </Flex>
+        </Card>
+      )}
 
-        {/* Fila 1: KPIs — full width */}
-        <ResumenWidget stats={stats} isLoading={isLoading} />
+      {/* ── Secciones arrastrables ── */}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={sections} strategy={verticalListSortingStrategy}>
+          <Flex direction="column" gap="5">
+            {sections.map((id) => (
+              <SortableSection key={id} id={id} editMode={editMode}>
+                {renderSection(id)}
+              </SortableSection>
+            ))}
+          </Flex>
+        </SortableContext>
+      </DndContext>
 
-        {/* Fila 2: Radar (grande) + Mercado (sidebar) */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)',
-          gap: 20,
-          alignItems: 'start',
-        }} className="dashboard-row-2">
-          <RadarWidget stats={stats} isLoading={isLoading} rentabilidadRef={null} />
-          <MercadoWidget />
-        </div>
-
-        {/* Fila 3: Gráfico (1/2) + Actividad (1/4) + Proyectos (1/4) */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)',
-          gap: 20,
-          alignItems: 'start',
-        }} className="dashboard-row-3">
-          <GraficoWidget stats={stats} isLoading={isLoading} />
-          <ActividadWidget stats={stats} isLoading={isLoading} />
-          <ProyectosWidget stats={stats} isLoading={isLoading} />
-        </div>
-
-        {/* Fila 4: Recursos — full width */}
-        <RecursosWidget config={config} editMode={editMode} />
-
-      </Flex>
-
-      {/* Responsive: colapsar a 1 columna en móvil */}
       <style>{`
         @media (max-width: 768px) {
           .dashboard-row-2,
-          .dashboard-row-3 {
-            grid-template-columns: 1fr !important;
-          }
+          .dashboard-row-3 { grid-template-columns: 1fr !important; }
         }
         @media (min-width: 769px) and (max-width: 1024px) {
-          .dashboard-row-3 {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-          }
-          .dashboard-row-3 > *:first-child {
-            grid-column: 1 / -1;
-          }
+          .dashboard-row-3 { grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; }
+          .dashboard-row-3 > *:first-child { grid-column: 1 / -1; }
         }
       `}</style>
     </Box>

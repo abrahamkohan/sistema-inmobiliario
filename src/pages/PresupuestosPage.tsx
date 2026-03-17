@@ -1,6 +1,6 @@
 // src/pages/PresupuestosPage.tsx
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Plus, FileText, Copy, Trash2, Pencil, UploadCloud, X as XIcon, Loader2, FileDown } from 'lucide-react'
+import { Plus, FileText, Copy, Trash2, Pencil, UploadCloud, X as XIcon, Loader2, FileDown, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -43,6 +43,8 @@ export function PresupuestosPage() {
   function handleDelete(id: string) {
     if (confirm('¿Eliminar este presupuesto?')) deleteP.mutate(id)
   }
+
+  const formTitle = editing ? 'Editar presupuesto' : 'Nuevo presupuesto'
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6">
@@ -121,7 +123,7 @@ export function PresupuestosPage() {
             </table>
           </div>
 
-          {/* Mobile */}
+          {/* Mobile list */}
           <div className="flex flex-col gap-2 md:hidden">
             {list.map((p) => (
               <div key={p.id} className="rounded-lg border bg-white p-4 flex flex-col gap-2">
@@ -159,20 +161,72 @@ export function PresupuestosPage() {
         </>
       )}
 
-      <Modal open={sheetOpen} onClose={() => setSheetOpen(false)} title={editing ? 'Editar presupuesto' : 'Nuevo presupuesto'} size="lg">
-        <PresupuestoForm
-          key={editing?.id ?? 'new'}
-          initial={editing}
-          onClose={() => setSheetOpen(false)}
-        />
-      </Modal>
+      {/* ── Mobile: full-screen app layout ── */}
+      {sheetOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 flex flex-col"
+          style={{ background: '#f1f5f9' }}
+        >
+          {/* App header — sticky */}
+          <div
+            className="flex-shrink-0 flex items-center justify-between px-2 bg-white border-b"
+            style={{ minHeight: 52 }}
+          >
+            <button
+              onClick={() => setSheetOpen(false)}
+              className="flex items-center gap-0.5 text-gray-500 px-2 py-1.5 rounded-lg active:bg-gray-100"
+            >
+              <ChevronLeft className="h-5 w-5" />
+              <span className="text-sm">Volver</span>
+            </button>
+            <h2 className="text-[15px] font-semibold text-gray-900 absolute left-1/2 -translate-x-1/2 pointer-events-none">
+              {formTitle}
+            </h2>
+            <button
+              onClick={() => setSheetOpen(false)}
+              className="p-2 rounded-lg text-gray-400 active:bg-gray-100"
+            >
+              <XIcon className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Scrollable form */}
+          <div className="flex-1 overflow-y-auto">
+            <PresupuestoForm
+              key={editing?.id ?? 'new'}
+              initial={editing}
+              onClose={() => setSheetOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Desktop: modal ── */}
+      <div className="hidden md:block">
+        <Modal open={sheetOpen} onClose={() => setSheetOpen(false)} title={formTitle} size="lg">
+          <PresupuestoForm
+            key={editing?.id ?? 'new'}
+            initial={editing}
+            onClose={() => setSheetOpen(false)}
+            isDesktop
+          />
+        </Modal>
+      </div>
     </div>
   )
 }
 
 // ─── Form ────────────────────────────────────────────────────────────────────
 
-function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: () => void }) {
+function PresupuestoForm({
+  initial,
+  onClose,
+  isDesktop = false,
+}: {
+  initial: PRow | null
+  onClose: () => void
+  isDesktop?: boolean
+}) {
   const createP = useCreatePresupuesto()
   const updateP = useUpdatePresupuesto()
 
@@ -198,9 +252,8 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
 
   const n = (v: string) => parseFloat(v) || 0
 
-  // Live calculations
-  const totalUnidad   = n(precioUsd) + (cocheraOn ? n(cocheraPrecioUsd) : 0)
-  const comprometido  = n(entrega) + n(cuotasCantidad) * n(cuotasValor) + (refuerzosOn ? n(refuerzosCantidad) * n(refuerzosValor) : 0) + n(saldoContraEntrega)
+  const totalUnidad    = n(precioUsd) + (cocheraOn ? n(cocheraPrecioUsd) : 0)
+  const comprometido   = n(entrega) + n(cuotasCantidad) * n(cuotasValor) + (refuerzosOn ? n(refuerzosCantidad) * n(refuerzosValor) : 0) + n(saldoContraEntrega)
   const saldoPendiente = totalUnidad - comprometido
 
   const handleFloorPlan = useCallback(async (file: File) => {
@@ -231,21 +284,21 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
 
   async function handleSave() {
     const payload = {
-      client_name:           clientName || null,
-      unidad_nombre:         unidadNombre,
-      superficie_m2:         superficieM2 ? n(superficieM2) : null,
-      precio_usd:            n(precioUsd),
-      cochera_nombre:        cocheraOn ? (cocheraNombre || null) : null,
-      cochera_precio_usd:    cocheraOn ? n(cocheraPrecioUsd) : 0,
-      floor_plan_path:       floorPlanPath,
-      entrega:               n(entrega),
-      cuotas_cantidad:       Math.round(n(cuotasCantidad)),
-      cuotas_valor:          n(cuotasValor),
-      refuerzos_cantidad:    refuerzosOn ? Math.round(n(refuerzosCantidad)) : 0,
-      refuerzos_valor:       refuerzosOn ? n(refuerzosValor) : 0,
+      client_name:            clientName || null,
+      unidad_nombre:          unidadNombre,
+      superficie_m2:          superficieM2 ? n(superficieM2) : null,
+      precio_usd:             n(precioUsd),
+      cochera_nombre:         cocheraOn ? (cocheraNombre || null) : null,
+      cochera_precio_usd:     cocheraOn ? n(cocheraPrecioUsd) : 0,
+      floor_plan_path:        floorPlanPath,
+      entrega:                n(entrega),
+      cuotas_cantidad:        Math.round(n(cuotasCantidad)),
+      cuotas_valor:           n(cuotasValor),
+      refuerzos_cantidad:     refuerzosOn ? Math.round(n(refuerzosCantidad)) : 0,
+      refuerzos_valor:        refuerzosOn ? n(refuerzosValor) : 0,
       refuerzos_periodicidad: refuerzosOn ? Math.round(n(refuerzosPeriodicidad)) : 6,
-      saldo_contra_entrega:  saldoOn ? n(saldoContraEntrega) : 0,
-      notas:                 notas || null,
+      saldo_contra_entrega:   saldoOn ? n(saldoContraEntrega) : 0,
+      notas:                  notas || null,
     }
     try {
       if (initial) {
@@ -263,115 +316,239 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
 
   const isPending = createP.isPending || updateP.isPending
 
-  return (
-    <div className="flex flex-col gap-4 pb-4">
+  // Desktop: flat layout inside modal (modal provides padding + scroll)
+  if (isDesktop) {
+    return (
+      <div className="flex flex-col gap-3 pb-2">
 
-      {/* Identificación */}
-      <FSectionTitle>Identificación</FSectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="col-span-2">
+        {/* Identificación */}
+        <FSection title="Identificación">
           <FFieldText label="Cliente" value={clientName} onChange={setClientName} placeholder="Nombre del cliente" />
-        </div>
-        <div className="col-span-2">
           <FFieldText label="Nombre de unidad" value={unidadNombre} onChange={setUnidadNombre} placeholder="Ej: Apto 3B" />
-        </div>
-        <FFieldNum label="Superficie" value={superficieM2} onChange={setSuperficieM2} suffix="m²" />
-        <FFieldNum label="Precio unidad" value={precioUsd} onChange={setPrecioUsd} suffix="USD" />
-      </div>
-
-      {/* Cochera */}
-      <div>
-        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
-          <input type="checkbox" checked={cocheraOn} onChange={(e) => setCocheraOn(e.target.checked)} className="rounded" />
-          Incluir cochera
-        </label>
-        {cocheraOn && (
-          <div className="grid grid-cols-2 gap-3 mt-3">
-            <FFieldText label="Nombre cochera" value={cocheraNombre} onChange={setCocheraNombre} placeholder="Ej: Cochera 12" />
-            <FFieldNum label="Precio cochera" value={cocheraPrecioUsd} onChange={setCocheraPrecioUsd} suffix="USD" />
+          <div className="grid grid-cols-2 gap-2">
+            <FFieldNum label="Superficie" value={superficieM2} onChange={setSuperficieM2} suffix="m²" compact />
+            <FFieldNum label="Precio unidad" value={precioUsd} onChange={setPrecioUsd} suffix="USD" />
           </div>
-        )}
-      </div>
+        </FSection>
 
-      {/* Plano */}
-      <FSectionTitle>Plano de planta</FSectionTitle>
-      <FloorPlanField value={floorPlanPath} onChange={setFloorPlanPath} uploading={uploading} onFile={handleFloorPlan} />
-
-      {/* Plan de pagos */}
-      <FSectionTitle>Plan de pagos</FSectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="col-span-2">
-          <FFieldNum label="Entrega / anticipo" value={entrega} onChange={setEntrega} suffix="USD" />
+        {/* Cochera */}
+        <div>
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+            <input type="checkbox" checked={cocheraOn} onChange={(e) => setCocheraOn(e.target.checked)} className="rounded" />
+            Incluir cochera
+          </label>
+          {cocheraOn && (
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <FFieldText label="Nombre cochera" value={cocheraNombre} onChange={setCocheraNombre} placeholder="Cochera 12" />
+              <FFieldNum label="Precio cochera" value={cocheraPrecioUsd} onChange={setCocheraPrecioUsd} suffix="USD" />
+            </div>
+          )}
         </div>
-        <FFieldNum label="Cuotas (cantidad)" value={cuotasCantidad} onChange={setCuotasCantidad} />
-        <FFieldNum label="Valor por cuota" value={cuotasValor} onChange={setCuotasValor} suffix="USD" />
-        <div className="col-span-2">
+
+        {/* Plano */}
+        <FSection title="Plano de planta">
+          <FloorPlanField value={floorPlanPath} onChange={setFloorPlanPath} uploading={uploading} onFile={handleFloorPlan} />
+        </FSection>
+
+        {/* Plan de pagos */}
+        <FSection title="Plan de pagos">
+          <FFieldNum label="Entrega / anticipo" value={entrega} onChange={setEntrega} suffix="USD" />
+          <div className="grid grid-cols-2 gap-2">
+            <FFieldNum label="Cuotas (cantidad)" value={cuotasCantidad} onChange={setCuotasCantidad} compact />
+            <FFieldNum label="Valor por cuota" value={cuotasValor} onChange={setCuotasValor} suffix="USD" />
+          </div>
           <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
             <input type="checkbox" checked={refuerzosOn} onChange={(e) => setRefuerzosOn(e.target.checked)} className="rounded" />
             Incluir refuerzos
           </label>
-        </div>
-        {refuerzosOn && (
-          <>
-            <FFieldNum label="Cant. refuerzos" value={refuerzosCantidad} onChange={setRefuerzosCantidad} />
-            <FFieldNum label="Valor por refuerzo" value={refuerzosValor} onChange={setRefuerzosValor} suffix="USD" />
-            <div className="col-span-2">
-              <FFieldNum label="Periodicidad" value={refuerzosPeriodicidad} onChange={setRefuerzosPeriodicidad} suffix="meses" />
-            </div>
-          </>
-        )}
-        {/* Saldo contra entrega — condicional */}
-        <div className="col-span-2">
+          {refuerzosOn && (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <FFieldNum label="Cant. refuerzos" value={refuerzosCantidad} onChange={setRefuerzosCantidad} compact />
+                <FFieldNum label="Valor por refuerzo" value={refuerzosValor} onChange={setRefuerzosValor} suffix="USD" />
+              </div>
+              <FFieldNum label="Periodicidad" value={refuerzosPeriodicidad} onChange={setRefuerzosPeriodicidad} suffix="meses" compact />
+            </>
+          )}
           <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
             <input type="checkbox" checked={saldoOn} onChange={(e) => setSaldoOn(e.target.checked)} className="rounded" />
             Saldo contra entrega
           </label>
-        </div>
-        {saldoOn && (
-          <div className="col-span-2">
+          {saldoOn && (
             <FFieldNum label="Monto saldo contra entrega" value={saldoContraEntrega} onChange={setSaldoContraEntrega} suffix="USD" />
+          )}
+        </FSection>
+
+        {/* Resumen */}
+        <FinancialSummary total={totalUnidad} comprometido={comprometido} saldo={saldoPendiente} />
+
+        {/* Notas */}
+        <FSection title="Notas">
+          <textarea
+            value={notas}
+            onChange={(e) => setNotas(e.target.value)}
+            placeholder="Observaciones, condiciones especiales..."
+            rows={2}
+            className="w-full text-sm resize-none bg-transparent outline-none text-gray-700 placeholder:text-gray-400"
+          />
+        </FSection>
+
+        {/* Sticky buttons */}
+        <div
+          className="flex gap-2"
+          style={{ position: 'sticky', bottom: -20, background: 'white', paddingTop: 10, paddingBottom: 4, borderTop: '1px solid #e5e7eb', marginTop: 4 }}
+        >
+          <Button variant="outline" size="sm" onClick={onClose} className="flex-1">Cancelar</Button>
+          <Button className="flex-1" size="sm" disabled={isPending} onClick={handleSave}>
+            {isPending ? 'Guardando...' : 'Guardar'}
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Mobile: card layout inside full-screen app container
+  return (
+    <div className="flex flex-col gap-3 p-4 pb-8">
+
+      {/* Card: Identificación */}
+      <AppCard title="Identificación">
+        <FFieldText label="Cliente" value={clientName} onChange={setClientName} placeholder="Nombre del cliente" />
+        <FFieldText label="Nombre de unidad" value={unidadNombre} onChange={setUnidadNombre} placeholder="Ej: Apto 3B" />
+        <div className="grid grid-cols-2 gap-3">
+          <FFieldNum label="Superficie" value={superficieM2} onChange={setSuperficieM2} suffix="m²" compact />
+          <FFieldNum label="Precio" value={precioUsd} onChange={setPrecioUsd} suffix="USD" />
+        </div>
+      </AppCard>
+
+      {/* Card: Cochera */}
+      <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="px-4 py-3.5">
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={cocheraOn}
+              onChange={(e) => setCocheraOn(e.target.checked)}
+              className="rounded w-4 h-4 flex-shrink-0"
+            />
+            <span className="text-sm font-medium text-gray-700">Incluir cochera</span>
+          </label>
+        </div>
+        {cocheraOn && (
+          <div className="border-t px-4 py-3 flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <FFieldText label="Nombre" value={cocheraNombre} onChange={setCocheraNombre} placeholder="Cochera 12" />
+              <FFieldNum label="Precio" value={cocheraPrecioUsd} onChange={setCocheraPrecioUsd} suffix="USD" />
+            </div>
           </div>
         )}
       </div>
 
+      {/* Card: Plano */}
+      <AppCard title="Plano de planta">
+        <FloorPlanField value={floorPlanPath} onChange={setFloorPlanPath} uploading={uploading} onFile={handleFloorPlan} />
+      </AppCard>
+
+      {/* Card: Plan de pagos */}
+      <AppCard title="Plan de pagos">
+        {/* Entrega */}
+        <FFieldNum label="Entrega / anticipo" value={entrega} onChange={setEntrega} suffix="USD" />
+
+        {/* Cuotas */}
+        <div className="grid grid-cols-2 gap-3">
+          <FFieldNum label="Cuotas" value={cuotasCantidad} onChange={setCuotasCantidad} compact />
+          <FFieldNum label="Valor / cuota" value={cuotasValor} onChange={setCuotasValor} suffix="USD" />
+        </div>
+
+        {/* Refuerzos toggle */}
+        <div className="pt-1 border-t">
+          <label className="flex items-center gap-3 py-1 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={refuerzosOn}
+              onChange={(e) => setRefuerzosOn(e.target.checked)}
+              className="rounded w-4 h-4 flex-shrink-0"
+            />
+            <span className="text-sm text-gray-700">Incluir refuerzos</span>
+          </label>
+        </div>
+        {refuerzosOn && (
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <FFieldNum label="Cantidad" value={refuerzosCantidad} onChange={setRefuerzosCantidad} compact />
+              <FFieldNum label="Valor / refuerzo" value={refuerzosValor} onChange={setRefuerzosValor} suffix="USD" />
+            </div>
+            <FFieldNum label="Periodicidad" value={refuerzosPeriodicidad} onChange={setRefuerzosPeriodicidad} suffix="meses" compact />
+          </div>
+        )}
+
+        {/* Saldo toggle */}
+        <div className="pt-1 border-t">
+          <label className="flex items-center gap-3 py-1 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={saldoOn}
+              onChange={(e) => setSaldoOn(e.target.checked)}
+              className="rounded w-4 h-4 flex-shrink-0"
+            />
+            <span className="text-sm text-gray-700">Saldo contra entrega</span>
+          </label>
+        </div>
+        {saldoOn && (
+          <FFieldNum label="Monto saldo" value={saldoContraEntrega} onChange={setSaldoContraEntrega} suffix="USD" />
+        )}
+      </AppCard>
+
       {/* Resumen financiero */}
-      <div className="rounded-xl border overflow-hidden text-sm">
-        <div className="flex justify-between items-center px-4 py-2 bg-gray-50">
-          <span className="text-gray-500">Total unidad</span>
-          <span className="tabular-nums text-gray-700">{fmt(totalUnidad)}</span>
+      <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="px-4 py-2.5 border-b" style={{ background: '#f8fafc' }}>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Resumen</p>
         </div>
-        <div className="flex justify-between items-center px-4 py-2 bg-gray-50 border-t">
-          <span className="text-gray-500">Comprometido</span>
-          <span className="tabular-nums text-gray-700">{fmt(comprometido)}</span>
-        </div>
-        <div className={`flex justify-between items-center px-4 py-3 border-t ${saldoPendiente < 0 ? 'bg-red-50' : 'bg-white'}`}>
-          <span className="font-semibold text-gray-800" style={{ fontSize: 14 }}>Saldo pendiente</span>
-          <span
-            className="tabular-nums font-bold"
-            style={{ fontSize: 18, color: saldoPendiente < 0 ? '#dc2626' : saldoPendiente === 0 ? '#16a34a' : '#111827' }}
+        <div className="divide-y">
+          <div className="flex justify-between items-center px-4 py-2.5">
+            <span className="text-sm text-gray-500">Total unidad</span>
+            <span className="text-sm tabular-nums font-medium text-gray-700">{fmt(totalUnidad)}</span>
+          </div>
+          <div className="flex justify-between items-center px-4 py-2.5">
+            <span className="text-sm text-gray-500">Comprometido</span>
+            <span className="text-sm tabular-nums font-medium text-gray-700">{fmt(comprometido)}</span>
+          </div>
+          <div
+            className="flex justify-between items-center px-4 py-3"
+            style={{ background: saldoPendiente < 0 ? '#fef2f2' : saldoPendiente === 0 ? '#f0fdf4' : '#ffffff' }}
           >
-            {fmt(saldoPendiente)}
-          </span>
+            <span className="text-sm font-semibold text-gray-800">Saldo pendiente</span>
+            <span
+              className="tabular-nums font-bold"
+              style={{
+                fontSize: 20,
+                color: saldoPendiente < 0 ? '#dc2626' : saldoPendiente === 0 ? '#16a34a' : '#111827',
+              }}
+            >
+              {fmt(saldoPendiente)}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Notas */}
-      <FSectionTitle>Notas</FSectionTitle>
-      <textarea
-        value={notas}
-        onChange={(e) => setNotas(e.target.value)}
-        placeholder="Observaciones, condiciones especiales..."
-        rows={2}
-        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      />
+      <AppCard title="Notas">
+        <textarea
+          value={notas}
+          onChange={(e) => setNotas(e.target.value)}
+          placeholder="Observaciones, condiciones especiales..."
+          rows={3}
+          className="w-full text-sm resize-none bg-transparent outline-none text-gray-700 placeholder:text-gray-400 leading-relaxed"
+        />
+      </AppCard>
 
       {/* Botones sticky */}
       <div
         className="flex gap-2"
-        style={{ position: 'sticky', bottom: -16, background: 'white', paddingTop: 10, paddingBottom: 4, borderTop: '1px solid #e5e7eb', marginTop: 4 }}
+        style={{ position: 'sticky', bottom: 0, background: '#f1f5f9', paddingTop: 8, paddingBottom: 8, marginTop: 4 }}
       >
-        <Button variant="outline" size="sm" onClick={onClose} className="flex-1">Cancelar</Button>
-        <Button className="flex-1" size="sm" disabled={isPending} onClick={handleSave}>
+        <Button variant="outline" onClick={onClose} className="flex-1 h-11 text-sm font-medium">Cancelar</Button>
+        <Button className="flex-1 h-11 text-sm font-medium" disabled={isPending} onClick={handleSave}>
           {isPending ? 'Guardando...' : 'Guardar'}
         </Button>
       </div>
@@ -381,11 +558,53 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function FSectionTitle({ children }: { children: React.ReactNode }) {
+/** Card section for mobile app layout */
+function AppCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider border-t pt-3 mt-1 first:border-0 first:pt-0 first:mt-0">
+    <div className="bg-white rounded-xl border overflow-hidden">
+      <div className="px-4 py-2.5 border-b" style={{ background: '#f8fafc' }}>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{title}</p>
+      </div>
+      <div className="px-4 py-3 flex flex-col gap-3">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** Section title for desktop modal layout */
+function FSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider border-t pt-3 first:border-0 first:pt-0">
+        {title}
+      </p>
       {children}
-    </p>
+    </div>
+  )
+}
+
+function FinancialSummary({ total, comprometido, saldo }: { total: number; comprometido: number; saldo: number }) {
+  return (
+    <div className="rounded-xl border overflow-hidden text-sm">
+      <div className="flex justify-between items-center px-4 py-2 bg-gray-50">
+        <span className="text-gray-500">Total unidad</span>
+        <span className="tabular-nums text-gray-700">{fmt(total)}</span>
+      </div>
+      <div className="flex justify-between items-center px-4 py-2 bg-gray-50 border-t">
+        <span className="text-gray-500">Comprometido</span>
+        <span className="tabular-nums text-gray-700">{fmt(comprometido)}</span>
+      </div>
+      <div className={`flex justify-between items-center px-4 py-3 border-t ${saldo < 0 ? 'bg-red-50' : 'bg-white'}`}>
+        <span className="font-semibold text-gray-800" style={{ fontSize: 14 }}>Saldo pendiente</span>
+        <span
+          className="tabular-nums font-bold"
+          style={{ fontSize: 18, color: saldo < 0 ? '#dc2626' : saldo === 0 ? '#16a34a' : '#111827' }}
+        >
+          {fmt(saldo)}
+        </span>
+      </div>
+    </div>
   )
 }
 
@@ -395,20 +614,62 @@ function FFieldText({ label, value, onChange, placeholder }: {
   return (
     <div className="grid gap-1">
       <Label className="text-xs text-gray-500">{label}</Label>
-      <Input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="text-sm h-8" />
+      <Input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="text-sm h-9" />
     </div>
   )
 }
 
-function FFieldNum({ label, value, onChange, suffix }: {
-  label: string; value: string; onChange: (v: string) => void; suffix?: string
+function FFieldNum({ label, value, onChange, suffix, compact }: {
+  label: string; value: string; onChange: (v: string) => void; suffix?: string; compact?: boolean
 }) {
+  const [isFocused, setIsFocused] = useState(false)
+  const [display, setDisplay] = useState(() => fmtInput(value))
+
+  useEffect(() => {
+    if (!isFocused) setDisplay(fmtInput(value))
+  }, [value, isFocused])
+
+  function fmtInput(raw: string) {
+    const n = parseFloat(raw)
+    if (!raw || isNaN(n)) return raw
+    return n.toLocaleString('es-PY', { maximumFractionDigits: 2 })
+  }
+
+  function handleFocus() {
+    setIsFocused(true)
+    setDisplay(value)
+  }
+
+  function handleBlur() {
+    setIsFocused(false)
+    setDisplay(fmtInput(value))
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value
+    setDisplay(raw)
+    const numeric = raw.replace(/\./g, '').replace(',', '.')
+    onChange(numeric)
+  }
+
   return (
-    <div className="grid gap-1">
+    <div className="grid gap-1" style={compact ? { maxWidth: 104 } : undefined}>
       <Label className="text-xs text-gray-500">{label}</Label>
-      <div className="flex items-center gap-1.5">
-        <Input type="number" value={value} onChange={(e) => onChange(e.target.value)} className="text-sm h-8" />
-        {suffix && <span className="text-xs text-gray-400 whitespace-nowrap">{suffix}</span>}
+      <div className="relative">
+        <Input
+          type="text"
+          inputMode="decimal"
+          value={display}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          className={`text-sm h-9 text-right${suffix ? ' pr-12' : ''}`}
+        />
+        {suffix && (
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none whitespace-nowrap">
+            {suffix}
+          </span>
+        )}
       </div>
     </div>
   )

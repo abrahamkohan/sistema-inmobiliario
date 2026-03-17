@@ -193,6 +193,7 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
   const [refuerzosValor,        setRefuerzosValor]        = useState(String(initial?.refuerzos_valor ?? ''))
   const [refuerzosPeriodicidad, setRefuerzosPeriodicidad] = useState(String(initial?.refuerzos_periodicidad ?? 6))
   const [saldoContraEntrega,    setSaldoContraEntrega]    = useState(String(initial?.saldo_contra_entrega ?? ''))
+  const [saldoOn,               setSaldoOn]               = useState((initial?.saldo_contra_entrega ?? 0) > 0)
   const [notas,                 setNotas]                 = useState(initial?.notas ?? '')
 
   const n = (v: string) => parseFloat(v) || 0
@@ -243,7 +244,7 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
       refuerzos_cantidad:    refuerzosOn ? Math.round(n(refuerzosCantidad)) : 0,
       refuerzos_valor:       refuerzosOn ? n(refuerzosValor) : 0,
       refuerzos_periodicidad: refuerzosOn ? Math.round(n(refuerzosPeriodicidad)) : 6,
-      saldo_contra_entrega:  n(saldoContraEntrega),
+      saldo_contra_entrega:  saldoOn ? n(saldoContraEntrega) : 0,
       notas:                 notas || null,
     }
     try {
@@ -312,24 +313,45 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
         </div>
         {refuerzosOn && (
           <>
-            <FFieldNum label="Refuerzos (cantidad)" value={refuerzosCantidad} onChange={setRefuerzosCantidad} />
+            <FFieldNum label="Cant. refuerzos" value={refuerzosCantidad} onChange={setRefuerzosCantidad} />
             <FFieldNum label="Valor por refuerzo" value={refuerzosValor} onChange={setRefuerzosValor} suffix="USD" />
             <div className="col-span-2">
               <FFieldNum label="Periodicidad" value={refuerzosPeriodicidad} onChange={setRefuerzosPeriodicidad} suffix="meses" />
             </div>
           </>
         )}
+        {/* Saldo contra entrega — condicional */}
         <div className="col-span-2">
-          <FFieldNum label="Saldo contra entrega" value={saldoContraEntrega} onChange={setSaldoContraEntrega} suffix="USD" />
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+            <input type="checkbox" checked={saldoOn} onChange={(e) => setSaldoOn(e.target.checked)} className="rounded" />
+            Saldo contra entrega
+          </label>
         </div>
+        {saldoOn && (
+          <div className="col-span-2">
+            <FFieldNum label="Monto saldo contra entrega" value={saldoContraEntrega} onChange={setSaldoContraEntrega} suffix="USD" />
+          </div>
+        )}
       </div>
 
-      {/* Summary */}
-      <div className="rounded-lg bg-gray-50 border p-3 text-sm flex flex-col gap-1.5">
-        <SummaryRow label="Total unidad" value={fmt(totalUnidad)} />
-        <SummaryRow label="Comprometido" value={fmt(comprometido)} />
-        <div className="border-t pt-1.5 mt-0.5">
-          <SummaryRow label="Saldo pendiente" value={fmt(saldoPendiente)} bold />
+      {/* Resumen financiero */}
+      <div className="rounded-xl border overflow-hidden text-sm">
+        <div className="flex justify-between items-center px-4 py-2 bg-gray-50">
+          <span className="text-gray-500">Total unidad</span>
+          <span className="tabular-nums text-gray-700">{fmt(totalUnidad)}</span>
+        </div>
+        <div className="flex justify-between items-center px-4 py-2 bg-gray-50 border-t">
+          <span className="text-gray-500">Comprometido</span>
+          <span className="tabular-nums text-gray-700">{fmt(comprometido)}</span>
+        </div>
+        <div className={`flex justify-between items-center px-4 py-3 border-t ${saldoPendiente < 0 ? 'bg-red-50' : 'bg-white'}`}>
+          <span className="font-semibold text-gray-800" style={{ fontSize: 14 }}>Saldo pendiente</span>
+          <span
+            className="tabular-nums font-bold"
+            style={{ fontSize: 18, color: saldoPendiente < 0 ? '#dc2626' : saldoPendiente === 0 ? '#16a34a' : '#111827' }}
+          >
+            {fmt(saldoPendiente)}
+          </span>
         </div>
       </div>
 
@@ -339,16 +361,19 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
         value={notas}
         onChange={(e) => setNotas(e.target.value)}
         placeholder="Observaciones, condiciones especiales..."
-        rows={3}
+        rows={2}
         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
 
-      {/* Actions */}
-      <div className="flex gap-2 pt-2">
+      {/* Botones sticky */}
+      <div
+        className="flex gap-2"
+        style={{ position: 'sticky', bottom: -20, background: 'white', paddingTop: 10, paddingBottom: 4, borderTop: '1px solid #e5e7eb', marginTop: 4 }}
+      >
+        <Button variant="outline" size="sm" onClick={onClose} className="flex-1">Cancelar</Button>
         <Button className="flex-1" size="sm" disabled={isPending} onClick={handleSave}>
           {isPending ? 'Guardando...' : 'Guardar'}
         </Button>
-        <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
       </div>
     </div>
   )
@@ -422,16 +447,16 @@ function FloorPlanField({ value, onChange, uploading, onFile }: {
         </div>
       ) : (
         <div
-          className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors"
+          className="border border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+          style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}
           onClick={() => inputRef.current?.click()}
         >
-          {uploading ? (
-            <Loader2 className="h-6 w-6 text-gray-300 mx-auto mb-2 animate-spin" />
-          ) : (
-            <UploadCloud className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-          )}
+          {uploading
+            ? <Loader2 className="h-4 w-4 text-gray-300 flex-shrink-0 animate-spin" />
+            : <UploadCloud className="h-4 w-4 text-gray-300 flex-shrink-0" />
+          }
           <p className="text-xs text-gray-400">
-            {uploading ? 'Subiendo...' : 'Clic para seleccionar o pegar imagen (Ctrl+V)'}
+            {uploading ? 'Subiendo...' : 'Subir plano · clic o Ctrl+V'}
           </p>
         </div>
       )}

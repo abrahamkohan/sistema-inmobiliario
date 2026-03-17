@@ -1,6 +1,6 @@
 // src/components/layout/AppShell.tsx
 import { useState, useRef, useEffect } from 'react'
-import { Outlet, useLocation } from 'react-router'
+import { Outlet, useLocation, useNavigate } from 'react-router'
 import { Menu } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
@@ -8,6 +8,7 @@ import { useConsultoraConfig } from '@/hooks/useConsultora'
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { data: consultora } = useConsultoraConfig()
+  const navigate = useNavigate()
   const location = useLocation()
   const mainRef  = useRef<HTMLDivElement>(null)
 
@@ -45,7 +46,14 @@ export function AppShell() {
 
         {/* Top bar mobile */}
         <header className="md:hidden flex items-center justify-between px-4 border-b bg-sidebar" style={{ minHeight: 56 }}>
-          <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              navigate('/inicio')
+              mainRef.current?.scrollTo({ top: 0, behavior: 'instant' })
+            }}
+            className="flex items-center gap-3"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >
             {consultora?.logo_url ? (
               <img src={consultora.logo_url} alt={consultora.nombre} style={{ height: 28, objectFit: 'contain' }} />
             ) : (
@@ -53,7 +61,7 @@ export function AppShell() {
                 {consultora?.nombre ?? 'Sistema'}
               </span>
             )}
-          </div>
+          </button>
           <button
             onClick={() => setMobileOpen(true)}
             className="p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors"

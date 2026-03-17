@@ -58,7 +58,14 @@ export function Sidebar({ onClose }: SidebarProps) {
     <aside className="w-56 flex-shrink-0 border-r border-sidebar-border bg-sidebar flex flex-col h-full">
       {/* Brand */}
       <div className="px-5 py-4 border-b border-sidebar-border flex items-center justify-between" style={{ minHeight: 64 }}>
-        <NavLink to="/inicio" onClick={onClose} className="flex items-center flex-1 min-w-0">
+        <NavLink
+          to="/inicio"
+          onClick={() => {
+            onClose?.()
+            document.querySelector('main')?.scrollTo({ top: 0, behavior: 'instant' })
+          }}
+          className="flex items-center flex-1 min-w-0"
+        >
           {logoUrl ? (
             <img src={logoUrl} alt={nombre} style={{ maxWidth: 160, maxHeight: 44, objectFit: 'contain' }} />
           ) : (

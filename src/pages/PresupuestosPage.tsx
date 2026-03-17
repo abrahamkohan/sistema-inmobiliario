@@ -368,7 +368,7 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
       {/* Botones sticky */}
       <div
         className="flex gap-2"
-        style={{ position: 'sticky', bottom: -20, background: 'white', paddingTop: 10, paddingBottom: 4, borderTop: '1px solid #e5e7eb', marginTop: 4 }}
+        style={{ position: 'sticky', bottom: -16, background: 'white', paddingTop: 10, paddingBottom: 4, borderTop: '1px solid #e5e7eb', marginTop: 4 }}
       >
         <Button variant="outline" size="sm" onClick={onClose} className="flex-1">Cancelar</Button>
         <Button className="flex-1" size="sm" disabled={isPending} onClick={handleSave}>

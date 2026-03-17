@@ -200,7 +200,6 @@ export function SimEditDialog({ sim, onClose }: Props) {
           </Button>
           <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
         </div>
-        </div>
     </Modal>
   )
 }

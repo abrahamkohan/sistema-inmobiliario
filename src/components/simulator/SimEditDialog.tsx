@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Modal } from '@/components/ui/modal'
 import { useUpdateSimulation } from '@/hooks/useSimulations'
 import { calcAirbnb, calcAlquiler, calcPlusvalia } from '@/simulator/engine'
 import type { AirbnbInputs, AlquilerInputs, PlusvaliaInputs } from '@/simulator/engine'
@@ -133,17 +134,8 @@ export function SimEditDialog({ sim, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-lg max-h-[92vh] flex flex-col">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold text-gray-800">Editar simulación</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
-        </div>
-
-        {/* Body */}
-        <div className="px-5 py-4 flex flex-col gap-3 overflow-y-auto flex-1">
+    <Modal open onClose={onClose} title="Editar simulación">
+        <div className="flex flex-col gap-3">
 
           {/* Identidad */}
           <Section title="Identificación" />
@@ -202,14 +194,13 @@ export function SimEditDialog({ sim, onClose }: Props) {
           </>}
         </div>
 
-        {/* Footer */}
-        <div className="flex gap-2 px-5 py-4 border-t">
+        <div className="flex gap-2 pt-2">
           <Button className="flex-1" size="sm" disabled={update.isPending} onClick={handleSave}>
             {update.isPending ? 'Guardando...' : 'Guardar cambios'}
           </Button>
           <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
         </div>
-      </div>
-    </div>
+        </div>
+    </Modal>
   )
 }

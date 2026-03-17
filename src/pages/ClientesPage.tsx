@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Modal } from '@/components/ui/modal'
 import { ClientCard } from '@/components/clients/ClientCard'
 import { ClientForm, type ClientFormValues } from '@/components/clients/ClientForm'
 import {
@@ -122,22 +122,15 @@ export function ClientesPage() {
         </div>
       )}
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{editing ? 'Editar cliente' : 'Nuevo cliente'}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <ClientForm
-              key={editing?.id ?? 'new'}
-              defaultValues={editing ?? undefined}
-              onSubmit={handleSubmit}
-              onCancel={() => setSheetOpen(false)}
-              isSubmitting={isPending}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <Modal open={sheetOpen} onClose={() => setSheetOpen(false)} title={editing ? 'Editar cliente' : 'Nuevo cliente'}>
+        <ClientForm
+          key={editing?.id ?? 'new'}
+          defaultValues={editing ?? undefined}
+          onSubmit={handleSubmit}
+          onCancel={() => setSheetOpen(false)}
+          isSubmitting={isPending}
+        />
+      </Modal>
     </div>
   )
 }

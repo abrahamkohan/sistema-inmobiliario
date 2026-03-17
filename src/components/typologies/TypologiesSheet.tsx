@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Modal } from '@/components/ui/modal'
 import { TypologyForm, typologyFormToInsert, type TypologyFormValues } from './TypologyForm'
 import { TypologyCard } from './TypologyCard'
 import { useTypologies, useCreateTypology, useUpdateTypology, useDeleteTypology } from '@/hooks/useTypologies'
@@ -72,13 +72,8 @@ export function TypologiesSheet({
   const isMutating = createTypology.isPending || updateTypology.isPending
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Tipologías — {projectName}</SheetTitle>
-        </SheetHeader>
-
-        <div className="mt-6 flex flex-col gap-4">
+    <Modal open={open} onClose={() => onOpenChange(false)} title={`Tipologías — ${projectName}`}>
+        <div className="flex flex-col gap-4">
           {!showForm && (
             <Button variant="outline" size="sm" onClick={openCreate} className="w-full">
               <Plus className="h-3.5 w-3.5 mr-1.5" />
@@ -120,7 +115,6 @@ export function TypologiesSheet({
             />
           ))}
         </div>
-      </SheetContent>
-    </Sheet>
+    </Modal>
   )
 }

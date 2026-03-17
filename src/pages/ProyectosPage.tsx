@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Modal } from '@/components/ui/modal'
 import { ProjectList } from '@/components/projects/ProjectList'
 import { ProjectForm, type ProjectFormValues } from '@/components/projects/ProjectForm'
 import {
@@ -108,22 +108,15 @@ export function ProyectosPage() {
         />
       )}
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{editing ? 'Editar proyecto' : 'Nuevo proyecto'}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <ProjectForm
-              key={editing?.id ?? 'new'}
-              defaultValues={editing ?? undefined}
-              onSubmit={handleSubmit}
-              onCancel={() => setSheetOpen(false)}
-              isSubmitting={isPending}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <Modal open={sheetOpen} onClose={() => setSheetOpen(false)} title={editing ? 'Editar proyecto' : 'Nuevo proyecto'}>
+        <ProjectForm
+          key={editing?.id ?? 'new'}
+          defaultValues={editing ?? undefined}
+          onSubmit={handleSubmit}
+          onCancel={() => setSheetOpen(false)}
+          isSubmitting={isPending}
+        />
+      </Modal>
     </div>
   )
 }

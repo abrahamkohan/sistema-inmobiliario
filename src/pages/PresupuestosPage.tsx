@@ -4,7 +4,7 @@ import { Plus, FileText, Copy, Trash2, Pencil, UploadCloud, X as XIcon, Loader2,
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Modal } from '@/components/ui/modal'
 import {
   usePresupuestos,
   useCreatePresupuesto,
@@ -158,20 +158,13 @@ export function PresupuestosPage() {
         </>
       )}
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="overflow-y-auto sm:max-w-lg">
-          <SheetHeader>
-            <SheetTitle>{editing ? 'Editar presupuesto' : 'Nuevo presupuesto'}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <PresupuestoForm
-              key={editing?.id ?? 'new'}
-              initial={editing}
-              onClose={() => setSheetOpen(false)}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <Modal open={sheetOpen} onClose={() => setSheetOpen(false)} title={editing ? 'Editar presupuesto' : 'Nuevo presupuesto'}>
+        <PresupuestoForm
+          key={editing?.id ?? 'new'}
+          initial={editing}
+          onClose={() => setSheetOpen(false)}
+        />
+      </Modal>
     </div>
   )
 }

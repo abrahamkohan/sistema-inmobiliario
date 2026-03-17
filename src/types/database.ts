@@ -13,6 +13,7 @@ export interface Database {
           amenities: string[]
           brochure_path: string | null
           usd_to_pyg_rate: number | null
+          links: Array<{ type: string; name: string; url: string }>
           created_at: string
           updated_at: string
         }
@@ -26,6 +27,7 @@ export interface Database {
           amenities?: string[]
           brochure_path?: string | null
           usd_to_pyg_rate?: number | null
+          links?: Array<{ type: string; name: string; url: string }>
         }
         Update: {
           name?: string
@@ -37,6 +39,7 @@ export interface Database {
           amenities?: string[]
           brochure_path?: string | null
           usd_to_pyg_rate?: number | null
+          links?: Array<{ type: string; name: string; url: string }>
         }
         Relationships: []
       }

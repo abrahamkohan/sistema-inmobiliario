@@ -43,14 +43,14 @@ export function ProyectosPage() {
     let brochurePath: string | null = editing?.brochure_path ?? null
 
     const payload = {
-      name: values.name,
-      description: values.description ?? null,
-      location: values.location ?? null,
-      status: values.status,
-      delivery_date: values.delivery_date ?? null,
-      developer_name: values.developer_name ?? null,
-      amenities: values.amenities,
+      name:            values.name,
+      location:        values.location        ?? null,
+      status:          values.status,
+      delivery_date:   values.delivery_date   ?? null,
+      developer_name:  values.developer_name  ?? null,
+      amenities:       values.amenities,
       usd_to_pyg_rate: values.usd_to_pyg_rate ?? null,
+      links:           values.links           ?? [],
     }
 
     if (editing) {

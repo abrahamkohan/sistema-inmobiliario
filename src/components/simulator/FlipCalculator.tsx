@@ -1,9 +1,19 @@
 // src/components/simulator/FlipCalculator.tsx
+import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { calcFlip } from '@/simulator/engine'
 import type { FlipInputs } from '@/simulator/engine'
 import { formatUsd } from '@/utils/money'
+
+const DEFAULTS: FlipInputs = {
+  precio_lista: 120000,
+  entrega: 30000,
+  cantidad_cuotas: 24,
+  valor_cuota: 2000,
+  rentabilidad_anual_percent: 12,
+  comision_percent: 3,
+}
 
 function NumInput({
   label, value, onChange, step = 1, min = 0, prefix, suffix,
@@ -45,26 +55,26 @@ function Row({ label, value, muted = false }: { label: string; value: string; mu
   )
 }
 
-interface FlipCalculatorProps {
-  inputs: FlipInputs
-  onChange: <K extends keyof FlipInputs>(key: K, value: FlipInputs[K]) => void
-}
-
-export function FlipCalculator({ inputs, onChange }: FlipCalculatorProps) {
+export function FlipCalculator() {
+  const [inputs, setInputs] = useState<FlipInputs>(DEFAULTS)
   const result = calcFlip(inputs)
+
+  function set<K extends keyof FlipInputs>(key: K, value: FlipInputs[K]) {
+    setInputs((prev) => ({ ...prev, [key]: value }))
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="flex flex-col gap-3">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Estructura de inversión</p>
-        <NumInput label="Precio de lista (USD)" value={inputs.precio_lista} onChange={(v) => onChange('precio_lista', v)} prefix="$" step={1000} />
-        <NumInput label="Entrega inicial (USD)" value={inputs.entrega} onChange={(v) => onChange('entrega', v)} prefix="$" step={1000} />
-        <NumInput label="Cantidad de cuotas" value={inputs.cantidad_cuotas} onChange={(v) => onChange('cantidad_cuotas', Math.round(v))} step={1} min={1} suffix="cuotas" />
-        <NumInput label="Valor de cuota (USD)" value={inputs.valor_cuota} onChange={(v) => onChange('valor_cuota', v)} prefix="$" step={100} />
+        <NumInput label="Precio de lista (USD)" value={inputs.precio_lista} onChange={(v) => set('precio_lista', v)} prefix="$" step={1000} />
+        <NumInput label="Entrega inicial (USD)" value={inputs.entrega} onChange={(v) => set('entrega', v)} prefix="$" step={1000} />
+        <NumInput label="Cantidad de cuotas" value={inputs.cantidad_cuotas} onChange={(v) => set('cantidad_cuotas', Math.round(v))} step={1} min={1} suffix="cuotas" />
+        <NumInput label="Valor de cuota (USD)" value={inputs.valor_cuota} onChange={(v) => set('valor_cuota', v)} prefix="$" step={100} />
 
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-2">Proyección</p>
-        <NumInput label="Rentabilidad anual esperada" value={inputs.rentabilidad_anual_percent} onChange={(v) => onChange('rentabilidad_anual_percent', v)} step={0.5} suffix="%" />
-        <NumInput label="Comisión de venta" value={inputs.comision_percent} onChange={(v) => onChange('comision_percent', v)} step={0.5} suffix="%" />
+        <NumInput label="Rentabilidad anual esperada" value={inputs.rentabilidad_anual_percent} onChange={(v) => set('rentabilidad_anual_percent', v)} step={0.5} suffix="%" />
+        <NumInput label="Comisión de venta" value={inputs.comision_percent} onChange={(v) => set('comision_percent', v)} step={0.5} suffix="%" />
       </div>
 
       <div className="flex flex-col gap-4">

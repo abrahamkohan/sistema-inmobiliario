@@ -47,8 +47,8 @@ const DEFAULT_LAYOUTS: Layouts = {
     { i: 'actividad', x: 0, y: 6,  w: 6,  h: 6,  minW: 3,  minH: 4 },
     { i: 'grafico',   x: 6, y: 6,  w: 6,  h: 6,  minW: 4,  minH: 4 },
     // Fila 4 — h:6
-    { i: 'radar',     x: 0, y: 12, w: 8,  h: 6,  minW: 4,  minH: 4 },
-    { i: 'recursos',  x: 8, y: 12, w: 4,  h: 6,  minW: 4,  minH: 4 },
+    { i: 'radar',     x: 0, y: 12, w: 6,  h: 6,  minW: 4,  minH: 4 },
+    { i: 'recursos',  x: 6, y: 12, w: 6,  h: 6,  minW: 4,  minH: 4 },
   ],
   md: [
     { i: 'kpis',      x: 0, y: 0,  w: 6, h: 3,  minW: 6, minH: 2 },

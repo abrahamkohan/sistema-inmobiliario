@@ -1,7 +1,8 @@
 // src/pages/InicioPage.tsx
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import ReactGridLayout, { type Layout } from 'react-grid-layout'
+import ReactGridLayout, { type LayoutItem } from 'react-grid-layout'
+type Layout = LayoutItem[]
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import {
@@ -32,7 +33,7 @@ const LS_LAYOUT = 'dashboard_rgl_layout_v1'
 const COLS = 12
 const ROW_HEIGHT = 52
 
-const DEFAULT_LAYOUT: Layout[] = [
+const DEFAULT_LAYOUT: Layout = [
   { i: 'kpis',      x: 0, y: 0,  w: 12, h: 3,  minW: 6,  minH: 2 },
   { i: 'radar',     x: 0, y: 3,  w: 8,  h: 7,  minW: 4,  minH: 4 },
   { i: 'mercado',   x: 8, y: 3,  w: 4,  h: 7,  minW: 3,  minH: 4 },
@@ -42,11 +43,11 @@ const DEFAULT_LAYOUT: Layout[] = [
   { i: 'recursos',  x: 6, y: 15, w: 6,  h: 5,  minW: 4,  minH: 3 },
 ]
 
-function loadLayout(): Layout[] {
+function loadLayout(): Layout {
   try {
     const saved = localStorage.getItem(LS_LAYOUT)
     if (saved) {
-      const parsed = JSON.parse(saved) as Layout[]
+      const parsed = JSON.parse(saved) as Layout
       // validate — must have all keys
       const ids = parsed.map((l) => l.i)
       if (DEFAULT_LAYOUT.every((d) => ids.includes(d.i))) return parsed
@@ -572,7 +573,7 @@ const WIDGET_LABELS: Record<string, string> = {
 
 export function InicioPage() {
   const [editMode, setEditMode] = useState(false)
-  const [layout, setLayout] = useState<Layout[]>(loadLayout)
+  const [layout, setLayout] = useState<Layout>(loadLayout)
   const [containerWidth, setContainerWidth] = useState(0)
 
   const { data: stats, isLoading } = useDashboardStats()
@@ -596,8 +597,8 @@ export function InicioPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  function handleLayoutChange(newLayout: Layout[]) {
-    setLayout(newLayout)
+  function handleLayoutChange(newLayout: readonly LayoutItem[]) {
+    setLayout([...newLayout])
     localStorage.setItem(LS_LAYOUT, JSON.stringify(newLayout))
   }
 
@@ -700,16 +701,11 @@ export function InicioPage() {
         {containerWidth > 0 && (
           <ReactGridLayout
             layout={layout}
-            cols={COLS}
-            rowHeight={ROW_HEIGHT}
             width={containerWidth}
+            gridConfig={{ cols: COLS, rowHeight: ROW_HEIGHT, margin: [12, 12], containerPadding: [0, 0], maxRows: Infinity }}
+            dragConfig={{ enabled: editMode, bounded: false, handle: '.drag-handle', threshold: 3 }}
+            resizeConfig={{ enabled: editMode, handles: ['se'] }}
             onLayoutChange={handleLayoutChange}
-            isDraggable={editMode}
-            isResizable={editMode}
-            draggableHandle=".drag-handle"
-            margin={[12, 12]}
-            containerPadding={[0, 0]}
-            useCSSTransforms
           >
             {layout.map((item) => (
               <div key={item.i} className="rgl-item">

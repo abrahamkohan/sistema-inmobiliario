@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
+import { toast } from 'sonner'
 import { FinancingPlanForm, type PlanFormValues } from './FinancingPlanForm'
 import {
   useFinancingPlans,
@@ -65,6 +66,7 @@ export function FinancingPlansSheet({
     } else {
       await createPlan.mutateAsync(payload)
     }
+    toast.success(editing ? 'Guardado' : 'Plan creado')
     setShowForm(false)
     setEditing(null)
   }

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
+import { toast } from 'sonner'
 import { TypologyForm, typologyFormToInsert, type TypologyFormValues } from './TypologyForm'
 import { TypologyCard } from './TypologyCard'
 import { useTypologies, useCreateTypology, useUpdateTypology, useDeleteTypology } from '@/hooks/useTypologies'
@@ -65,6 +66,7 @@ export function TypologiesSheet({
       await createTypology.mutateAsync(input)
     }
 
+    toast.success(editing ? 'Guardado' : 'Tipología creada')
     setShowForm(false)
     setEditing(null)
   }

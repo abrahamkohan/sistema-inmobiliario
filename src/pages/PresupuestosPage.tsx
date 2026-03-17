@@ -13,6 +13,7 @@ import {
   useDuplicatePresupuesto,
 } from '@/hooks/usePresupuestos'
 import { uploadPresupuestoFloorPlan, getPublicUrl } from '@/lib/storage'
+import { toast } from 'sonner'
 import type { Database } from '@/types/database'
 
 type PRow = Database['public']['Tables']['presupuestos']['Row']
@@ -247,8 +248,10 @@ function PresupuestoForm({ initial, onClose }: { initial: PRow | null; onClose: 
     }
     if (initial) {
       await updateP.mutateAsync({ id: initial.id, input: payload })
+      toast.success('Guardado')
     } else {
       await createP.mutateAsync(payload)
+      toast.success('Creado')
     }
     onClose()
   }

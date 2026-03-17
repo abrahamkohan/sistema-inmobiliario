@@ -4,6 +4,7 @@ import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
+import { toast } from 'sonner'
 import { ClientCard } from '@/components/clients/ClientCard'
 import { ClientForm, type ClientFormValues } from '@/components/clients/ClientForm'
 import {
@@ -61,8 +62,10 @@ export function ClientesPage() {
     }
     if (editing) {
       await updateClient.mutateAsync({ id: editing.id, input: payload })
+      toast.success('Guardado')
     } else {
       await createClient.mutateAsync(payload)
+      toast.success('Cliente creado')
     }
     setSheetOpen(false)
     setEditing(null)

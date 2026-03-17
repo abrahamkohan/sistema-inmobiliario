@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
+import { toast } from 'sonner'
 import { ProjectList } from '@/components/projects/ProjectList'
 import { ProjectForm, type ProjectFormValues } from '@/components/projects/ProjectForm'
 import {
@@ -73,6 +74,7 @@ export function ProyectosPage() {
       }
     }
 
+    toast.success(editing ? 'Guardado' : 'Proyecto creado')
     setSheetOpen(false)
     setEditing(null)
   }

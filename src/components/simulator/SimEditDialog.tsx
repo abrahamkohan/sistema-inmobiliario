@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Modal } from '@/components/ui/modal'
+import { toast } from 'sonner'
 import { useUpdateSimulation } from '@/hooks/useSimulations'
 import { calcAirbnb, calcAlquiler, calcPlusvalia } from '@/simulator/engine'
 import type { AirbnbInputs, AlquilerInputs, PlusvaliaInputs } from '@/simulator/engine'
@@ -130,6 +131,7 @@ export function SimEditDialog({ sim, onClose }: Props) {
         snapshot_typology:  newSnapTyp as Record<string, unknown>,
       },
     })
+    toast.success('Guardado')
     onClose()
   }
 

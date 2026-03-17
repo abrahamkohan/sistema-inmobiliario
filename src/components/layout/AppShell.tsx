@@ -1,6 +1,6 @@
 // src/components/layout/AppShell.tsx
-import { useState } from 'react'
-import { Outlet } from 'react-router'
+import { useState, useRef, useEffect } from 'react'
+import { Outlet, useLocation } from 'react-router'
 import { Menu } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
@@ -8,6 +8,12 @@ import { useConsultoraConfig } from '@/hooks/useConsultora'
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { data: consultora } = useConsultoraConfig()
+  const location = useLocation()
+  const mainRef  = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 })
+  }, [location.pathname])
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -56,7 +62,7 @@ export function AppShell() {
           </button>
         </header>
 
-        <main className="flex-1 overflow-y-auto">
+        <main ref={mainRef} className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>

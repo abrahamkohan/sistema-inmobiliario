@@ -1,8 +1,7 @@
 // src/pages/InicioPage.tsx
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import ReactGridLayout, { type LayoutItem } from 'react-grid-layout'
-type Layout = LayoutItem[]
+import { ResponsiveGridLayout, type LayoutItem } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import {
@@ -29,31 +28,56 @@ import { CSS } from '@dnd-kit/utilities'
 
 // ─── Layout storage ────────────────────────────────────────────────────────────
 
-const LS_LAYOUT = 'dashboard_rgl_layout_v1'
-const COLS = 12
-const ROW_HEIGHT = 52
+const LS_LAYOUTS = 'dashboard_rgl_layouts_v2'
+type Layout  = LayoutItem[]
+type Layouts = { lg: Layout; md: Layout; sm: Layout }
 
-const DEFAULT_LAYOUT: Layout = [
-  { i: 'kpis',      x: 0, y: 0,  w: 12, h: 3,  minW: 6,  minH: 2 },
-  { i: 'radar',     x: 0, y: 3,  w: 8,  h: 7,  minW: 4,  minH: 4 },
-  { i: 'mercado',   x: 8, y: 3,  w: 4,  h: 7,  minW: 3,  minH: 4 },
-  { i: 'grafico',   x: 0, y: 10, w: 7,  h: 5,  minW: 4,  minH: 3 },
-  { i: 'actividad', x: 7, y: 10, w: 5,  h: 5,  minW: 3,  minH: 3 },
-  { i: 'proyectos', x: 0, y: 15, w: 6,  h: 5,  minW: 3,  minH: 3 },
-  { i: 'recursos',  x: 6, y: 15, w: 6,  h: 5,  minW: 4,  minH: 3 },
-]
+const BREAKPOINTS = { lg: 1200, md: 768, sm: 0 }
+const COLS        = { lg: 12,   md: 6,   sm: 1 }
+const ROW_HEIGHT  = 52
 
-function loadLayout(): Layout {
+const DEFAULT_LAYOUTS: Layouts = {
+  lg: [
+    { i: 'kpis',      x: 0, y: 0,  w: 12, h: 3,  minW: 6,  minH: 2 },
+    { i: 'radar',     x: 0, y: 3,  w: 8,  h: 7,  minW: 4,  minH: 4 },
+    { i: 'mercado',   x: 8, y: 3,  w: 4,  h: 7,  minW: 3,  minH: 4 },
+    { i: 'grafico',   x: 0, y: 10, w: 7,  h: 5,  minW: 4,  minH: 3 },
+    { i: 'actividad', x: 7, y: 10, w: 5,  h: 5,  minW: 3,  minH: 3 },
+    { i: 'proyectos', x: 0, y: 15, w: 6,  h: 5,  minW: 3,  minH: 3 },
+    { i: 'recursos',  x: 6, y: 15, w: 6,  h: 5,  minW: 4,  minH: 3 },
+  ],
+  md: [
+    { i: 'kpis',      x: 0, y: 0,  w: 6, h: 4,  minW: 6, minH: 2 },
+    { i: 'mercado',   x: 0, y: 4,  w: 2, h: 9,  minW: 2, minH: 4 },
+    { i: 'radar',     x: 2, y: 4,  w: 4, h: 9,  minW: 3, minH: 4 },
+    { i: 'grafico',   x: 0, y: 13, w: 4, h: 5,  minW: 3, minH: 3 },
+    { i: 'actividad', x: 4, y: 13, w: 2, h: 5,  minW: 2, minH: 3 },
+    { i: 'proyectos', x: 0, y: 18, w: 3, h: 5,  minW: 3, minH: 3 },
+    { i: 'recursos',  x: 3, y: 18, w: 3, h: 5,  minW: 3, minH: 3 },
+  ],
+  sm: [
+    { i: 'kpis',      x: 0, y: 0,  w: 1, h: 5,  minW: 1, minH: 3 },
+    { i: 'mercado',   x: 0, y: 5,  w: 1, h: 3,  minW: 1, minH: 2 },
+    { i: 'radar',     x: 0, y: 8,  w: 1, h: 9,  minW: 1, minH: 5 },
+    { i: 'grafico',   x: 0, y: 17, w: 1, h: 5,  minW: 1, minH: 3 },
+    { i: 'actividad', x: 0, y: 22, w: 1, h: 6,  minW: 1, minH: 3 },
+    { i: 'proyectos', x: 0, y: 28, w: 1, h: 6,  minW: 1, minH: 3 },
+    { i: 'recursos',  x: 0, y: 34, w: 1, h: 7,  minW: 1, minH: 4 },
+  ],
+}
+
+const WIDGET_IDS = ['kpis', 'radar', 'mercado', 'grafico', 'actividad', 'proyectos', 'recursos']
+
+function loadLayouts(): Layouts {
   try {
-    const saved = localStorage.getItem(LS_LAYOUT)
+    const saved = localStorage.getItem(LS_LAYOUTS)
     if (saved) {
-      const parsed = JSON.parse(saved) as Layout
-      // validate — must have all keys
-      const ids = parsed.map((l) => l.i)
-      if (DEFAULT_LAYOUT.every((d) => ids.includes(d.i))) return parsed
+      const parsed = JSON.parse(saved) as Layouts
+      // Validate: must have all widget IDs in lg
+      if (parsed.lg && WIDGET_IDS.every((id) => parsed.lg.some((l) => l.i === id))) return parsed
     }
   } catch { /* ignore */ }
-  return DEFAULT_LAYOUT
+  return DEFAULT_LAYOUTS
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -100,14 +124,12 @@ function SectionLabel({ children }: { children: string }) {
   )
 }
 
-// ─── Widget card wrapper ────────────────────────────────────────────────────────
-// Fills its grid cell completely, no scrollbar overflow on resize
+// ─── Widget shell ──────────────────────────────────────────────────────────────
 
-function WidgetShell({ label, editMode, children, dragHandle }: {
+function WidgetShell({ label, editMode, children }: {
   label?: string
   editMode: boolean
   children: React.ReactNode
-  dragHandle?: string
 }) {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -116,7 +138,7 @@ function WidgetShell({ label, editMode, children, dragHandle }: {
           <SectionLabel>{label}</SectionLabel>
           {editMode && (
             <div
-              className={dragHandle?.replace('.', '')}
+              className="drag-handle"
               style={{ cursor: 'grab', color: 'var(--muted-foreground)', padding: '2px 4px' }}
             >
               <GripVertical size={14} />
@@ -143,9 +165,9 @@ function KpisWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboar
     { label: 'Simulaciones',      value: stats?.counts.simulations ?? 0,     icon: Calculator, accent: '#f59e0b' },
   ]
   return (
-    <Grid columns={{ initial: '2', sm: '4' }} gap="3" style={{ height: '100%' }}>
+    <Grid columns="2" gap="3" style={{ height: '100%' }}>
       {metrics.map(({ label, value, icon: Icon, accent }) => (
-        <Card key={label} size="2" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.05)', borderTop: `3px solid ${accent}`, height: '100%', boxSizing: 'border-box' }}>
+        <Card key={label} size="2" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.05)', borderTop: `3px solid ${accent}`, height: '100%', boxSizing: 'border-box', borderRadius: 14 }}>
           <Flex direction="column" justify="between" style={{ height: '100%' }}>
             <Box style={{ background: `${accent}14`, borderRadius: 8, padding: 7, alignSelf: 'flex-start' }}>
               <Icon size={16} style={{ color: accent }} />
@@ -163,8 +185,45 @@ function KpisWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboar
   )
 }
 
-function RadarWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboardStats>['data']; isLoading: boolean }) {
+function RadarWidget({ stats, isLoading, compact }: {
+  stats: ReturnType<typeof useDashboardStats>['data']
+  isLoading: boolean
+  compact?: boolean
+}) {
   const navigate = useNavigate()
+  const rows = stats?.radar ?? []
+
+  // Mobile: card list
+  if (compact) {
+    return (
+      <Flex direction="column" gap="2" style={{ height: '100%', overflow: 'auto' }}>
+        {isLoading ? (
+          <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Cargando...</Text></Flex>
+        ) : rows.length === 0 ? (
+          <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Sin proyectos</Text></Flex>
+        ) : rows.map((p) => {
+          const sb = STATUS_BADGE[p.status]
+          return (
+            <Card key={p.id} size="2" style={{ borderRadius: 12 }} onClick={() => navigate('/')}>
+              <Flex justify="between" align="center">
+                <Box>
+                  <Text size="2" weight="bold">{p.name}</Text>
+                  {p.avg_price_m2 ? (
+                    <Text as="p" size="1" color="gray">USD {p.avg_price_m2.toLocaleString('es-PY')} / m²</Text>
+                  ) : null}
+                </Box>
+                {sb
+                  ? <Badge color={sb.color} variant="soft" radius="full">{sb.label}</Badge>
+                  : <Badge color="gray" variant="soft" radius="full">{p.status}</Badge>}
+              </Flex>
+            </Card>
+          )
+        })}
+      </Flex>
+    )
+  }
+
+  // Desktop: table
   return (
     <Card size="1" style={{ overflow: 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', height: '100%', boxSizing: 'border-box' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
@@ -180,43 +239,37 @@ function RadarWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboa
         <tbody>
           {isLoading ? (
             <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: 'var(--muted-foreground)', fontSize: 13 }}>Cargando...</td></tr>
-          ) : (stats?.radar ?? []).length === 0 ? (
+          ) : rows.length === 0 ? (
             <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: 'var(--muted-foreground)', fontSize: 13 }}>
-              No hay proyectos. <a href="/" style={{ color: 'var(--accent-foreground)' }}>Crear uno</a>
+              Sin proyectos aún.
             </td></tr>
-          ) : (
-            (stats?.radar ?? []).map((p, i) => {
-              const sb = STATUS_BADGE[p.status]
-              return (
-                <tr key={p.id} onClick={() => navigate('/')}
-                  style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer' }}
-                  className="hover:bg-muted/50"
-                >
-                  <td style={{ padding: '12px 16px' }}><Text size="2" weight="bold">{p.name}</Text></td>
-                  <td style={{ padding: '12px 16px' }}>
-                    {sb ? <Badge color={sb.color} variant="soft" radius="full">{sb.label}</Badge>
-                        : <Badge color="gray" variant="soft" radius="full">{p.status}</Badge>}
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                    {p.avg_price_m2 ? <Text size="2" weight="bold">USD {p.avg_price_m2.toLocaleString('es-PY')}</Text> : <Text size="2" color="gray">—</Text>}
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                    <Text size="2" color="gray">—</Text>
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                    <Text size="2" color="gray">{p.unit_count}</Text>
-                  </td>
-                </tr>
-              )
-            })
-          )}
+          ) : rows.map((p, i) => {
+            const sb = STATUS_BADGE[p.status]
+            return (
+              <tr key={p.id} onClick={() => navigate('/')}
+                style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer' }}
+                className="hover:bg-muted/50"
+              >
+                <td style={{ padding: '12px 16px' }}><Text size="2" weight="bold">{p.name}</Text></td>
+                <td style={{ padding: '12px 16px' }}>
+                  {sb ? <Badge color={sb.color} variant="soft" radius="full">{sb.label}</Badge>
+                      : <Badge color="gray" variant="soft" radius="full">{p.status}</Badge>}
+                </td>
+                <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                  {p.avg_price_m2 ? <Text size="2" weight="bold">USD {p.avg_price_m2.toLocaleString('es-PY')}</Text> : <Text size="2" color="gray">—</Text>}
+                </td>
+                <td style={{ padding: '12px 16px', textAlign: 'right' }}><Text size="2" color="gray">—</Text></td>
+                <td style={{ padding: '12px 16px', textAlign: 'right' }}><Text size="2" color="gray">{p.unit_count}</Text></td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </Card>
   )
 }
 
-function MercadoWidget() {
+function MercadoWidget({ compact }: { compact?: boolean }) {
   const { data: rates, isLoading } = useExchangeRates()
   const { data: weather } = useWeather()
 
@@ -224,13 +277,32 @@ function MercadoWidget() {
     { label: 'USD / PYG', value: rates?.pyg ? rates.pyg.venta.toLocaleString('es-PY', { maximumFractionDigits: 2 }) : '—', detail: 'Guaraní', pct: rates?.pyg?.pctChange ?? null },
     { label: 'USD / ARS', value: rates?.ars ? `$ ${rates.ars.venta.toLocaleString('es-PY', { maximumFractionDigits: 2 })}` : '—', detail: `Compra $ ${rates?.ars?.compra.toLocaleString('es-PY', { maximumFractionDigits: 2 }) ?? '—'}`, pct: null },
     { label: 'USD / BRL', value: rates?.brl ? `R$ ${rates.brl.venta.toFixed(2)}` : '—', detail: 'Real', pct: rates?.brl?.pctChange ?? null },
-    { label: 'Asunción', value: weather ? `${weatherEmoji(weather.desc)} ${weather.temp_c}°C` : '—', detail: weather ? weather.desc.split(' ').slice(0, 2).join(' ') : 'Clima', pct: null },
+    { label: 'Asunción',  value: weather ? `${weatherEmoji(weather.desc)} ${weather.temp_c}°C` : '—', detail: weather ? weather.desc.split(' ').slice(0, 2).join(' ') : 'Clima', pct: null },
   ]
 
+  // Mobile: horizontal scroll strip
+  if (compact) {
+    return (
+      <div style={{ display: 'flex', gap: 10, overflowX: 'auto', height: '100%', alignItems: 'stretch', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
+        {items.map(({ label, value, detail, pct }) => (
+          <Card key={label} size="2" style={{ minWidth: 110, flexShrink: 0, borderRadius: 14, padding: '10px 14px' }}>
+            <Flex justify="between" align="center" mb="1">
+              <Text size="1" color="gray" weight="medium" style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 9 }}>{label}</Text>
+              {pct !== null && <PctArrow pct={pct} />}
+            </Flex>
+            <Heading size="3" weight="bold" style={{ fontVariantNumeric: 'tabular-nums', lineHeight: 1, opacity: isLoading ? 0.3 : 1 }}>{value}</Heading>
+            <Text as="p" size="1" color="gray" mt="1" style={{ fontSize: 10 }}>{detail}</Text>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
+  // Desktop: vertical stack
   return (
     <Flex direction="column" gap="2" style={{ height: '100%' }}>
       {items.map(({ label, value, detail, pct }) => (
-        <Card key={label} size="2" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)', flex: 1, padding: '10px 14px' }}>
+        <Card key={label} size="2" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)', flex: 1, padding: '10px 14px', borderRadius: 12 }}>
           <Flex justify="between" align="start" mb="1">
             <Text size="1" color="gray" weight="medium" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</Text>
             {pct !== null && <PctArrow pct={pct} />}
@@ -247,7 +319,7 @@ function GraficoWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashb
   const data = stats?.simsByMonth ?? []
   const maxVal = Math.max(...data.map((d) => d.total), 1)
   return (
-    <Card size="3" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box' }}>
+    <Card size="3" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box', borderRadius: 14 }}>
       {isLoading ? (
         <Flex align="center" justify="center" style={{ height: '100%' }}><Text size="1" color="gray">Cargando...</Text></Flex>
       ) : data.every((d) => d.total === 0) ? (
@@ -276,7 +348,7 @@ function GraficoWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashb
 function ActividadWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboardStats>['data']; isLoading: boolean }) {
   const navigate = useNavigate()
   return (
-    <Card size="1" style={{ overflow: 'auto', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box' }}>
+    <Card size="1" style={{ overflow: 'auto', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box', borderRadius: 14 }}>
       {isLoading ? (
         <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Cargando...</Text></Flex>
       ) : (stats?.recent.simulations ?? []).length === 0 ? (
@@ -288,12 +360,12 @@ function ActividadWidget({ stats, isLoading }: { stats: ReturnType<typeof useDas
             const clientName = (sim.clients as { full_name: string } | null)?.full_name ?? '—'
             return (
               <Box key={sim.id} onClick={() => window.open(`/informes/${sim.id}`, '_blank')}
-                style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer', padding: '10px 14px' }}
+                style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer', padding: '12px 16px' }}
                 className="hover:bg-muted/50"
               >
                 <Flex align="center" justify="between">
                   <Flex align="center" gap="3" style={{ minWidth: 0 }}>
-                    <Box style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--muted-foreground)', opacity: 0.4, flexShrink: 0 }} />
+                    <Box style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', opacity: 0.5, flexShrink: 0 }} />
                     <Box style={{ minWidth: 0 }}>
                       <Text size="2" weight="medium" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {(project?.name as string) ?? '—'}
@@ -310,7 +382,7 @@ function ActividadWidget({ stats, isLoading }: { stats: ReturnType<typeof useDas
             )
           })}
           <Box style={{ borderTop: '1px solid var(--border)' }}>
-            <Box onClick={() => navigate('/informes')} style={{ cursor: 'pointer', padding: '8px 14px' }} className="hover:bg-muted/50">
+            <Box onClick={() => navigate('/informes')} style={{ cursor: 'pointer', padding: '10px 16px' }} className="hover:bg-muted/50">
               <Flex align="center" justify="center" gap="1">
                 <Text size="1" color="indigo">Ver todos</Text>
                 <ExternalLink size={11} style={{ color: 'var(--muted-foreground)' }} />
@@ -326,7 +398,7 @@ function ActividadWidget({ stats, isLoading }: { stats: ReturnType<typeof useDas
 function ProyectosWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboardStats>['data']; isLoading: boolean }) {
   const navigate = useNavigate()
   return (
-    <Card size="1" style={{ overflow: 'auto', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box' }}>
+    <Card size="1" style={{ overflow: 'auto', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box', borderRadius: 14 }}>
       {isLoading ? (
         <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Cargando...</Text></Flex>
       ) : (stats?.recent.projects ?? []).length === 0 ? (
@@ -337,7 +409,7 @@ function ProyectosWidget({ stats, isLoading }: { stats: ReturnType<typeof useDas
             const sb = STATUS_BADGE[p.status]
             return (
               <Box key={p.id} onClick={() => navigate('/proyectos')}
-                style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer', padding: '10px 14px' }}
+                style={{ borderTop: i === 0 ? 'none' : '1px solid var(--border)', cursor: 'pointer', padding: '12px 16px' }}
                 className="hover:bg-muted/50"
               >
                 <Flex align="center" justify="between">
@@ -354,7 +426,7 @@ function ProyectosWidget({ stats, isLoading }: { stats: ReturnType<typeof useDas
             )
           })}
           <Box style={{ borderTop: '1px solid var(--border)' }}>
-            <Box onClick={() => navigate('/proyectos')} style={{ cursor: 'pointer', padding: '8px 14px' }} className="hover:bg-muted/50">
+            <Box onClick={() => navigate('/proyectos')} style={{ cursor: 'pointer', padding: '10px 16px' }} className="hover:bg-muted/50">
               <Flex align="center" justify="center" gap="1">
                 <Text size="1" color="indigo">Ver todos</Text>
                 <ExternalLink size={11} style={{ color: 'var(--muted-foreground)' }} />
@@ -418,7 +490,7 @@ function SortableLinkCard({ id, link, icon }: { id: string; link: LinkItem; icon
     <div ref={setNodeRef} {...attributes} {...listeners}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, cursor: 'grab', userSelect: 'none', touchAction: 'none' }}
     >
-      <Card size="2" style={{ boxShadow: isDragging ? '0 8px 24px rgba(0,0,0,0.18)' : '0 1px 4px rgba(0,0,0,0.07)', pointerEvents: 'none' }}>
+      <Card size="2" style={{ boxShadow: isDragging ? '0 8px 24px rgba(0,0,0,0.18)' : '0 1px 4px rgba(0,0,0,0.07)', pointerEvents: 'none', borderRadius: 12 }}>
         <LinkCardContent link={link} icon={icon} />
       </Card>
     </div>
@@ -484,7 +556,7 @@ function SmallLinkGrid({ items, editMode, storageKey, categoryIcon }: {
     <Grid columns={{ initial: '2', sm: '3', lg: '4' }} gap="2">
       {ordered.map((link) => (
         <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-          <Card size="2" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }} className="hover:shadow-md">
+          <Card size="2" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.07)', borderRadius: 12 }} className="hover:shadow-md">
             <LinkCardContent link={link} icon={categoryIcon} />
           </Card>
         </a>
@@ -506,7 +578,7 @@ function RecursosWidget({ config, editMode }: { config: ReturnType<typeof useCon
   const herramientas = resolveLinks(md?.herramientas    as ConfigurableItem[] | undefined, DEFAULT_HERRAMIENTAS)
 
   return (
-    <Card size="2" style={{ height: '100%', overflow: 'auto', boxSizing: 'border-box' }}>
+    <Card size="2" style={{ height: '100%', overflow: 'auto', boxSizing: 'border-box', borderRadius: 14 }}>
       <Tabs.Root defaultValue="portales">
         <Tabs.List mb="3">
           <Tabs.Trigger value="portales">Portales</Tabs.Trigger>
@@ -542,11 +614,11 @@ function QuickActionsBar() {
     { label: 'Informes',       icon: FileText,   path: '/informes'  },
   ]
   return (
-    <Card size="2" style={{ boxShadow: 'none', border: '1px solid var(--border)', marginBottom: 16 }}>
+    <Card size="2" style={{ boxShadow: 'none', border: '1px solid var(--border)', marginBottom: 16, borderRadius: 14 }}>
       <Flex gap="2" wrap="wrap">
         {actions.map(({ label, icon: Icon, path }) => (
-          <Box key={label} onClick={() => navigate(path)} style={{ cursor: 'pointer', flex: 1, minWidth: 110 }}>
-            <Flex align="center" gap="2" style={{ padding: '8px 12px', borderRadius: 6, background: 'oklch(0.75 0.11 90.08 / 0.15)', transition: 'opacity 0.15s' }} className="hover:opacity-70">
+          <Box key={label} onClick={() => navigate(path)} style={{ cursor: 'pointer', flex: 1, minWidth: 100 }}>
+            <Flex align="center" gap="2" style={{ padding: '10px 14px', borderRadius: 10, background: 'oklch(0.75 0.11 90.08 / 0.15)', transition: 'opacity 0.15s' }} className="hover:opacity-70">
               <Icon size={14} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
               <Text size="2" weight="medium" style={{ whiteSpace: 'nowrap' }}>{label}</Text>
             </Flex>
@@ -558,7 +630,7 @@ function QuickActionsBar() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PAGE — react-grid-layout
+// PAGE — ResponsiveGridLayout
 // ══════════════════════════════════════════════════════════════════════════════
 
 const WIDGET_LABELS: Record<string, string> = {
@@ -572,8 +644,9 @@ const WIDGET_LABELS: Record<string, string> = {
 }
 
 export function InicioPage() {
-  const [editMode, setEditMode] = useState(false)
-  const [layout, setLayout] = useState<Layout>(loadLayout)
+  const [editMode, setEditMode]     = useState(false)
+  const [layouts, setLayouts]       = useState<Layouts>(loadLayouts)
+  const [breakpoint, setBreakpoint] = useState<'lg' | 'md' | 'sm'>('lg')
   const [containerWidth, setContainerWidth] = useState(0)
 
   const { data: stats, isLoading } = useDashboardStats()
@@ -582,8 +655,8 @@ export function InicioPage() {
   const now = new Date()
   const hour = now.getHours()
   const greeting = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches'
+  const isMobile = breakpoint === 'sm'
 
-  // Measure container width for ReactGridLayout
   const containerRef = (node: HTMLDivElement | null) => {
     if (node) setContainerWidth(node.offsetWidth)
   }
@@ -597,21 +670,33 @@ export function InicioPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  function handleLayoutChange(newLayout: readonly LayoutItem[]) {
-    setLayout([...newLayout])
-    localStorage.setItem(LS_LAYOUT, JSON.stringify(newLayout))
+  function handleLayoutChange(
+    _layout: readonly LayoutItem[],
+    allLayouts: Partial<Record<string, readonly LayoutItem[]>>,
+  ) {
+    const next: Layouts = {
+      lg: [...(allLayouts.lg ?? layouts.lg)],
+      md: [...(allLayouts.md ?? layouts.md)],
+      sm: [...(allLayouts.sm ?? layouts.sm)],
+    }
+    setLayouts(next)
+    localStorage.setItem(LS_LAYOUTS, JSON.stringify(next))
+  }
+
+  function handleBreakpointChange(bp: string) {
+    setBreakpoint(bp as 'lg' | 'md' | 'sm')
   }
 
   function resetLayout() {
-    setLayout(DEFAULT_LAYOUT)
-    localStorage.removeItem(LS_LAYOUT)
+    setLayouts(DEFAULT_LAYOUTS)
+    localStorage.removeItem(LS_LAYOUTS)
   }
 
   function renderWidget(id: string) {
     switch (id) {
       case 'kpis':      return <KpisWidget stats={stats} isLoading={isLoading} />
-      case 'radar':     return <RadarWidget stats={stats} isLoading={isLoading} />
-      case 'mercado':   return <MercadoWidget />
+      case 'radar':     return <RadarWidget stats={stats} isLoading={isLoading} compact={isMobile} />
+      case 'mercado':   return <MercadoWidget compact={isMobile} />
       case 'grafico':   return <GraficoWidget stats={stats} isLoading={isLoading} />
       case 'actividad': return <ActividadWidget stats={stats} isLoading={isLoading} />
       case 'proyectos': return <ProyectosWidget stats={stats} isLoading={isLoading} />
@@ -621,44 +706,29 @@ export function InicioPage() {
   }
 
   return (
-    <Box p={{ initial: '4', md: '5' }} style={{ maxWidth: 1400, margin: '0 auto' }}>
+    <Box p={{ initial: '3', md: '5' }} style={{ maxWidth: 1400, margin: '0 auto' }}>
 
-      {/* CSS overrides for react-grid-layout */}
       <style>{`
-        .rgl-item {
-          display: flex;
-          flex-direction: column;
-        }
-        .rgl-item > .widget-inner {
-          flex: 1;
-          min-height: 0;
-          overflow: hidden;
-        }
+        .rgl-item { display: flex; flex-direction: column; }
+        .rgl-item > .widget-inner { flex: 1; min-height: 0; overflow: hidden; }
         .react-grid-item.react-grid-placeholder {
           background: oklch(0.78 0.15 92.7 / 0.15) !important;
           border: 2px dashed oklch(0.65 0.12 92.7 / 0.4) !important;
           border-radius: 12px !important;
           opacity: 1 !important;
         }
-        .react-resizable-handle {
-          opacity: 0;
-          transition: opacity 0.15s;
-        }
-        .react-grid-item:hover .react-resizable-handle {
-          opacity: 1;
-        }
-        .react-resizable-handle::after {
-          border-color: var(--muted-foreground) !important;
-        }
+        .react-resizable-handle { opacity: 0; transition: opacity 0.15s; }
+        .react-grid-item:hover .react-resizable-handle { opacity: 1; }
+        .react-resizable-handle::after { border-color: var(--muted-foreground) !important; }
       `}</style>
 
       {/* Header */}
-      <Flex align="start" justify="between" mb="4">
+      <Flex align="start" justify="between" mb="4" wrap="wrap" gap="2">
         <Box>
           <Text size="1" color="gray">
             {now.toLocaleDateString('es-PY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </Text>
-          <Heading size="7" weight="bold" mt="1">
+          <Heading size={{ initial: '6', md: '7' }} weight="bold" mt="1">
             {greeting}{config?.nombre ? `, ${config.nombre}` : ''}
           </Heading>
         </Box>
@@ -686,41 +756,42 @@ export function InicioPage() {
       <QuickActionsBar />
 
       {editMode && (
-        <Card mb="3" style={{ background: 'var(--muted)', border: '1px solid var(--border)', boxShadow: 'none' }}>
+        <Card mb="3" style={{ background: 'var(--muted)', border: '1px solid var(--border)', boxShadow: 'none', borderRadius: 12 }}>
           <Flex align="center" gap="2">
             <GripVertical size={14} style={{ color: 'var(--muted-foreground)' }} />
             <Text size="2" color="gray">
-              Arrastrá desde el título del panel · Redimensioná desde la esquina inferior derecha · Los cambios se guardan automáticamente.
+              Arrastrá desde el ícono · Redimensioná desde la esquina inferior derecha · Los cambios se guardan automáticamente.
             </Text>
           </Flex>
         </Card>
       )}
 
-      {/* Grid */}
+      {/* Responsive Grid */}
       <div id="rgl-container" ref={containerRef}>
         {containerWidth > 0 && (
-          <ReactGridLayout
-            layout={layout}
+          <ResponsiveGridLayout
             width={containerWidth}
-            gridConfig={{ cols: COLS, rowHeight: ROW_HEIGHT, margin: [12, 12], containerPadding: [0, 0], maxRows: Infinity }}
+            breakpoints={BREAKPOINTS}
+            cols={COLS}
+            rowHeight={ROW_HEIGHT}
+            margin={[12, 12]}
+            containerPadding={[0, 0]}
+            layouts={layouts}
+            onLayoutChange={handleLayoutChange}
+            onBreakpointChange={handleBreakpointChange}
             dragConfig={{ enabled: editMode, bounded: false, handle: '.drag-handle', threshold: 3 }}
             resizeConfig={{ enabled: editMode, handles: ['se'] }}
-            onLayoutChange={handleLayoutChange}
           >
-            {layout.map((item) => (
-              <div key={item.i} className="rgl-item">
+            {WIDGET_IDS.map((id) => (
+              <div key={id} className="rgl-item">
                 <div className="widget-inner" style={{ height: '100%' }}>
-                  <WidgetShell
-                    label={WIDGET_LABELS[item.i]}
-                    editMode={editMode}
-                    dragHandle=".drag-handle"
-                  >
-                    {renderWidget(item.i)}
+                  <WidgetShell label={WIDGET_LABELS[id]} editMode={editMode}>
+                    {renderWidget(id)}
                   </WidgetShell>
                 </div>
               </div>
             ))}
-          </ReactGridLayout>
+          </ResponsiveGridLayout>
         )}
       </div>
     </Box>

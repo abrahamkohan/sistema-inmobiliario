@@ -300,6 +300,116 @@ export interface Database {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          operacion: 'venta' | 'alquiler'
+          tipo: 'departamento' | 'casa' | 'terreno' | 'comercial'
+          titulo: string | null
+          descripcion: string | null
+          estado: 'activo' | 'inactivo'
+          publicado_en_web: boolean
+          dormitorios: number | null
+          banos: number | null
+          superficie_m2: number | null
+          superficie_cubierta_m2: number | null
+          estacionamientos: number | null
+          terreno_m2: number | null
+          anio: number | null
+          condicion: 'nuevo' | 'usado' | 'reventa' | null
+          piso: number | null
+          deposito: boolean | null
+          garajes: number | null
+          precio: number | null
+          moneda: 'USD' | 'PYG'
+          zona: string | null
+          direccion: string | null
+          latitud: number | null
+          longitud: number | null
+          amenities: string[]
+          foto_portada: string | null
+        }
+        Insert: {
+          operacion?: 'venta' | 'alquiler'
+          tipo?: 'departamento' | 'casa' | 'terreno' | 'comercial'
+          titulo?: string | null
+          descripcion?: string | null
+          estado?: 'activo' | 'inactivo'
+          publicado_en_web?: boolean
+          dormitorios?: number | null
+          banos?: number | null
+          superficie_m2?: number | null
+          superficie_cubierta_m2?: number | null
+          estacionamientos?: number | null
+          terreno_m2?: number | null
+          anio?: number | null
+          condicion?: 'nuevo' | 'usado' | 'reventa' | null
+          piso?: number | null
+          deposito?: boolean | null
+          garajes?: number | null
+          precio?: number | null
+          moneda?: 'USD' | 'PYG'
+          zona?: string | null
+          direccion?: string | null
+          latitud?: number | null
+          longitud?: number | null
+          amenities?: string[]
+          foto_portada?: string | null
+        }
+        Update: {
+          operacion?: 'venta' | 'alquiler'
+          tipo?: 'departamento' | 'casa' | 'terreno' | 'comercial'
+          titulo?: string | null
+          descripcion?: string | null
+          estado?: 'activo' | 'inactivo'
+          publicado_en_web?: boolean
+          dormitorios?: number | null
+          banos?: number | null
+          superficie_m2?: number | null
+          superficie_cubierta_m2?: number | null
+          estacionamientos?: number | null
+          terreno_m2?: number | null
+          anio?: number | null
+          condicion?: 'nuevo' | 'usado' | 'reventa' | null
+          piso?: number | null
+          deposito?: boolean | null
+          garajes?: number | null
+          precio?: number | null
+          moneda?: 'USD' | 'PYG'
+          zona?: string | null
+          direccion?: string | null
+          latitud?: number | null
+          longitud?: number | null
+          amenities?: string[]
+          foto_portada?: string | null
+        }
+        Relationships: []
+      }
+      property_photos: {
+        Row: {
+          id: string
+          created_at: string
+          property_id: string
+          storage_path: string
+          sort_order: number
+          es_portada: boolean
+        }
+        Insert: {
+          property_id: string
+          storage_path: string
+          sort_order?: number
+          es_portada?: boolean
+        }
+        Update: {
+          property_id?: string
+          storage_path?: string
+          sort_order?: number
+          es_portada?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

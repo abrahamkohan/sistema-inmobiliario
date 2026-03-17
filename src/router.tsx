@@ -10,6 +10,8 @@ import { ConfiguracionPage } from '@/pages/ConfiguracionPage'
 import { RecursosPage } from '@/pages/RecursosPage'
 import { PresupuestosPage } from '@/pages/PresupuestosPage'
 import { PresupuestoPdfPage } from '@/pages/PresupuestoPdfPage'
+import { PropiedadesPage } from '@/pages/PropiedadesPage'
+import { PropiedadDetallePage } from '@/pages/PropiedadDetallePage'
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
@@ -27,6 +29,8 @@ export const router = createBrowserRouter([
       { path: 'informes', element: <InformesPage /> },
       { path: 'presupuestos', element: <PresupuestosPage /> },
       { path: 'recursos',      element: <RecursosPage /> },
+      { path: 'propiedades',   element: <PropiedadesPage /> },
+      { path: 'propiedades/:id', element: <PropiedadDetallePage /> },
       { path: 'configuracion', element: <ConfiguracionPage /> },
     ],
   },

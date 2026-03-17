@@ -38,13 +38,17 @@ const ROW_HEIGHT  = 52
 
 const DEFAULT_LAYOUTS: Layouts = {
   lg: [
+    // Fila 1: KPIs full width
     { i: 'kpis',      x: 0, y: 0,  w: 12, h: 2,  minW: 6,  minH: 2 },
-    { i: 'radar',     x: 0, y: 2,  w: 8,  h: 5,  minW: 4,  minH: 3 },
-    { i: 'mercado',   x: 8, y: 2,  w: 4,  h: 5,  minW: 3,  minH: 3 },
-    { i: 'grafico',   x: 0, y: 7,  w: 7,  h: 6,  minW: 4,  minH: 3 },
-    { i: 'actividad', x: 7, y: 7,  w: 5,  h: 6,  minW: 3,  minH: 3 },
-    { i: 'proyectos', x: 0, y: 13, w: 6,  h: 4,  minW: 3,  minH: 3 },
-    { i: 'recursos',  x: 6, y: 13, w: 6,  h: 5,  minW: 4,  minH: 3 },
+    // Fila 2: Proyectos (6) + Indicadores (6) — mismo h
+    { i: 'proyectos', x: 0, y: 2,  w: 6,  h: 5,  minW: 3,  minH: 3 },
+    { i: 'mercado',   x: 6, y: 2,  w: 6,  h: 5,  minW: 3,  minH: 3 },
+    // Fila 3: Actividad (6) + Simulaciones (6) — mismo h
+    { i: 'actividad', x: 0, y: 7,  w: 6,  h: 6,  minW: 3,  minH: 3 },
+    { i: 'grafico',   x: 6, y: 7,  w: 6,  h: 6,  minW: 4,  minH: 3 },
+    // Fila 4: Radar full width
+    { i: 'radar',     x: 0, y: 13, w: 8,  h: 5,  minW: 4,  minH: 3 },
+    { i: 'recursos',  x: 8, y: 13, w: 4,  h: 5,  minW: 4,  minH: 3 },
   ],
   md: [
     { i: 'kpis',      x: 0, y: 0,  w: 6, h: 3,  minW: 6, minH: 2 },

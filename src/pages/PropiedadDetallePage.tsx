@@ -107,9 +107,9 @@ export function PropiedadDetallePage() {
   ].filter(Boolean) as { label: string; value: string }[]
 
   const mapsUrl = property.latitud && property.longitud
-    ? `https://www.google.com/maps?q=${property.latitud},${property.longitud}`
+    ? `https://www.openstreetmap.org/?mlat=${property.latitud}&mlon=${property.longitud}&zoom=16`
     : property.direccion
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.direccion)}`
+      ? `https://www.openstreetmap.org/search?query=${encodeURIComponent(property.direccion)}`
       : null
 
   return (

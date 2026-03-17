@@ -599,24 +599,91 @@ function RecursosWidget({ config, editMode }: { config: ReturnType<typeof useCon
 function QuickActionsBar() {
   const navigate = useNavigate()
   const actions = [
-    { label: 'Nuevo proyecto', icon: Plus,       path: '/proyectos' },
-    { label: 'Nuevo cliente',  icon: Users,      path: '/clientes'  },
-    { label: 'Simulador',      icon: Calculator, path: '/simulador' },
-    { label: 'Informes',       icon: FileText,   path: '/informes'  },
+    {
+      label: 'Nuevo proyecto',
+      icon: Plus,
+      path: '/proyectos',
+      bg: 'oklch(0.94 0.04 85)',           // beige cálido — destaca
+      border: 'rgba(180,140,60,0.18)',
+      iconColor: '#b45309',
+      primary: true,
+    },
+    {
+      label: 'Nuevo cliente',
+      icon: Users,
+      path: '/clientes',
+      bg: '#ffffff',
+      border: 'rgba(0,0,0,0.07)',
+      iconColor: '#6366f1',
+      primary: false,
+    },
+    {
+      label: 'Simulador',
+      icon: Calculator,
+      path: '/simulador',
+      bg: 'oklch(0.97 0.005 240)',         // gris azulado suave
+      border: 'rgba(0,0,0,0.07)',
+      iconColor: '#0ea5e9',
+      primary: false,
+    },
+    {
+      label: 'Informes',
+      icon: FileText,
+      path: '/informes',
+      bg: '#ffffff',
+      border: 'rgba(0,0,0,0.07)',
+      iconColor: '#10b981',
+      primary: false,
+    },
   ]
   return (
-    <Card size="2" style={{ boxShadow: 'none', border: '1px solid var(--border)', marginBottom: 16, borderRadius: 14 }}>
-      <Flex gap="2" wrap="wrap">
-        {actions.map(({ label, icon: Icon, path }) => (
-          <Box key={label} onClick={() => navigate(path)} style={{ cursor: 'pointer', flex: 1, minWidth: 100 }}>
-            <Flex align="center" gap="2" style={{ padding: '10px 14px', borderRadius: 10, background: 'oklch(0.75 0.11 90.08 / 0.15)', transition: 'opacity 0.15s' }} className="hover:opacity-70">
-              <Icon size={14} style={{ color: 'var(--muted-foreground)', flexShrink: 0 }} />
-              <Text size="2" weight="medium" style={{ whiteSpace: 'nowrap' }}>{label}</Text>
-            </Flex>
-          </Box>
-        ))}
-      </Flex>
-    </Card>
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: 8,
+      marginBottom: 16,
+    }}
+      className="quick-actions-grid"
+    >
+      <style>{`
+        @media (max-width: 640px) {
+          .quick-actions-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        .quick-action-btn:hover {
+          border-color: rgba(0,0,0,0.15) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+      `}</style>
+      {actions.map(({ label, icon: Icon, path, bg, border, iconColor, primary }) => (
+        <button
+          key={label}
+          onClick={() => navigate(path)}
+          className="quick-action-btn"
+          style={{
+            background: bg,
+            border: `1px solid ${border}`,
+            borderRadius: 12,
+            padding: '12px 14px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            transition: 'transform 0.15s, box-shadow 0.15s, border-color 0.15s',
+            boxShadow: primary ? '0 2px 8px rgba(180,140,60,0.12)' : '0 1px 3px rgba(0,0,0,0.04)',
+            textAlign: 'left',
+            width: '100%',
+          }}
+        >
+          <div style={{ background: `${iconColor}14`, borderRadius: 8, padding: 6, flexShrink: 0 }}>
+            <Icon size={14} style={{ color: iconColor, display: 'block' }} />
+          </div>
+          <span style={{ fontSize: 13, fontWeight: primary ? 600 : 500, color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {label}
+          </span>
+        </button>
+      ))}
+    </div>
   )
 }
 

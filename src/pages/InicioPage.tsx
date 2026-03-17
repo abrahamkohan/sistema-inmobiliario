@@ -1,7 +1,7 @@
 // src/pages/InicioPage.tsx
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { ResponsiveGridLayout, type LayoutItem } from 'react-grid-layout'
+import { ResponsiveGridLayout, verticalCompactor, type LayoutItem } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import {
@@ -766,6 +766,7 @@ export function InicioPage() {
             layouts={layouts}
             onLayoutChange={handleLayoutChange}
             onBreakpointChange={handleBreakpointChange}
+            compactor={verticalCompactor}
             dragConfig={{ enabled: editMode, bounded: false, handle: '.drag-handle', threshold: 3 }}
             resizeConfig={{ enabled: editMode, handles: ['se'] }}
           >

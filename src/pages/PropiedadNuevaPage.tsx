@@ -88,24 +88,21 @@ function parseMapsUrl(url: string): { embedSrc: string; lat: number | null; lng:
   const isGMaps = u.includes('google.com/maps') || u.includes('goo.gl/maps') || u.includes('maps.app.goo.gl')
   if (!isGMaps) return null
 
-  // @lat,lng pattern
   const at = u.match(/@(-?\d+\.?\d+),(-?\d+\.?\d+)/)
   if (at) {
     const lat = parseFloat(at[1]), lng = parseFloat(at[2])
     return { embedSrc: `https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`, lat, lng }
   }
-  // q=lat,lng pattern
   const q = u.match(/[?&]q=(-?\d+\.?\d+),(-?\d+\.?\d+)/)
   if (q) {
     const lat = parseFloat(q[1]), lng = parseFloat(q[2])
     return { embedSrc: `https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`, lat, lng }
   }
-  // Fallback: short URL or place without @coords — can't get coords but can embed
   if (!u.includes('goo.gl') && !u.includes('maps.app.goo.gl')) {
     const src = u.includes('output=embed') ? u : u + (u.includes('?') ? '&' : '?') + 'output=embed'
     return { embedSrc: src, lat: null, lng: null }
   }
-  return null // short URL, not resolvable
+  return null
 }
 
 function generateTitle(s: FormState): string {
@@ -138,10 +135,20 @@ function generateDescription(s: FormState): string {
 
 // ─── UI atoms ─────────────────────────────────────────────────────────────────
 
-function Block({ title, children }: { title: string; children: React.ReactNode }) {
+function Block({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+    <div className={`bg-white border border-gray-100 rounded-2xl p-6 shadow-sm ${className}`}>
       <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5">{title}</h2>
+      {children}
+    </div>
+  )
+}
+
+// Bloque principal — visualmente dominante
+function PrimaryBlock({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-white border-2 border-gray-900 rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.1)]">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-6">Lo esencial</h2>
       {children}
     </div>
   )
@@ -166,7 +173,7 @@ function NumChip({ n, active, onClick }: { n: number | string; active: boolean; 
     <button
       type="button"
       onClick={onClick}
-      className={`w-12 h-10 rounded-xl text-sm font-medium border transition-all ${
+      className={`w-12 h-9 rounded-xl text-sm font-medium border transition-all ${
         active ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-200 text-gray-600 hover:border-gray-400'
       }`}
     >
@@ -188,6 +195,10 @@ function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   )
 }
 
+function Divider() {
+  return <div className="border-t border-gray-100 my-5" />
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function PropiedadNuevaPage() {
@@ -200,7 +211,7 @@ export function PropiedadNuevaPage() {
 
   function update(patch: Partial<FormState>) { setS(prev => ({ ...prev, ...patch })) }
 
-  // Auto-fill title/description when key fields change
+  // Auto-fill title when key fields change
   useEffect(() => {
     if (s.operacion && s.tipo) {
       if (!s.titulo) update({ titulo: generateTitle(s) })
@@ -214,11 +225,7 @@ export function PropiedadNuevaPage() {
 
   function handleMapsLink(link: string) {
     const parsed = parseMapsUrl(link)
-    update({
-      mapsLink: link,
-      lat: parsed?.lat ?? null,
-      lng: parsed?.lng ?? null,
-    })
+    update({ mapsLink: link, lat: parsed?.lat ?? null, lng: parsed?.lng ?? null })
   }
 
   // ── Photos ──────────────────────────────────────────────────────────────────
@@ -307,84 +314,169 @@ export function PropiedadNuevaPage() {
   const showTerreno = s.tipo === 'casa' || s.tipo === 'terreno'
   const presets = s.moneda === 'USD' ? PRESETS_USD : PRESETS_PYG
 
+  // Header summary — tipo · operación · precio
+  const hasHeaderSummary = s.tipo || s.operacion || (s.precio && parseFloat(s.precio) > 0)
+  const headerSummaryParts: string[] = []
+  if (s.tipo) headerSummaryParts.push(TIPO_LABEL[s.tipo])
+  if (s.operacion) headerSummaryParts.push(OP_LABEL[s.operacion])
+  const precioDisplay = s.precio && parseFloat(s.precio) > 0
+    ? `${s.moneda === 'USD' ? '$' : '₲'} ${parseFloat(s.precio).toLocaleString(s.moneda === 'USD' ? 'en-US' : 'es-PY')}`
+    : null
+
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <div>
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-6 py-4 flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
           <h1 className="text-sm font-semibold text-gray-900">Nueva propiedad</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Completá los datos y publicá</p>
+          {/* Sticky summary — solo cuando hay datos */}
+          {hasHeaderSummary && (
+            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              {headerSummaryParts.map((part, i) => (
+                <span key={i} className="text-xs text-gray-500">
+                  {i > 0 && <span className="text-gray-300 mr-1.5">·</span>}
+                  {part}
+                </span>
+              ))}
+              {precioDisplay && (
+                <span className="text-xs font-semibold text-gray-900 ml-1">
+                  <span className="text-gray-300 mr-1">·</span>
+                  {precioDisplay}
+                </span>
+              )}
+            </div>
+          )}
+          {!hasHeaderSummary && (
+            <p className="text-xs text-gray-400 mt-0.5">Completá los datos y publicá</p>
+          )}
         </div>
         <button
           onClick={() => navigate('/propiedades')}
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+          className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors flex-shrink-0"
         >
           <X className="w-5 h-5" />
         </button>
       </header>
 
       {/* ── Content ── */}
-      <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-6">
+      <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-5">
 
-        {/* BLOQUE 1 — Operación + Tipo */}
-        <Block title="Operación y tipo">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Operación */}
-            <div>
-              <Label>¿Qué querés hacer?</Label>
-              <div className="flex gap-2">
-                {([
-                  { value: 'venta' as const, label: 'Venta', icon: Home },
-                  { value: 'alquiler' as const, label: 'Alquiler', icon: Key },
-                ]).map(({ value, label, icon: Icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => update({ operacion: value })}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
-                      s.operacion === value
-                        ? 'border-gray-900 bg-gray-900 text-white'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
+        {/* ══════════════════════════════════════════
+            BLOQUE 1 — LO ESENCIAL (dominante)
+            Operación + Tipo + Precio
+        ══════════════════════════════════════════ */}
+        <PrimaryBlock>
 
-            {/* Tipo */}
-            <div>
-              <Label>Tipo de propiedad</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {([
-                  { value: 'departamento' as const, label: 'Departamento', icon: Building2 },
-                  { value: 'casa' as const, label: 'Casa', icon: Home },
-                  { value: 'terreno' as const, label: 'Terreno', icon: Map },
-                  { value: 'comercial' as const, label: 'Comercial', icon: Store },
-                ]).map(({ value, label, icon: Icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => update({ tipo: value })}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
-                      s.tipo === value
-                        ? 'border-gray-900 bg-gray-900 text-white'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 flex-shrink-0" />
-                    {label}
-                  </button>
-                ))}
-              </div>
+          {/* Operación */}
+          <div className="mb-5">
+            <Label>¿Qué tipo de operación?</Label>
+            <div className="flex gap-2">
+              {([
+                { value: 'venta' as const, label: 'Venta', icon: Home },
+                { value: 'alquiler' as const, label: 'Alquiler', icon: Key },
+              ]).map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => update({ operacion: value })}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                    s.operacion === value
+                      ? 'border-gray-900 bg-gray-900 text-white'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
-        </Block>
 
-        {/* BLOQUE 2 — Ubicación */}
+          {/* Tipo */}
+          <div className="mb-5">
+            <Label>Tipo de propiedad</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {([
+                { value: 'departamento' as const, label: 'Departamento', icon: Building2 },
+                { value: 'casa' as const, label: 'Casa', icon: Home },
+                { value: 'terreno' as const, label: 'Terreno', icon: Map },
+                { value: 'comercial' as const, label: 'Comercial', icon: Store },
+              ]).map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => update({ tipo: value })}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                    s.tipo === value
+                      ? 'border-gray-900 bg-gray-900 text-white'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Divider />
+
+          {/* Precio */}
+          <div>
+            <Label>Precio</Label>
+
+            {/* Moneda */}
+            <div className="flex gap-2 mb-3">
+              {(['USD', 'PYG'] as const).map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => update({ moneda: m, precio: '' })}
+                  className={`px-5 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${
+                    s.moneda === m ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  {m === 'USD' ? '$ USD' : '₲ PYG'}
+                </button>
+              ))}
+            </div>
+
+            {/* Presets */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {presets.map(v => (
+                <Chip
+                  key={v}
+                  label={formatPreset(v, s.moneda)}
+                  active={s.precio === String(v)}
+                  onClick={() => update({ precio: String(v) })}
+                />
+              ))}
+            </div>
+
+            {/* Input exacto */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-500 w-5 flex-shrink-0">{s.moneda === 'USD' ? '$' : '₲'}</span>
+              <TextInput
+                type="number"
+                value={s.precio}
+                onChange={e => update({ precio: e.target.value })}
+                placeholder={s.moneda === 'USD' ? '120000' : '250000000'}
+                className="text-right"
+              />
+            </div>
+            {s.precio && parseFloat(s.precio) > 0 && (
+              <p className="text-xs text-gray-400 mt-1.5 text-right">
+                {s.moneda === 'USD' ? '$' : '₲'}{' '}
+                {parseFloat(s.precio).toLocaleString(s.moneda === 'USD' ? 'en-US' : 'es-PY')}
+              </p>
+            )}
+          </div>
+        </PrimaryBlock>
+
+        {/* ══════════════════════════════════════════
+            BLOQUE 2 — UBICACIÓN
+        ══════════════════════════════════════════ */}
         <Block title="Ubicación">
           <div className="flex flex-col gap-4">
             <div>
@@ -401,7 +493,7 @@ export function PropiedadNuevaPage() {
               </div>
               {isShortUrl && (
                 <p className="text-xs text-amber-600 mt-1.5">
-                  Link corto detectado. Usá el link completo de Google Maps para obtener el mapa.
+                  Link corto detectado. Usá el link completo para ver el mapa.
                 </p>
               )}
               {mapsData && !isShortUrl && (
@@ -412,7 +504,6 @@ export function PropiedadNuevaPage() {
               )}
             </div>
 
-            {/* Map preview */}
             {mapsData && !isShortUrl && (
               <div className="overflow-hidden rounded-xl border border-gray-200" style={{ height: 220 }}>
                 <iframe
@@ -424,7 +515,6 @@ export function PropiedadNuevaPage() {
               </div>
             )}
 
-            {/* Zona y dirección manual */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>Zona / Barrio</Label>
@@ -446,14 +536,16 @@ export function PropiedadNuevaPage() {
           </div>
         </Block>
 
-        {/* BLOQUE 3 — Características */}
+        {/* ══════════════════════════════════════════
+            BLOQUE 3 — CARACTERÍSTICAS (compacto)
+        ══════════════════════════════════════════ */}
         <Block title="Características">
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             {showDormBanos && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Dormitorios</Label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     {[{ v: 0, l: 'Mono' }, { v: 1, l: '1' }, { v: 2, l: '2' }, { v: 3, l: '3' }, { v: 4, l: '4+' }].map(({ v, l }) => (
                       <NumChip key={v} n={l} active={s.dormitorios === v} onClick={() => update({ dormitorios: v })} />
                     ))}
@@ -461,7 +553,7 @@ export function PropiedadNuevaPage() {
                 </div>
                 <div>
                   <Label>Baños</Label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     {[1, 2, 3].map(v => (
                       <NumChip key={v} n={v === 3 ? '3+' : v} active={s.banos === v} onClick={() => update({ banos: v })} />
                     ))}
@@ -470,7 +562,7 @@ export function PropiedadNuevaPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>Superficie total</Label>
                 <div className="flex items-center gap-2">
@@ -486,7 +578,7 @@ export function PropiedadNuevaPage() {
               </div>
               {showTerreno && (
                 <div>
-                  <Label>Superficie de terreno</Label>
+                  <Label>Terreno</Label>
                   <div className="flex items-center gap-2">
                     <TextInput
                       type="number"
@@ -503,33 +595,9 @@ export function PropiedadNuevaPage() {
           </div>
         </Block>
 
-        {/* BLOQUE 4 — Amenities */}
-        <Block title="Amenities">
-          <div className="flex flex-col gap-5">
-            {AMENITIES_GRUPOS.map(({ grupo, items }) => (
-              <div key={grupo}>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2.5">{grupo}</p>
-                <div className="flex flex-wrap gap-2">
-                  {items.map(({ id, label }) => (
-                    <Chip
-                      key={id}
-                      label={label}
-                      active={s.amenities.includes(id)}
-                      onClick={() => {
-                        const next = s.amenities.includes(id)
-                          ? s.amenities.filter(a => a !== id)
-                          : [...s.amenities, id]
-                        update({ amenities: next })
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Block>
-
-        {/* BLOQUE 5 — Fotos */}
+        {/* ══════════════════════════════════════════
+            BLOQUE 4 — FOTOS (antes de amenities)
+        ══════════════════════════════════════════ */}
         <Block title="Fotos">
           <div className="flex flex-col gap-4">
             <div
@@ -586,67 +654,51 @@ export function PropiedadNuevaPage() {
           </div>
         </Block>
 
-        {/* BLOQUE 6 — Precio */}
-        <Block title="Precio">
-          <div className="flex flex-col gap-5">
-            {/* Moneda */}
-            <div>
-              <Label>Moneda</Label>
-              <div className="flex gap-2">
-                {(['USD', 'PYG'] as const).map(m => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => update({ moneda: m, precio: '' })}
-                    className={`px-5 py-2 rounded-xl text-sm font-medium border-2 transition-all ${
-                      s.moneda === m ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                    }`}
-                  >
-                    {m === 'USD' ? '$ USD' : '₲ PYG'}
-                  </button>
-                ))}
+        {/* ══════════════════════════════════════════
+            BLOQUE 5 — AMENITIES (2 columnas)
+        ══════════════════════════════════════════ */}
+        <Block title="Amenities">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {AMENITIES_GRUPOS.map(({ grupo, items }) => (
+              <div key={grupo}>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{grupo}</p>
+                <div className="flex flex-col gap-1.5">
+                  {items.map(({ id, label }) => {
+                    const active = s.amenities.includes(id)
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => {
+                          const next = active
+                            ? s.amenities.filter(a => a !== id)
+                            : [...s.amenities, id]
+                          update({ amenities: next })
+                        }}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-left transition-all border ${
+                          active
+                            ? 'bg-gray-900 border-gray-900 text-white'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                        }`}
+                      >
+                        <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-all ${
+                          active ? 'bg-white/20 border-white/30' : 'border-gray-300'
+                        }`}>
+                          {active && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                        </div>
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-
-            {/* Presets */}
-            <div>
-              <Label>Precios frecuentes</Label>
-              <div className="flex flex-wrap gap-2">
-                {presets.map(v => (
-                  <Chip
-                    key={v}
-                    label={formatPreset(v, s.moneda)}
-                    active={s.precio === String(v)}
-                    onClick={() => update({ precio: String(v) })}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Input exacto */}
-            <div>
-              <Label>Precio exacto</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500 w-5 flex-shrink-0">{s.moneda === 'USD' ? '$' : '₲'}</span>
-                <TextInput
-                  type="number"
-                  value={s.precio}
-                  onChange={e => update({ precio: e.target.value })}
-                  placeholder={s.moneda === 'USD' ? '120000' : '250000000'}
-                  className="text-right"
-                />
-              </div>
-              {s.precio && parseFloat(s.precio) > 0 && (
-                <p className="text-xs text-gray-400 mt-1.5 text-right">
-                  {s.moneda === 'USD' ? '$' : '₲'}{' '}
-                  {parseFloat(s.precio).toLocaleString(s.moneda === 'USD' ? 'en-US' : 'es-PY')}
-                </p>
-              )}
-            </div>
+            ))}
           </div>
         </Block>
 
-        {/* BLOQUE 7 — Título y descripción */}
+        {/* ══════════════════════════════════════════
+            BLOQUE 6 — DESCRIPCIÓN
+        ══════════════════════════════════════════ */}
         <Block title="Título y descripción">
           <div className="flex flex-col gap-4">
             <div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { ArrowLeft, Bed, Bath, Maximize2, MapPin, ExternalLink, Globe, GlobeLock, MessageCircle, Edit, Calendar } from 'lucide-react'
+import { ArrowLeft, Bed, Bath, Maximize2, MapPin, ExternalLink, MessageCircle, Edit, Calendar } from 'lucide-react'
 import { useProperty, usePropertyPhotos, useUpdateProperty } from '@/hooks/useProperties'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { getPhotoUrl, formatPrice, timeAgo } from '@/lib/properties'

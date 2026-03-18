@@ -4,7 +4,7 @@ import type { MapRef, MapMouseEvent, MarkerDragEvent } from 'react-map-gl/maplib
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Search, Loader2, MapPin } from 'lucide-react'
 
-const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron'
 
 // Nominatim search biased to Paraguay — prioriza Asunción y Luque
 const VIEWBOX = '-58.1,-24.8,-57.1,-25.7' // bbox cubre Gran Asunción + Luque

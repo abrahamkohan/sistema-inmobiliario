@@ -241,21 +241,36 @@ export function PropiedadEditarPage() {
     patch({ latitud: loc.lat, longitud: loc.lng, zona: loc.zona, direccion: loc.direccion })
   }
 
-  function handleMapsPaste() {
-    if (isShortMapsUrl(mapsInput)) {
-      setMapsError('Los links cortos (maps.app.goo.gl) no permiten extraer coordenadas. En Google Maps, tocá "Compartir" → "Incorporar un mapa" → copiá el código iframe completo.')
-      return
-    }
-    const parsed = parseGoogleMapsInput(mapsInput)
-    if (!parsed) {
-      setMapsError('No se pudieron extraer las coordenadas. Pegá una URL completa de Google Maps (ej: google.com/maps?q=-25.28,-57.64) o el código iframe de "Incorporar un mapa".')
-      return
-    }
-    patch({ latitud: parsed.lat, longitud: parsed.lng })
-    setMapsInput('')
+  async function handleMapsPaste() {
     setMapsError('')
-    setShowMapsPaste(false)
-    toast.success('Coordenadas actualizadas')
+    // Intentar extraer directo del texto
+    const parsed = parseGoogleMapsInput(mapsInput)
+    if (parsed) {
+      patch({ latitud: parsed.lat, longitud: parsed.lng })
+      setMapsInput('')
+      setShowMapsPaste(false)
+      toast.success('Coordenadas actualizadas')
+      return
+    }
+    // Para cualquier URL de Google Maps (incluyendo links cortos): resolver via API
+    if (/google\.com\/maps|maps\.app\.goo\.gl|goo\.gl\/maps/i.test(mapsInput.trim())) {
+      setMapsError('Resolviendo link...')
+      try {
+        const res = await fetch(`https://kohancampos.com.py/api/resolve-maps?url=${encodeURIComponent(mapsInput.trim())}`)
+        const data = await res.json()
+        if (data.coords) {
+          patch({ latitud: data.coords.lat, longitud: data.coords.lng })
+          setMapsInput('')
+          setMapsError('')
+          setShowMapsPaste(false)
+          toast.success('Coordenadas actualizadas')
+          return
+        }
+      } catch { /* fall through */ }
+      setMapsError('No se pudieron extraer las coordenadas de este link.')
+      return
+    }
+    setMapsError('Pegá una URL de Google Maps o el código iframe de "Incorporar un mapa".')
   }
 
   async function handleSave() {

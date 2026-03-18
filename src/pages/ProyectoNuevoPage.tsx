@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router'
-import { X, Camera, Link as LinkIcon, Check } from 'lucide-react'
+import { X, Upload, Link as LinkIcon, Check, Plus, Trash2, Clipboard } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { createProject } from '@/lib/projects'
@@ -12,11 +12,15 @@ type Status = 'en_pozo' | 'en_construccion' | 'entregado'
 type TipoProyecto = 'residencial' | 'comercial' | 'mixto'
 type TypologyType = 'mono' | '1dorm' | '2dorm' | '3dorm' | '4dorm' | 'cochera' | 'cochera_xl' | 'baulera'
 
-interface TypologyDraft {
+interface TypologyVariant {
+  _id: string
   area_m2: string
-  price_usd: string
-  banos: number | null
   plano: File | null
+}
+
+interface TypologyDraft {
+  banos: number | null
+  variants: TypologyVariant[]
 }
 
 interface FormState {
@@ -24,70 +28,48 @@ interface FormState {
   status: Status
   developer_name: string
   tipo_proyecto: TipoProyecto | null
+  delivery_date: string
   maps_url: string
   lat: number | null
   lng: number | null
   zona: string
   direccion: string
-  precio_desde: string
-  precio_hasta: string
-  moneda: 'USD' | 'PYG'
-  delivery_date: string
-  amenities: string[]
+  link_drive: string
+  link_brochure: string
+  link_vista360: string
   selected_types: TypologyType[]
   typology_data: Partial<Record<TypologyType, TypologyDraft>>
+  caracteristicas: string
   fotos: File[]
-  description: string
+  resumen: string
 }
 
 const INITIAL: FormState = {
-  name: '', status: 'en_pozo', developer_name: '', tipo_proyecto: null,
+  name: '', status: 'en_pozo', developer_name: '', tipo_proyecto: null, delivery_date: '',
   maps_url: '', lat: null, lng: null, zona: '', direccion: '',
-  precio_desde: '', precio_hasta: '', moneda: 'USD', delivery_date: '',
-  amenities: [], selected_types: [], typology_data: {}, fotos: [], description: '',
+  link_drive: '', link_brochure: '', link_vista360: '',
+  selected_types: [], typology_data: {},
+  caracteristicas: '',
+  fotos: [],
+  resumen: '',
 }
 
 // ─── Typology definitions (fixed order) ────────────────────────────────────────
 
-const TYPOLOGY_DEFS: Array<{ id: TypologyType; label: string; hasBanos: boolean; category: 'unidad' | 'cochera' | 'baulera' }> = [
-  { id: 'mono',       label: 'Monoambiente',  hasBanos: true,  category: 'unidad'   },
-  { id: '1dorm',      label: '1 Dormitorio',  hasBanos: true,  category: 'unidad'   },
-  { id: '2dorm',      label: '2 Dormitorios', hasBanos: true,  category: 'unidad'   },
-  { id: '3dorm',      label: '3 Dormitorios', hasBanos: true,  category: 'unidad'   },
-  { id: '4dorm',      label: '4 Dormitorios', hasBanos: true,  category: 'unidad'   },
-  { id: 'cochera',    label: 'Cochera',        hasBanos: false, category: 'cochera'  },
-  { id: 'cochera_xl', label: 'Cochera XL',     hasBanos: false, category: 'cochera'  },
-  { id: 'baulera',    label: 'Baulera',        hasBanos: false, category: 'baulera'  },
-]
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const AMENITIES_GRUPOS = [
-  {
-    grupo: 'Interior',
-    items: [
-      { id: 'aire', label: 'Aire acondicionado' },
-      { id: 'calefaccion', label: 'Calefacción' },
-      { id: 'lavanderia', label: 'Lavandería' },
-      { id: 'cocina_equipada', label: 'Cocina equipada' },
-      { id: 'placares', label: 'Placares' },
-      { id: 'balcon', label: 'Balcón' },
-      { id: 'terraza', label: 'Terraza' },
-    ],
-  },
-  {
-    grupo: 'Edificio',
-    items: [
-      { id: 'piscina', label: 'Piscina' },
-      { id: 'gimnasio', label: 'Gimnasio' },
-      { id: 'parrilla', label: 'Parrilla / Quincho' },
-      { id: 'jardin', label: 'Jardín' },
-      { id: 'seguridad', label: 'Seguridad 24h' },
-      { id: 'ascensor', label: 'Ascensor' },
-      { id: 'salon', label: 'Salón de usos' },
-      { id: 'estacionamiento', label: 'Estacionamiento' },
-    ],
-  },
+const TYPOLOGY_DEFS: Array<{
+  id: TypologyType
+  label: string
+  hasBanos: boolean
+  category: 'unidad' | 'cochera' | 'baulera'
+}> = [
+  { id: 'mono',       label: 'Monoambiente',  hasBanos: true,  category: 'unidad'  },
+  { id: '1dorm',      label: '1 Dormitorio',  hasBanos: true,  category: 'unidad'  },
+  { id: '2dorm',      label: '2 Dormitorios', hasBanos: true,  category: 'unidad'  },
+  { id: '3dorm',      label: '3 Dormitorios', hasBanos: true,  category: 'unidad'  },
+  { id: '4dorm',      label: '4 Dormitorios', hasBanos: true,  category: 'unidad'  },
+  { id: 'cochera',    label: 'Cochera',        hasBanos: false, category: 'cochera' },
+  { id: 'cochera_xl', label: 'Cochera XL',     hasBanos: false, category: 'cochera' },
+  { id: 'baulera',    label: 'Baulera',        hasBanos: false, category: 'baulera' },
 ]
 
 // ─── Maps resolver ─────────────────────────────────────────────────────────────
@@ -112,6 +94,60 @@ function parseMapsUrl(url: string): { embedSrc: string; lat: number | null; lng:
     return { embedSrc: src, lat: null, lng: null }
   }
   return null
+}
+
+// ─── PlanoInput ────────────────────────────────────────────────────────────────
+
+function PlanoInput({ value, onChange }: { value: File | null; onChange: (f: File | null) => void }) {
+  const [dragging, setDragging] = useState(false)
+
+  function handlePaste(e: React.ClipboardEvent) {
+    const items = e.clipboardData?.items
+    if (!items) return
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        const f = item.getAsFile()
+        if (f) onChange(f)
+        break
+      }
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragging(false)
+    const f = e.dataTransfer.files[0]
+    if (f && (f.type.startsWith('image/') || f.type === 'application/pdf')) onChange(f)
+  }
+
+  return (
+    <div className="flex gap-2 mt-2">
+      <label
+        className={`flex-1 flex items-center gap-1.5 px-3 py-2 border border-dashed rounded-xl text-xs cursor-pointer transition-colors ${
+          dragging ? 'border-gray-900 bg-gray-50' : 'border-gray-300 text-gray-500 hover:border-gray-400'
+        }`}
+        onDragOver={e => { e.preventDefault(); setDragging(true) }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+      >
+        <Upload className="w-3 h-3 flex-shrink-0" />
+        {value
+          ? <span className="truncate text-emerald-600 max-w-[120px]">{value.name}</span>
+          : <span>Subir archivo</span>
+        }
+        <input type="file" accept="image/*,.pdf" className="hidden"
+          onChange={e => e.target.files?.[0] && onChange(e.target.files[0])}
+        />
+      </label>
+      <div
+        tabIndex={0}
+        onPaste={handlePaste}
+        className="flex items-center gap-1.5 px-3 py-2 border border-dashed border-gray-300 rounded-xl text-xs text-gray-400 hover:border-gray-400 hover:text-gray-600 cursor-pointer transition-colors focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-300 select-none"
+      >
+        <Clipboard className="w-3 h-3" /> Pegar
+      </div>
+    </div>
+  )
 }
 
 // ─── UI atoms ─────────────────────────────────────────────────────────────────
@@ -161,7 +197,7 @@ export function ProyectoNuevoPage() {
 
   function update(patch: Partial<FormState>) { setS(prev => ({ ...prev, ...patch })) }
 
-  // ── Maps ───────────────────────────────────────────────────────────────────
+  // ── Maps ─────────────────────────────────────────────────────────────────
   const isShortUrl = (url: string) => url.includes('goo.gl') || url.includes('maps.app.goo.gl')
   const mapsData = resolvedEmbed ?? parseMapsUrl(s.maps_url)
 
@@ -196,7 +232,7 @@ export function ProyectoNuevoPage() {
     update({ lat: parsed?.lat ?? null, lng: parsed?.lng ?? null })
   }
 
-  // ── Photos ─────────────────────────────────────────────────────────────────
+  // ── Photos ───────────────────────────────────────────────────────────────
   function fileKey(file: File) { return `${file.name}-${file.size}-${file.lastModified}` }
   function getPreviewUrl(file: File): string {
     const key = fileKey(file)
@@ -216,28 +252,63 @@ export function ProyectoNuevoPage() {
     update({ fotos: s.fotos.filter((_, idx) => idx !== i) })
   }
 
-  // ── Typologies ─────────────────────────────────────────────────────────────
+  // ── Typologies ──────────────────────────────────────────────────────────
   function toggleTypology(type: TypologyType) {
     if (s.selected_types.includes(type)) {
       update({ selected_types: s.selected_types.filter(t => t !== type) })
     } else {
       const newData = { ...s.typology_data }
-      if (!newData[type]) newData[type] = { area_m2: '', price_usd: '', banos: null, plano: null }
+      if (!newData[type]) newData[type] = { banos: null, variants: [{ _id: crypto.randomUUID(), area_m2: '', plano: null }] }
       update({ selected_types: [...s.selected_types, type], typology_data: newData })
     }
   }
-  function updateTypologyField(type: TypologyType, field: keyof TypologyDraft, value: string | number | null | File) {
-    update({ typology_data: { ...s.typology_data, [type]: { ...s.typology_data[type]!, [field]: value } } })
+
+  function updateBanos(type: TypologyType, banos: number | null) {
+    update({ typology_data: { ...s.typology_data, [type]: { ...s.typology_data[type]!, banos } } })
   }
 
-  // ── Save ───────────────────────────────────────────────────────────────────
-  async function handleSave(draft: boolean) {
+  function addVariant(type: TypologyType) {
+    const draft = s.typology_data[type]!
+    update({
+      typology_data: {
+        ...s.typology_data,
+        [type]: { ...draft, variants: [...draft.variants, { _id: crypto.randomUUID(), area_m2: '', plano: null }] },
+      },
+    })
+  }
+
+  function removeVariant(type: TypologyType, variantId: string) {
+    const draft = s.typology_data[type]!
+    if (draft.variants.length <= 1) return
+    update({
+      typology_data: {
+        ...s.typology_data,
+        [type]: { ...draft, variants: draft.variants.filter(v => v._id !== variantId) },
+      },
+    })
+  }
+
+  function updateVariantField(type: TypologyType, variantId: string, field: 'area_m2' | 'plano', value: string | File | null) {
+    const draft = s.typology_data[type]!
+    update({
+      typology_data: {
+        ...s.typology_data,
+        [type]: { ...draft, variants: draft.variants.map(v => v._id === variantId ? { ...v, [field]: value } : v) },
+      },
+    })
+  }
+
+  // ── Save ─────────────────────────────────────────────────────────────────
+  async function handleSave() {
     if (!s.name.trim()) { toast.error('El nombre del proyecto es requerido'); return }
     setIsSaving(true)
     try {
-      // Build maps link for storage
-      const mapsLink = s.maps_url ? { type: 'maps', name: 'Google Maps', url: s.maps_url } : null
-      const links = mapsLink ? [mapsLink] : []
+      const links = [
+        s.maps_url      && { type: 'maps',     name: 'Google Maps',  url: s.maps_url },
+        s.link_drive    && { type: 'drive',    name: 'Google Drive', url: s.link_drive },
+        s.link_brochure && { type: 'brochure', name: 'Brochure',     url: s.link_brochure },
+        s.link_vista360 && { type: 'vista360', name: 'Vista 360',    url: s.link_vista360 },
+      ].filter(Boolean) as Array<{ type: string; name: string; url: string }>
 
       const project = await createProject({
         name: s.name.trim(),
@@ -245,54 +316,50 @@ export function ProyectoNuevoPage() {
         developer_name: s.developer_name || null,
         tipo_proyecto: s.tipo_proyecto,
         location: s.zona || null,
-        description: s.description || null,
+        description: s.resumen || null,
         delivery_date: s.delivery_date || null,
-        amenities: s.amenities,
-        precio_desde: s.precio_desde ? parseFloat(s.precio_desde) : null,
-        precio_hasta: s.precio_hasta ? parseFloat(s.precio_hasta) : null,
-        moneda: s.moneda,
+        amenities: [],
         links,
+        caracteristicas: s.caracteristicas || null,
       })
 
-      // Save typologies (in fixed order)
+      // Tipologías — orden fijo, una fila por variante
       for (const def of TYPOLOGY_DEFS) {
         if (!s.selected_types.includes(def.id)) continue
-        const t = s.typology_data[def.id]!
-        let floorPlanPath: string | null = null
-        if (t.plano) {
-          const ext = t.plano.name.split('.').pop()
-          const planPath = `${project.id}/plan-${def.id}.${ext}`
-          const { error: uploadErr } = await supabase.storage.from('project-photos').upload(planPath, t.plano)
-          if (!uploadErr) floorPlanPath = planPath
+        const typDraft = s.typology_data[def.id]!
+        for (const variant of typDraft.variants) {
+          let floorPlanPath: string | null = null
+          if (variant.plano) {
+            const ext = variant.plano.name.split('.').pop()
+            const planPath = `${project.id}/plan-${def.id}-${variant._id}.${ext}`
+            const { error: uploadErr } = await supabase.storage.from('project-photos').upload(planPath, variant.plano)
+            if (!uploadErr) floorPlanPath = planPath
+          }
+          await createTypology({
+            project_id: project.id,
+            name: def.label,
+            area_m2: parseFloat(variant.area_m2) || 0,
+            price_usd: 0,
+            units_available: 0,
+            category: def.category,
+            unit_type: def.id,
+            bathrooms: typDraft.banos,
+            floor_plan_path: floorPlanPath,
+          })
         }
-        await createTypology({
-          project_id: project.id,
-          name: def.label,
-          area_m2: parseFloat(t.area_m2) || 0,
-          price_usd: parseFloat(t.price_usd) || 0,
-          units_available: 0,
-          category: def.category,
-          unit_type: def.id,
-          bathrooms: t.banos,
-          floor_plan_path: floorPlanPath,
-        })
       }
 
-      // Upload photos
+      // Fotos del proyecto
       for (let i = 0; i < s.fotos.length; i++) {
         const file = s.fotos[i]
         const ext = file.name.split('.').pop()
         const path = `${project.id}/${Date.now()}-${i}.${ext}`
         const { error } = await supabase.storage.from('project-photos').upload(path, file)
         if (error) continue
-        await supabase.from('project_photos').insert({
-          project_id: project.id,
-          storage_path: path,
-          sort_order: i,
-        })
+        await supabase.from('project_photos').insert({ project_id: project.id, storage_path: path, sort_order: i })
       }
 
-      toast.success(draft ? 'Borrador guardado' : 'Proyecto publicado')
+      toast.success('Proyecto creado')
       navigate('/proyectos')
     } catch (err) {
       toast.error('Error al guardar el proyecto')
@@ -301,12 +368,9 @@ export function ProyectoNuevoPage() {
     setIsSaving(false)
   }
 
-  // ── Header summary ─────────────────────────────────────────────────────────
+  // ── Header summary ────────────────────────────────────────────────────────
   const TIPO_LABEL: Record<TipoProyecto, string> = { residencial: 'Residencial', comercial: 'Comercial', mixto: 'Mixto' }
-  const hasHeaderSummary = s.name || s.tipo_proyecto
-  const precioDisplay = s.precio_desde
-    ? `${s.moneda === 'USD' ? '$' : '₲'} ${parseFloat(s.precio_desde).toLocaleString()}`
-    : null
+  const hasHeaderSummary = !!(s.name || s.tipo_proyecto)
 
   return (
     <div className="min-h-screen bg-gray-50 pb-8">
@@ -318,33 +382,33 @@ export function ProyectoNuevoPage() {
           {hasHeaderSummary ? (
             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
               {s.name && <span className="text-xs font-medium text-gray-700">{s.name}</span>}
-              {s.tipo_proyecto && <span className="text-xs text-gray-400"><span className="mr-1">·</span>{TIPO_LABEL[s.tipo_proyecto]}</span>}
-              {precioDisplay && <span className="text-xs font-semibold text-gray-900"><span className="text-gray-300 mr-1">·</span>desde {precioDisplay}</span>}
+              {s.tipo_proyecto && <span className="text-xs text-gray-400">· {TIPO_LABEL[s.tipo_proyecto]}</span>}
             </div>
           ) : (
             <p className="text-xs text-gray-400 mt-0.5">Completá los datos y publicá</p>
           )}
         </div>
-        <button onClick={() => navigate('/proyectos')} className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors flex-shrink-0">
+        <button
+          onClick={() => navigate('/proyectos')}
+          className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors flex-shrink-0"
+        >
           <X className="w-5 h-5" />
         </button>
       </header>
 
       <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-5">
 
-        {/* ══ BLOQUE 1 — LO ESENCIAL ══ */}
+        {/* ══ 1 — LO ESENCIAL ══ */}
         <PrimaryBlock>
-          {/* Nombre */}
           <div className="mb-5">
             <Label>Nombre del proyecto</Label>
             <TextInput
               value={s.name}
               onChange={e => update({ name: e.target.value })}
-              placeholder="Ej: Edificio Torres del Sol"
+              placeholder="Ej: Urban Cumbres Torre B"
             />
           </div>
 
-          {/* Estado + Desarrolladora */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
             <div>
               <Label>Estado</Label>
@@ -373,31 +437,41 @@ export function ProyectoNuevoPage() {
             </div>
           </div>
 
-          {/* Tipo de proyecto */}
-          <div>
-            <Label>Tipo de proyecto</Label>
-            <div className="flex gap-2">
-              {([
-                { v: 'residencial' as TipoProyecto, l: 'Residencial' },
-                { v: 'comercial' as TipoProyecto, l: 'Comercial' },
-                { v: 'mixto' as TipoProyecto, l: 'Mixto' },
-              ]).map(({ v, l }) => (
-                <button
-                  key={v} type="button" onClick={() => update({ tipo_proyecto: v })}
-                  className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
-                    s.tipo_proyecto === v ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                  }`}
-                >{l}</button>
-              ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Tipo</Label>
+              <div className="flex gap-2">
+                {([
+                  { v: 'residencial' as TipoProyecto, l: 'Residencial' },
+                  { v: 'comercial' as TipoProyecto, l: 'Comercial' },
+                  { v: 'mixto' as TipoProyecto, l: 'Mixto' },
+                ]).map(({ v, l }) => (
+                  <button
+                    key={v} type="button" onClick={() => update({ tipo_proyecto: v })}
+                    className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                      s.tipo_proyecto === v ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                    }`}
+                  >{l}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>Entrega estimada</Label>
+              <input
+                type="date"
+                value={s.delivery_date}
+                onChange={e => update({ delivery_date: e.target.value })}
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+              />
             </div>
           </div>
         </PrimaryBlock>
 
-        {/* ══ BLOQUE 2 — UBICACIÓN ══ */}
+        {/* ══ 2 — UBICACIÓN ══ */}
         <Block title="Ubicación">
           <div className="flex flex-col gap-4">
             <div>
-              <Label>Link de Google Maps</Label>
+              <Label>Google Maps</Label>
               <div className="relative">
                 <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 <input
@@ -412,7 +486,7 @@ export function ProyectoNuevoPage() {
               {!isResolvingMap && mapsData && (
                 <p className="text-xs text-emerald-600 mt-1.5 flex items-center gap-1">
                   <Check className="w-3.5 h-3.5" />
-                  {mapsData.lat ? `Coordenadas: ${mapsData.lat.toFixed(4)}, ${mapsData.lng?.toFixed(4)}` : 'Link válido'}
+                  {mapsData.lat ? `${mapsData.lat.toFixed(4)}, ${mapsData.lng?.toFixed(4)}` : 'Link válido'}
                 </p>
               )}
             </div>
@@ -434,97 +508,32 @@ export function ProyectoNuevoPage() {
           </div>
         </Block>
 
-        {/* ══ BLOQUE 3 — INFO COMERCIAL ══ */}
-        <Block title="Información comercial">
-          <div className="flex flex-col gap-4">
-            {/* Moneda + precios */}
-            <div>
-              <Label>Precio</Label>
-              <div className="flex items-center gap-3 flex-wrap">
-                {/* Toggle moneda */}
-                <div className="flex rounded-xl border border-gray-200 overflow-hidden flex-shrink-0">
-                  {(['USD', 'PYG'] as const).map(m => (
-                    <button
-                      key={m} type="button" onClick={() => update({ moneda: m })}
-                      className={`px-3 py-2 text-sm font-semibold transition-all ${
-                        s.moneda === m ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >{m}</button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 flex-shrink-0">Desde</span>
-                  <input
-                    type="number"
-                    value={s.precio_desde}
-                    onChange={e => update({ precio_desde: e.target.value })}
-                    placeholder={s.moneda === 'USD' ? '80000' : '200000000'}
-                    style={{ width: 160 }}
-                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 flex-shrink-0">Hasta</span>
-                  <input
-                    type="number"
-                    value={s.precio_hasta}
-                    onChange={e => update({ precio_hasta: e.target.value })}
-                    placeholder="Opcional"
-                    style={{ width: 160 }}
-                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Fecha de entrega */}
-            <div style={{ maxWidth: 240 }}>
-              <Label>Fecha estimada de entrega</Label>
-              <input
-                type="date"
-                value={s.delivery_date}
-                onChange={e => update({ delivery_date: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
-              />
-            </div>
-          </div>
-        </Block>
-
-        {/* ══ BLOQUE 4 — AMENITIES ══ */}
-        <Block title="Amenities">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {AMENITIES_GRUPOS.map(({ grupo, items }) => (
-              <div key={grupo}>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{grupo}</p>
-                <div className="flex flex-col gap-1.5">
-                  {items.map(({ id, label }) => {
-                    const active = s.amenities.includes(id)
-                    return (
-                      <button
-                        key={id} type="button"
-                        onClick={() => update({ amenities: active ? s.amenities.filter(a => a !== id) : [...s.amenities, id] })}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-left transition-all border ${
-                          active ? 'bg-gray-900 border-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                        }`}
-                      >
-                        <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-all ${
-                          active ? 'bg-white/20 border-white/30' : 'border-gray-300'
-                        }`}>
-                          {active && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
-                        </div>
-                        {label}
-                      </button>
-                    )
-                  })}
-                </div>
+        {/* ══ 3 — LINKS ══ */}
+        <Block title="Links">
+          <div className="flex flex-col gap-3">
+            {([
+              { label: 'Google Maps', value: s.maps_url,      onChange: (v: string) => handleMapsLink(v),             ph: 'https://maps.app.goo.gl/...' },
+              { label: 'Brochure',    value: s.link_brochure, onChange: (v: string) => update({ link_brochure: v }), ph: 'https://...' },
+              { label: 'Drive',       value: s.link_drive,    onChange: (v: string) => update({ link_drive: v }),    ph: 'https://drive.google.com/...' },
+              { label: 'Vista 360',   value: s.link_vista360, onChange: (v: string) => update({ link_vista360: v }), ph: 'https://...' },
+            ]).map(({ label, value, onChange, ph }) => (
+              <div key={label} className="flex items-center gap-3">
+                <span className="text-sm text-gray-400 w-24 flex-shrink-0">{label}</span>
+                <input
+                  type="url"
+                  value={value}
+                  onChange={e => onChange(e.target.value)}
+                  placeholder={ph}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                />
               </div>
             ))}
           </div>
         </Block>
 
-        {/* ══ BLOQUE 5 — TIPOLOGÍAS ══ */}
+        {/* ══ 4 — TIPOLOGÍAS ══ */}
         <Block title="Tipologías">
-          {/* Selector de chips */}
+          {/* Selector chips */}
           <div className="flex flex-wrap gap-2 mb-5">
             {TYPOLOGY_DEFS.map(def => {
               const active = s.selected_types.includes(def.id)
@@ -542,73 +551,77 @@ export function ProyectoNuevoPage() {
 
           {/* Cards en orden fijo */}
           {s.selected_types.length > 0 ? (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {TYPOLOGY_DEFS.filter(def => s.selected_types.includes(def.id)).map(def => {
                 const draft = s.typology_data[def.id]!
                 return (
                   <div key={def.id} className="border border-gray-200 rounded-2xl p-4">
-                    <p className="text-sm font-semibold text-gray-800 mb-3">{def.label}</p>
-                    <div className="flex flex-wrap gap-4 items-end">
-                      {/* m² */}
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1.5">m²</p>
-                        <input
-                          type="number"
-                          value={draft.area_m2}
-                          onChange={e => updateTypologyField(def.id, 'area_m2', e.target.value)}
-                          placeholder="50"
-                          style={{ width: 90 }}
-                          className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
-                        />
-                      </div>
+                    <p className="text-sm font-semibold text-gray-800 mb-4">{def.label}</p>
 
-                      {/* Baños (solo residencial) */}
-                      {def.hasBanos && (
-                        <div>
-                          <p className="text-xs text-gray-400 mb-1.5">Baños</p>
-                          <div className="flex gap-1">
-                            {[1, 2, 3].map(n => (
+                    {/* Baños — nivel tipología, solo residencial */}
+                    {def.hasBanos && (
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-xs text-gray-400 w-10 flex-shrink-0">Baños</span>
+                        <div className="flex gap-1">
+                          {[1, 2, 3].map(n => (
+                            <button
+                              key={n} type="button"
+                              onClick={() => updateBanos(def.id, draft.banos === n ? null : n)}
+                              className={`w-9 h-9 rounded-xl border-2 text-sm font-medium transition-all ${
+                                draft.banos === n ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                              }`}
+                            >{n === 3 ? '3+' : n}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Variantes */}
+                    <div className="flex flex-col gap-3">
+                      {draft.variants.map((variant, idx) => (
+                        <div key={variant._id}>
+                          {draft.variants.length > 1 && (
+                            <p className="text-xs text-gray-400 mb-1.5">Variante {idx + 1}</p>
+                          )}
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center gap-2 flex-shrink-0 pt-2">
+                              <span className="text-xs text-gray-400">m²</span>
+                              <input
+                                type="number"
+                                value={variant.area_m2}
+                                onChange={e => updateVariantField(def.id, variant._id, 'area_m2', e.target.value)}
+                                placeholder="50"
+                                style={{ width: 80 }}
+                                className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <PlanoInput
+                                value={variant.plano}
+                                onChange={f => updateVariantField(def.id, variant._id, 'plano', f)}
+                              />
+                            </div>
+                            {draft.variants.length > 1 && (
                               <button
-                                key={n} type="button"
-                                onClick={() => updateTypologyField(def.id, 'banos', draft.banos === n ? null : n)}
-                                className={`w-9 h-9 rounded-xl border-2 text-sm font-medium transition-all ${
-                                  draft.banos === n ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                                }`}
-                              >{n === 3 ? '3+' : n}</button>
-                            ))}
+                                type="button"
+                                onClick={() => removeVariant(def.id, variant._id)}
+                                className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 mt-2"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
                         </div>
-                      )}
-
-                      {/* Precio USD */}
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1.5">Precio USD</p>
-                        <input
-                          type="number"
-                          value={draft.price_usd}
-                          onChange={e => updateTypologyField(def.id, 'price_usd', e.target.value)}
-                          placeholder="85000"
-                          style={{ width: 130 }}
-                          className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
-                        />
-                      </div>
-
-                      {/* Plano */}
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1.5">Plano</p>
-                        <label className="flex items-center gap-1.5 px-3 py-2 border border-dashed border-gray-300 rounded-xl text-xs text-gray-500 hover:border-gray-400 cursor-pointer transition-colors" style={{ height: 36 }}>
-                          {draft.plano ? (
-                            <span className="text-emerald-600 max-w-[100px] truncate">{draft.plano.name}</span>
-                          ) : (
-                            <><Camera className="w-3.5 h-3.5" /> Subir plano</>
-                          )}
-                          <input
-                            type="file" accept="image/*,.pdf" className="hidden"
-                            onChange={e => e.target.files?.[0] && updateTypologyField(def.id, 'plano', e.target.files[0])}
-                          />
-                        </label>
-                      </div>
+                      ))}
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => addVariant(def.id)}
+                      className="flex items-center gap-1.5 mt-3 text-xs text-gray-400 hover:text-gray-700 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Agregar variante
+                    </button>
                   </div>
                 )
               })}
@@ -618,7 +631,18 @@ export function ProyectoNuevoPage() {
           )}
         </Block>
 
-        {/* ══ BLOQUE 6 — FOTOS ══ */}
+        {/* ══ 5 — CARACTERÍSTICAS DEL EDIFICIO ══ */}
+        <Block title="Características del edificio">
+          <textarea
+            value={s.caracteristicas}
+            onChange={e => update({ caracteristicas: e.target.value })}
+            rows={5}
+            placeholder={"4 Torres · 6 pisos · 14 dptos por piso\n2 Piscinas · Solarium\n1 Gimnasio por torre\nSeguridad 24h · Ascensor panorámico"}
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 resize-none"
+          />
+        </Block>
+
+        {/* ══ 6 — FOTOS ══ */}
         <Block title="Fotos">
           <div className="flex flex-col gap-4">
             <div
@@ -630,10 +654,12 @@ export function ProyectoNuevoPage() {
                 isDragging ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:border-gray-400'
               }`}
             >
-              <Camera className="w-6 h-6 text-gray-300 mx-auto mb-1.5" />
+              <Upload className="w-6 h-6 text-gray-300 mx-auto mb-1.5" />
               <p className="text-sm text-gray-500">Tocá para agregar fotos</p>
               <p className="text-xs text-gray-400 mt-0.5">JPG, PNG · máx. 20</p>
-              <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => e.target.files && addFiles(e.target.files)} />
+              <input ref={inputRef} type="file" accept="image/*" multiple className="hidden"
+                onChange={e => e.target.files && addFiles(e.target.files)}
+              />
             </div>
             {s.fotos.length > 0 && (
               <>
@@ -655,13 +681,13 @@ export function ProyectoNuevoPage() {
           </div>
         </Block>
 
-        {/* ══ BLOQUE 7 — DESCRIPCIÓN ══ */}
-        <Block title="Descripción">
+        {/* ══ 7 — RESUMEN ══ */}
+        <Block title="Resumen">
           <textarea
-            value={s.description}
-            onChange={e => update({ description: e.target.value })}
-            rows={5}
-            placeholder="Describí el proyecto: características, ventajas, ubicación estratégica..."
+            value={s.resumen}
+            onChange={e => update({ resumen: e.target.value })}
+            rows={6}
+            placeholder={"URBAN CUMBRES TORRE B\nEntrega: Marzo 2027\n\nUbicación estratégica en el corazón de Luque. Proyecto residencial con amenities premium..."}
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 resize-none"
           />
         </Block>
@@ -671,16 +697,16 @@ export function ProyectoNuevoPage() {
       {/* Panel flotante */}
       <div className="fixed bottom-6 right-6 z-30 w-[280px] bg-gray-900 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.35)] p-4 flex flex-col gap-2">
         <button
-          type="button" onClick={() => handleSave(false)} disabled={isSaving}
+          type="button" onClick={handleSave} disabled={isSaving}
           className="w-full py-3 rounded-xl text-sm font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
         >
           {isSaving ? 'Guardando...' : 'Publicar proyecto'}
         </button>
         <button
-          type="button" onClick={() => handleSave(true)} disabled={isSaving}
-          className="w-full py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 transition-colors disabled:opacity-50"
+          type="button" onClick={() => navigate('/proyectos')} disabled={isSaving}
+          className="w-full py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 transition-colors"
         >
-          Guardar borrador
+          Cancelar
         </button>
       </div>
 

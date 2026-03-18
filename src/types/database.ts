@@ -18,6 +18,7 @@ export interface Database {
           precio_desde: number | null
           precio_hasta: number | null
           moneda: 'USD' | 'PYG'
+          caracteristicas: string | null
           created_at: string
           updated_at: string
         }
@@ -36,6 +37,7 @@ export interface Database {
           precio_desde?: number | null
           precio_hasta?: number | null
           moneda?: 'USD' | 'PYG'
+          caracteristicas?: string | null
         }
         Update: {
           name?: string
@@ -52,6 +54,7 @@ export interface Database {
           precio_desde?: number | null
           precio_hasta?: number | null
           moneda?: 'USD' | 'PYG'
+          caracteristicas?: string | null
         }
         Relationships: []
       }

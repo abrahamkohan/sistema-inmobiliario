@@ -308,16 +308,32 @@ export function PropiedadEditarPage() {
     setSaving(false)
   }
 
+  async function handleSetPortada(storagePath: string) {
+    if (!property) return
+    try {
+      await updateProperty.mutateAsync({ id: property.id, input: { foto_portada: storagePath } })
+      toast.success('Foto de portada actualizada')
+    } catch {
+      toast.error('Error actualizando portada')
+    }
+  }
+
   async function handleAddPhotos(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files || !property) return
     const files = Array.from(e.target.files)
     const base = photos.length
+    let firstUploaded: string | null = null
     for (let i = 0; i < files.length; i++) {
       try {
-        await addPhoto.mutateAsync({ propertyId: property.id, file: files[i], sortOrder: base + i })
+        const result = await addPhoto.mutateAsync({ propertyId: property.id, file: files[i], sortOrder: base + i })
+        if (i === 0) firstUploaded = result.storage_path
       } catch {
         toast.error(`Error subiendo foto ${files[i].name}`)
       }
+    }
+    // Si no había portada, setear la primera foto subida como portada
+    if (firstUploaded && (base === 0 || !property.foto_portada)) {
+      await updateProperty.mutateAsync({ id: property.id, input: { foto_portada: firstUploaded } })
     }
     toast.success(`${files.length} foto${files.length !== 1 ? 's' : ''} agregada${files.length !== 1 ? 's' : ''}`)
     e.target.value = ''
@@ -326,6 +342,14 @@ export function PropiedadEditarPage() {
   async function handleDeletePhoto(photo: any) {
     try {
       await deletePhoto.mutateAsync(photo)
+      // Si la foto eliminada era la portada, actualizar al primer foto restante
+      if (photo.storage_path === property?.foto_portada) {
+        const remaining = photos.filter(p => p.id !== photo.id)
+        await updateProperty.mutateAsync({
+          id: property!.id,
+          input: { foto_portada: remaining[0]?.storage_path ?? null },
+        })
+      }
     } catch {
       toast.error('Error eliminando foto')
     }
@@ -641,27 +665,38 @@ export function PropiedadEditarPage() {
           <div className="flex flex-col gap-4">
             {photos.length > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {photos.map((photo, i) => (
-                  <div key={photo.id} className="relative group aspect-square">
-                    <img
-                      src={getPhotoUrl(photo.storage_path)}
-                      alt=""
-                      className="w-full h-full object-cover rounded-xl"
-                    />
-                    {i === 0 && (
-                      <span className="absolute top-1 left-1 bg-gray-900/70 text-white text-[10px] px-1.5 py-0.5 rounded-md">
-                        Portada
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleDeletePhoto(photo)}
-                      className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
+                {photos.map((photo) => {
+                  const isPortada = photo.storage_path === property.foto_portada
+                  return (
+                    <div key={photo.id} className="relative group aspect-square">
+                      <img
+                        src={getPhotoUrl(photo.storage_path)}
+                        alt=""
+                        className={`w-full h-full object-cover rounded-xl ${isPortada ? 'ring-2 ring-gray-900' : ''}`}
+                      />
+                      {isPortada ? (
+                        <span className="absolute top-1 left-1 bg-gray-900/80 text-white text-[10px] px-1.5 py-0.5 rounded-md">
+                          Portada
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleSetPortada(photo.storage_path)}
+                          className="absolute top-1 left-1 bg-white/80 text-gray-700 text-[10px] px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                        >
+                          ★ Portada
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePhoto(photo)}
+                        className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             )}
             <button

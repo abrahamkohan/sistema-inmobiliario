@@ -66,6 +66,7 @@ export function ClientesPage() {
         dni:              values.dni || null,
         fecha_nacimiento: values.fecha_nacimiento || null,
         campos_extra:     Object.keys(values.campos_extra).length > 0 ? values.campos_extra : null,
+        apodo:            values.apodo || null,
       }
       if (editing) {
         await updateClient.mutateAsync({ id: editing.id, input: payload })

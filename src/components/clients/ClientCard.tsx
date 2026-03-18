@@ -42,6 +42,9 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
             {client.phone && (
               <p className="text-sm text-muted-foreground">{client.phone}</p>
             )}
+            {client.apodo && (
+              <p className="text-xs text-muted-foreground italic">"{client.apodo}"</p>
+            )}
             {client.fuente && (
               <p className="text-xs text-muted-foreground">{client.fuente}</p>
             )}

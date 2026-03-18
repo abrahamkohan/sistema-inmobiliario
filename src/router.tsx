@@ -15,6 +15,7 @@ import { PropiedadDetallePage } from '@/pages/PropiedadDetallePage'
 import { PropiedadNuevaPage } from '@/pages/PropiedadNuevaPage'
 import { PropiedadEditarPage } from '@/pages/PropiedadEditarPage'
 import { ProyectoNuevoPage } from '@/pages/ProyectoNuevoPage'
+import { LeadQuickPage } from '@/pages/LeadQuickPage'
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
     ],
   },
   // Rutas públicas (sin auth)
+  { path: 'lead-quick', element: <LeadQuickPage /> },
   { path: 'informes/:id',      element: <ReporteHtmlPage /> },
   { path: 'presupuestos/:id/pdf', element: <PresupuestoPdfPage /> },
   { path: 'auth/callback', element: <AuthCallbackPage /> },

@@ -148,6 +148,8 @@ export interface Database {
           dni: string | null
           fecha_nacimiento: string | null
           campos_extra: Record<string, string> | null
+          apodo: string | null
+          referido_por: string | null
           created_at: string
           updated_at: string
         }
@@ -162,6 +164,8 @@ export interface Database {
           dni?: string | null
           fecha_nacimiento?: string | null
           campos_extra?: Record<string, string> | null
+          apodo?: string | null
+          referido_por?: string | null
         }
         Update: {
           full_name?: string
@@ -174,6 +178,8 @@ export interface Database {
           dni?: string | null
           fecha_nacimiento?: string | null
           campos_extra?: Record<string, string> | null
+          apodo?: string | null
+          referido_por?: string | null
         }
         Relationships: []
       }

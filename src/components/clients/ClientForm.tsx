@@ -31,6 +31,7 @@ export interface ClientFormValues {
   dni: string
   fecha_nacimiento: string
   campos_extra: Record<string, string>
+  apodo: string
 }
 
 interface FormState {
@@ -46,6 +47,7 @@ interface FormState {
   fecha_nacimiento: string
   active_extra: string[]
   campos_extra: Record<string, string>
+  apodo: string
 }
 
 interface ClientFormProps {
@@ -85,6 +87,7 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
     fecha_nacimiento: defaultValues?.fecha_nacimiento ?? '',
     active_extra:    Object.keys(defaultCamposExtra),
     campos_extra:    defaultCamposExtra,
+    apodo:           defaultValues?.apodo ?? '',
   })
 
   const [nameError, setNameError] = useState('')
@@ -118,6 +121,7 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
       dni:              s.dni,
       fecha_nacimiento: s.fecha_nacimiento,
       campos_extra:     s.campos_extra,
+      apodo:            s.apodo,
     })
   }
 
@@ -149,6 +153,15 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
           placeholder="Ej: Juan García" className={INPUT_CLS}
         />
         {nameError && <p className="text-xs text-red-500">{nameError}</p>}
+      </div>
+
+      {/* Apodo */}
+      <div className="grid gap-1.5">
+        <label className="text-sm font-medium text-gray-700">Apodo / referencia</label>
+        <input
+          value={s.apodo} onChange={e => update({ apodo: e.target.value })}
+          placeholder="Ej: Señor alto Expo" className={INPUT_CLS}
+        />
       </div>
 
       {/* Teléfono + Nacionalidad */}

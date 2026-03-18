@@ -214,10 +214,8 @@ export function PropiedadNuevaPage() {
     setResolvedEmbed(null)
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? ''
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
       const res = await fetch(
-        `${supabaseUrl}/functions/v1/resolve-maps?url=${encodeURIComponent(link)}`,
-        { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+        `${supabaseUrl}/functions/v1/resolve-maps?url=${encodeURIComponent(link)}`
       )
       if (!res.ok) throw new Error()
       const data = await res.json() as { finalUrl: string; coords: { lat: number; lng: number } | null }

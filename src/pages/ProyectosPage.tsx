@@ -1,5 +1,6 @@
 // src/pages/ProyectosPage.tsx
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -19,6 +20,7 @@ import type { Database } from '@/types/database'
 type ProjectRow = Database['public']['Tables']['projects']['Row']
 
 export function ProyectosPage() {
+  const navigate = useNavigate()
   const { data: projects = [], isLoading } = useProjects()
   const createProject = useCreateProject()
   const updateProject = useUpdateProject()
@@ -28,8 +30,7 @@ export function ProyectosPage() {
   const [editing, setEditing] = useState<ProjectRow | null>(null)
 
   function openCreate() {
-    setEditing(null)
-    setSheetOpen(true)
+    navigate('/proyectos/nueva')
   }
 
   function openEdit(project: ProjectRow) {

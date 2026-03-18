@@ -67,7 +67,7 @@ export function LeadQuickPage() {
       const fuenValue = s.fuente === 'Otro' ? s.fuente_otro : s.fuente
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? ''
-      const res = await fetch(`${supabaseUrl}/functions/v1/capture-lead`, {
+      const res = await fetch(`${supabaseUrl}/functions/v1/quick-service`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

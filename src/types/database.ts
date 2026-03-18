@@ -14,6 +14,10 @@ export interface Database {
           brochure_path: string | null
           usd_to_pyg_rate: number | null
           links: Array<{ type: string; name: string; url: string }>
+          tipo_proyecto: 'residencial' | 'comercial' | 'mixto' | null
+          precio_desde: number | null
+          precio_hasta: number | null
+          moneda: 'USD' | 'PYG'
           created_at: string
           updated_at: string
         }
@@ -28,6 +32,10 @@ export interface Database {
           brochure_path?: string | null
           usd_to_pyg_rate?: number | null
           links?: Array<{ type: string; name: string; url: string }>
+          tipo_proyecto?: 'residencial' | 'comercial' | 'mixto' | null
+          precio_desde?: number | null
+          precio_hasta?: number | null
+          moneda?: 'USD' | 'PYG'
         }
         Update: {
           name?: string
@@ -40,6 +48,10 @@ export interface Database {
           brochure_path?: string | null
           usd_to_pyg_rate?: number | null
           links?: Array<{ type: string; name: string; url: string }>
+          tipo_proyecto?: 'residencial' | 'comercial' | 'mixto' | null
+          precio_desde?: number | null
+          precio_hasta?: number | null
+          moneda?: 'USD' | 'PYG'
         }
         Relationships: []
       }

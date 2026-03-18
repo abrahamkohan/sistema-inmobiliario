@@ -133,10 +133,6 @@ function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   )
 }
 
-function Divider() {
-  return <div className="border-t border-gray-100 my-5" />
-}
-
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function ProyectoNuevoPage() {
@@ -281,7 +277,6 @@ export function ProyectoNuevoPage() {
   }
 
   // ── Header summary ─────────────────────────────────────────────────────────
-  const STATUS_LABEL: Record<Status, string> = { en_pozo: 'En pozo', en_construccion: 'En obra', entregado: 'Terminado' }
   const TIPO_LABEL: Record<TipoProyecto, string> = { residencial: 'Residencial', comercial: 'Comercial', mixto: 'Mixto' }
   const hasHeaderSummary = s.name || s.tipo_proyecto
   const precioDisplay = s.precio_desde

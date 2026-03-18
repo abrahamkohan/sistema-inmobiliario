@@ -324,7 +324,7 @@ export function PropiedadNuevaPage() {
     : null
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-28">
+    <div className="min-h-screen bg-gray-50 pb-8">
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-6 py-4 flex items-center justify-between gap-4">
@@ -742,23 +742,23 @@ export function PropiedadNuevaPage() {
 
       </div>
 
-      {/* ── Bottom action bar (fija) ── */}
-      <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-gray-100 px-4 sm:px-6 py-3 flex gap-3 max-w-[900px] mx-auto left-0 right-0">
-        <button
-          type="button"
-          onClick={() => handleSave(true)}
-          disabled={isSaving}
-          className="px-5 py-2.5 rounded-xl text-sm text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50 flex-shrink-0"
-        >
-          Guardar borrador
-        </button>
+      {/* ── Panel flotante (fixed right) ── */}
+      <div className="fixed bottom-6 right-6 z-30 w-[280px] bg-gray-900 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.35)] p-4 flex flex-col gap-2">
         <button
           type="button"
           onClick={() => handleSave(false)}
           disabled={isSaving}
-          className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-gray-900 text-white hover:bg-gray-700 transition-colors disabled:opacity-50"
+          className="w-full py-3 rounded-xl text-sm font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
         >
           {isSaving ? 'Guardando...' : 'Publicar propiedad'}
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSave(true)}
+          disabled={isSaving}
+          className="w-full py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 transition-colors disabled:opacity-50"
+        >
+          Guardar borrador
         </button>
       </div>
 

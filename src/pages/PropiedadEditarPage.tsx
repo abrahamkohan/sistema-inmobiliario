@@ -47,7 +47,14 @@ function parseGoogleMapsInput(input: string): { lat: number; lng: number } | nul
   const latMatch = url.match(/!3d(-?\d+\.\d+)/)
   const lngMatch = url.match(/!2d(-?\d+\.\d+)/)
   if (latMatch && lngMatch) return { lat: parseFloat(latMatch[1]), lng: parseFloat(lngMatch[1]) }
+  // ll=lat,lng (algunas URLs de Maps)
+  const llMatch = url.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/)
+  if (llMatch) return { lat: parseFloat(llMatch[1]), lng: parseFloat(llMatch[2]) }
   return null
+}
+
+function isShortMapsUrl(input: string): boolean {
+  return /maps\.app\.goo\.gl|goo\.gl\/maps/i.test(input.trim())
 }
 
 function extractAmenities(desc: string): { intro: string; amenityIds: string[] } {
@@ -235,9 +242,13 @@ export function PropiedadEditarPage() {
   }
 
   function handleMapsPaste() {
+    if (isShortMapsUrl(mapsInput)) {
+      setMapsError('Los links cortos (maps.app.goo.gl) no permiten extraer coordenadas. En Google Maps, tocá "Compartir" → "Incorporar un mapa" → copiá el código iframe completo.')
+      return
+    }
     const parsed = parseGoogleMapsInput(mapsInput)
     if (!parsed) {
-      setMapsError('No se pudo extraer la ubicación. Usá una URL completa de Google Maps o un iframe embed.')
+      setMapsError('No se pudieron extraer las coordenadas. Pegá una URL completa de Google Maps (ej: google.com/maps?q=-25.28,-57.64) o el código iframe de "Incorporar un mapa".')
       return
     }
     patch({ latitud: parsed.lat, longitud: parsed.lng })
@@ -566,9 +577,20 @@ export function PropiedadEditarPage() {
             </div>
 
             {draft.latitud && draft.longitud && (
-              <div className="flex items-center gap-2 text-xs text-gray-400">
-                <MapPin className="w-3.5 h-3.5" />
-                {draft.latitud.toFixed(5)}, {draft.longitud.toFixed(5)}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-emerald-600 font-medium">Coordenadas guardadas:</span>
+                  {draft.latitud.toFixed(5)}, {draft.longitud.toFixed(5)}
+                </div>
+                <div className="rounded-xl overflow-hidden border border-gray-100" style={{ height: 180 }}>
+                  <iframe
+                    src={`https://maps.google.com/maps?q=${draft.latitud},${draft.longitud}&z=16&output=embed`}
+                    className="w-full h-full border-0"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
               </div>
             )}
 

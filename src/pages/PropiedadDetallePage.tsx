@@ -5,7 +5,6 @@ import { useProperty, usePropertyPhotos, useUpdateProperty } from '@/hooks/usePr
 import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { getPhotoUrl, formatPrice, timeAgo } from '@/lib/properties'
 import { PropertyLightbox, PropertyPhotoMosaic } from '@/components/properties/PropertyGallery'
-import { PropertyMap } from '@/components/properties/PropertyMap'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -299,8 +298,13 @@ export function PropiedadDetallePage() {
                 </a>
               )}
             </div>
-            <div className="rounded-xl overflow-hidden">
-              <PropertyMap lat={property.latitud} lng={property.longitud} label={title} />
+            <div className="rounded-xl overflow-hidden" style={{ height: 220 }}>
+              <iframe
+                src={`https://maps.google.com/maps?q=${property.latitud},${property.longitud}&z=16&output=embed`}
+                className="w-full h-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </Card>
         ) : property.zona ? (

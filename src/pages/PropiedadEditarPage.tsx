@@ -343,10 +343,10 @@ export function PropiedadEditarPage() {
     try {
       await deletePhoto.mutateAsync(photo)
       // Si la foto eliminada era la portada, actualizar al primer foto restante
-      if (photo.storage_path === property?.foto_portada) {
+      if (photo.storage_path === property?.foto_portada && property) {
         const remaining = photos.filter(p => p.id !== photo.id)
         await updateProperty.mutateAsync({
-          id: property!.id,
+          id: property.id,
           input: { foto_portada: remaining[0]?.storage_path ?? null },
         })
       }

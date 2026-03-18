@@ -666,7 +666,7 @@ export function PropiedadEditarPage() {
             {photos.length > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {photos.map((photo) => {
-                  const isPortada = photo.storage_path === property.foto_portada
+                  const isPortada = photo.storage_path === property?.foto_portada
                   return (
                     <div key={photo.id} className="relative group aspect-square">
                       <img

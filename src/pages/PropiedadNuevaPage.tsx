@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router'
 import { X, Camera, Home, Key, Building2, Map, Store, Link as LinkIcon, Check } from 'lucide-react'
 import { toast } from 'sonner'
@@ -186,6 +186,8 @@ export function PropiedadNuevaPage() {
   const navigate = useNavigate()
   const [s, setS] = useState<FormState>(INITIAL)
   const [isSaving, setIsSaving] = useState(false)
+  const [isResolvingMap, setIsResolvingMap] = useState(false)
+  const [resolvedEmbed, setResolvedEmbed] = useState<{ embedSrc: string; lat: number | null; lng: number | null } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const previewUrls = useRef<Record<string, string>>({})
@@ -201,12 +203,43 @@ export function PropiedadNuevaPage() {
   }, [s.operacion, s.tipo, s.dormitorios, s.zona])
 
   // ── Google Maps parser ──────────────────────────────────────────────────────
-  const mapsData = parseMapsUrl(s.mapsLink)
-  const isShortUrl = s.mapsLink.trim() && (s.mapsLink.includes('goo.gl') || s.mapsLink.includes('maps.app.goo.gl'))
+  const isShortUrl = (url: string) =>
+    url.includes('goo.gl') || url.includes('maps.app.goo.gl')
+
+  // mapsData: usa resolvedEmbed si existe (link corto resuelto), sino parsea directo
+  const mapsData = resolvedEmbed ?? parseMapsUrl(s.mapsLink)
+
+  const resolveShortUrl = useCallback(async (link: string) => {
+    setIsResolvingMap(true)
+    setResolvedEmbed(null)
+    try {
+      const webUrl = import.meta.env.VITE_WEB_URL ?? ''
+      const res = await fetch(`${webUrl}/api/resolve-maps?url=${encodeURIComponent(link)}`)
+      if (!res.ok) throw new Error()
+      const data = await res.json() as { finalUrl: string; coords: { lat: number; lng: number } | null }
+      const coords = data.coords
+      const embedSrc = coords
+        ? `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&z=16&output=embed`
+        : data.finalUrl + (data.finalUrl.includes('?') ? '&' : '?') + 'output=embed'
+      setResolvedEmbed({ embedSrc, lat: coords?.lat ?? null, lng: coords?.lng ?? null })
+      update({ lat: coords?.lat ?? null, lng: coords?.lng ?? null })
+    } catch {
+      toast.error('No se pudo resolver el link de Maps')
+    }
+    setIsResolvingMap(false)
+  }, [])
 
   function handleMapsLink(link: string) {
-    const parsed = parseMapsUrl(link)
-    update({ mapsLink: link, lat: parsed?.lat ?? null, lng: parsed?.lng ?? null })
+    const trimmed = link.trim()
+    setResolvedEmbed(null)
+    if (!trimmed) { update({ mapsLink: '', lat: null, lng: null }); return }
+    update({ mapsLink: trimmed })
+    if (isShortUrl(trimmed)) {
+      resolveShortUrl(trimmed)
+      return
+    }
+    const parsed = parseMapsUrl(trimmed)
+    update({ lat: parsed?.lat ?? null, lng: parsed?.lng ?? null })
   }
 
   // ── Photos ──────────────────────────────────────────────────────────────────
@@ -458,12 +491,10 @@ export function PropiedadNuevaPage() {
                   className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
                 />
               </div>
-              {isShortUrl && (
-                <p className="text-xs text-amber-600 mt-1.5">
-                  Link corto detectado. Usá el link completo para ver el mapa.
-                </p>
+              {isResolvingMap && (
+                <p className="text-xs text-gray-400 mt-1.5">Resolviendo link…</p>
               )}
-              {mapsData && !isShortUrl && (
+              {!isResolvingMap && mapsData && (
                 <p className="text-xs text-emerald-600 mt-1.5 flex items-center gap-1">
                   <Check className="w-3.5 h-3.5" />
                   {mapsData.lat ? `Coordenadas: ${mapsData.lat.toFixed(4)}, ${mapsData.lng?.toFixed(4)}` : 'Link válido'}
@@ -471,7 +502,7 @@ export function PropiedadNuevaPage() {
               )}
             </div>
 
-            {mapsData && !isShortUrl && (
+            {mapsData && !isResolvingMap && (
               <div className="overflow-hidden rounded-xl border border-gray-200" style={{ height: 220 }}>
                 <iframe
                   src={mapsData.embedSrc}

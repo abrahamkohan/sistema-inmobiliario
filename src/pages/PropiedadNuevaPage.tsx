@@ -218,10 +218,13 @@ export function PropiedadNuevaPage() {
         `${supabaseUrl}/functions/v1/resolve-maps?url=${encodeURIComponent(link)}`
       )
       if (!res.ok) throw new Error()
-      const data = await res.json() as { finalUrl: string; coords: { lat: number; lng: number } | null }
+      const data = await res.json() as { finalUrl: string; coords: { lat: number; lng: number } | null; placeName: string | null }
       const coords = data.coords
-      const embedSrc = coords
-        ? `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&z=16&output=embed`
+      const q = data.placeName
+        ? encodeURIComponent(data.placeName)
+        : coords ? `${coords.lat},${coords.lng}` : null
+      const embedSrc = q
+        ? `https://maps.google.com/maps?q=${q}&output=embed`
         : data.finalUrl + (data.finalUrl.includes('?') ? '&' : '?') + 'output=embed'
       setResolvedEmbed({ embedSrc, lat: coords?.lat ?? null, lng: coords?.lng ?? null })
       update({ lat: coords?.lat ?? null, lng: coords?.lng ?? null })

@@ -32,8 +32,13 @@ Deno.serve(async (req) => {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SistemaInmobiliario/1.0)' },
     })
     const finalUrl = res.url
+
+    // Extraer nombre del lugar (entre /place/ y /@)
+    const placeMatch = finalUrl.match(/\/maps\/place\/([^/@]+)/)
+    const placeName = placeMatch ? decodeURIComponent(placeMatch[1].replace(/\+/g, ' ')) : null
+
     const coords = extractCoords(finalUrl)
-    return new Response(JSON.stringify({ finalUrl, coords }), {
+    return new Response(JSON.stringify({ finalUrl, coords, placeName }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch {

@@ -72,15 +72,9 @@ const AMENITIES_GRUPOS = [
 ]
 
 const ALL_AMENITIES = AMENITIES_GRUPOS.flatMap(g => g.items)
-const PRESETS_USD = [30000, 50000, 80000, 100000, 150000, 200000, 300000]
-const PRESETS_PYG = [50_000_000, 100_000_000, 200_000_000, 500_000_000, 1_000_000_000]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatPreset(value: number, moneda: 'USD' | 'PYG'): string {
-  if (moneda === 'USD') return value >= 1_000_000 ? `$${value / 1_000_000}M` : `$${value / 1000}k`
-  return value >= 1_000_000_000 ? `₲${value / 1_000_000_000}B` : `₲${value / 1_000_000}M`
-}
 
 function parseMapsUrl(url: string): { embedSrc: string; lat: number | null; lng: number | null } | null {
   const u = url.trim()
@@ -154,19 +148,6 @@ function PrimaryBlock({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-        active ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-200 text-gray-600 hover:border-gray-400'
-      }`}
-    >
-      {label}
-    </button>
-  )
-}
 
 function NumChip({ n, active, onClick }: { n: number | string; active: boolean; onClick: () => void }) {
   return (
@@ -312,7 +293,6 @@ export function PropiedadNuevaPage() {
 
   const showDormBanos = s.tipo !== 'terreno'
   const showTerreno = s.tipo === 'casa' || s.tipo === 'terreno'
-  const presets = s.moneda === 'USD' ? PRESETS_USD : PRESETS_PYG
 
   // Header summary — tipo · operación · precio
   const hasHeaderSummary = s.tipo || s.operacion || (s.precio && parseFloat(s.precio) > 0)

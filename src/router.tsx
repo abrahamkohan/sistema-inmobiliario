@@ -13,6 +13,7 @@ import { PresupuestoPdfPage } from '@/pages/PresupuestoPdfPage'
 import { PropiedadesPage } from '@/pages/PropiedadesPage'
 import { PropiedadDetallePage } from '@/pages/PropiedadDetallePage'
 import { PropiedadNuevaPage } from '@/pages/PropiedadNuevaPage'
+import { PropiedadEditarPage } from '@/pages/PropiedadEditarPage'
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
@@ -32,7 +33,8 @@ export const router = createBrowserRouter([
       { path: 'recursos',      element: <RecursosPage /> },
       { path: 'propiedades',        element: <PropiedadesPage /> },
       { path: 'propiedades/nueva',  element: <PropiedadNuevaPage /> },
-      { path: 'propiedades/:id',    element: <PropiedadDetallePage /> },
+      { path: 'propiedades/:id',         element: <PropiedadDetallePage /> },
+      { path: 'propiedades/:id/editar', element: <PropiedadEditarPage /> },
       { path: 'configuracion', element: <ConfiguracionPage /> },
     ],
   },

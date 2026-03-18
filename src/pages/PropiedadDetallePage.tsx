@@ -150,6 +150,14 @@ export function PropiedadDetallePage() {
             <ArrowLeft className="w-4 h-4" />
             Propiedades
           </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(`/propiedades/${id}/editar`)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+            >
+              <Edit className="w-3.5 h-3.5" />
+              Editar
+            </button>
           <button onClick={togglePublicado} className="flex items-center gap-2.5 group">
             <span className="text-xs font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
               {property.publicado_en_web ? 'Publicado' : 'No publicado'}
@@ -162,6 +170,7 @@ export function PropiedadDetallePage() {
               }`} />
             </div>
           </button>
+          </div>
         </div>
 
         {/* ── 1. Header card ── */}

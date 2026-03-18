@@ -73,6 +73,32 @@ export function formatPrice(price: number, moneda: 'USD' | 'PYG'): string {
   return '$ ' + price.toLocaleString('en-US')
 }
 
+export async function addPropertyPhoto(
+  propertyId: string,
+  file: File,
+  sortOrder: number,
+): Promise<PropertyPhotoRow> {
+  const ext = file.name.split('.').pop()
+  const path = `${propertyId}/${Date.now()}.${ext}`
+  const { error: uploadError } = await supabase.storage
+    .from('property-photos')
+    .upload(path, file, { upsert: false })
+  if (uploadError) throw uploadError
+  const { data, error } = await supabase
+    .from('property_photos')
+    .insert({ property_id: propertyId, storage_path: path, sort_order: sortOrder })
+    .select()
+    .single()
+  if (error) throw error
+  return data as unknown as PropertyPhotoRow
+}
+
+export async function deletePropertyPhoto(photo: PropertyPhotoRow): Promise<void> {
+  await supabase.storage.from('property-photos').remove([photo.storage_path])
+  const { error } = await supabase.from('property_photos').delete().eq('id', photo.id)
+  if (error) throw error
+}
+
 export function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))

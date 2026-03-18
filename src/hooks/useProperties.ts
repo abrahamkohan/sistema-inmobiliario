@@ -2,8 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getProperties, getProperty, getPropertyPhotos,
   createProperty, updateProperty, deleteProperty,
+  addPropertyPhoto, deletePropertyPhoto,
 } from '@/lib/properties'
-import type { PropertyInsert, PropertyUpdate } from '@/lib/properties'
+import type { PropertyInsert, PropertyUpdate, PropertyPhotoRow } from '@/lib/properties'
 
 export function useProperties() {
   return useQuery({ queryKey: ['properties'], queryFn: getProperties })
@@ -42,6 +43,23 @@ export function useUpdateProperty() {
       qc.invalidateQueries({ queryKey: ['properties'] })
       qc.invalidateQueries({ queryKey: ['properties', id] })
     },
+  })
+}
+
+export function useAddPropertyPhoto() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ propertyId, file, sortOrder }: { propertyId: string; file: File; sortOrder: number }) =>
+      addPropertyPhoto(propertyId, file, sortOrder),
+    onSuccess: (_data, { propertyId }) => qc.invalidateQueries({ queryKey: ['property_photos', propertyId] }),
+  })
+}
+
+export function useDeletePropertyPhoto() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (photo: PropertyPhotoRow) => deletePropertyPhoto(photo),
+    onSuccess: (_data, photo) => qc.invalidateQueries({ queryKey: ['property_photos', photo.property_id] }),
   })
 }
 

@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CountryPicker, COUNTRIES } from '@/components/ui/CountryPicker'
+import type { Country } from '@/components/ui/CountryPicker'
 import type { Database } from '@/types/database'
 
 type ClientRow = Database['public']['Tables']['clients']['Row']
@@ -37,8 +39,9 @@ export interface ClientFormValues {
 interface FormState {
   tipo: 'lead' | 'cliente'
   full_name: string
-  phone: string
-  nationality: string
+  phoneNum: string       // number only (without dial code)
+  dialCountry: Country   // selected dial country
+  natCountry: Country | null
   fuente: string
   fuente_otro: string
   notes: string
@@ -66,6 +69,20 @@ function parseFuente(stored: string | null) {
   return { fuente: 'Otro', fuente_otro: stored }
 }
 
+const PY = COUNTRIES.find(c => c.code === 'PY')!
+
+function parsePhone(stored: string | null): { dialCountry: Country; phoneNum: string } {
+  if (!stored) return { dialCountry: PY, phoneNum: '' }
+  const match = COUNTRIES.find(c => stored.startsWith(c.dial))
+  if (match) return { dialCountry: match, phoneNum: stored.slice(match.dial.length).trim() }
+  return { dialCountry: PY, phoneNum: stored }
+}
+
+function parseNationality(stored: string | null): Country | null {
+  if (!stored) return null
+  return COUNTRIES.find(c => c.name.toLowerCase() === stored.toLowerCase()) ?? null
+}
+
 const INPUT_CLS = 'w-full h-12 px-3 border border-gray-200 bg-gray-50 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-900 transition-colors'
 const LABEL_CLS = 'text-xs font-medium text-gray-500 mb-1.5 block'
 
@@ -74,12 +91,14 @@ const LABEL_CLS = 'text-xs font-medium text-gray-500 mb-1.5 block'
 export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, stickyButtons }: ClientFormProps) {
   const { fuente: df, fuente_otro: dfo } = parseFuente(defaultValues?.fuente ?? null)
   const defaultCamposExtra = (defaultValues?.campos_extra ?? {}) as Record<string, string>
+  const { dialCountry: defDial, phoneNum: defPhoneNum } = parsePhone(defaultValues?.phone ?? null)
 
   const [s, setS] = useState<FormState>({
     tipo:            defaultValues?.tipo ?? 'lead',
     full_name:       defaultValues?.full_name ?? '',
-    phone:           defaultValues?.phone ?? '',
-    nationality:     defaultValues?.nationality ?? '',
+    phoneNum:        defPhoneNum,
+    dialCountry:     defDial,
+    natCountry:      parseNationality(defaultValues?.nationality ?? null),
     fuente:          df,
     fuente_otro:     dfo,
     notes:           defaultValues?.notes ?? '',
@@ -111,11 +130,14 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
     e.preventDefault()
     if (!s.full_name.trim()) { setNameError('El nombre es requerido'); return }
     setNameError('')
+    const phoneVal = s.phoneNum.trim()
+      ? `${s.dialCountry.dial} ${s.phoneNum.trim()}`
+      : ''
     await onSubmit({
       tipo:             s.tipo,
       full_name:        s.full_name.trim(),
-      phone:            s.phone,
-      nationality:      s.nationality,
+      phone:            phoneVal,
+      nationality:      s.natCountry ? s.natCountry.name : '',
       fuente:           s.fuente === 'Otro' ? s.fuente_otro : s.fuente,
       notes:            s.notes,
       email:            s.email,
@@ -165,20 +187,33 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
         />
       </div>
 
-      {/* Teléfono + Nacionalidad */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label className={LABEL_CLS}>Teléfono</label>
+      {/* Teléfono */}
+      <div className="flex flex-col gap-1.5">
+        <label className={LABEL_CLS}>Teléfono</label>
+        <div className="flex gap-2">
+          <CountryPicker
+            value={s.dialCountry}
+            onChange={c => update({ dialCountry: c })}
+            mode="dial"
+            className="w-[30%]"
+          />
           <input
-            type="tel" inputMode="numeric" autoComplete="tel"
-            value={s.phone} onChange={e => update({ phone: e.target.value })}
-            placeholder="+595 981 123456" className={INPUT_CLS}
+            type="tel" inputMode="tel" autoComplete="tel"
+            value={s.phoneNum} onChange={e => update({ phoneNum: e.target.value })}
+            placeholder="981 123456" className={INPUT_CLS + ' flex-1'}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <label className={LABEL_CLS}>Nacionalidad</label>
-          <input value={s.nationality} onChange={e => update({ nationality: e.target.value })} placeholder="Paraguayo" className={INPUT_CLS} />
-        </div>
+      </div>
+
+      {/* Nacionalidad */}
+      <div className="flex flex-col gap-1.5">
+        <label className={LABEL_CLS}>Nacionalidad</label>
+        <CountryPicker
+          value={s.natCountry}
+          onChange={c => update({ natCountry: c })}
+          mode="nationality"
+          className="w-full"
+        />
       </div>
 
       {/* Cliente: Email + DNI */}

@@ -66,7 +66,7 @@ function parseFuente(stored: string | null) {
   return { fuente: 'Otro', fuente_otro: stored }
 }
 
-const INPUT_CLS = 'w-full h-12 px-3 border border-gray-200 bg-gray-50 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-900 transition-colors'
+const INPUT_CLS = 'w-full h-12 px-3 border border-gray-200 bg-gray-50 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-900 transition-colors'
 const LABEL_CLS = 'text-xs font-medium text-gray-500 mb-1.5 block'
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -228,7 +228,7 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
         <textarea
           value={s.notes} onChange={e => update({ notes: e.target.value })} rows={2}
           placeholder="Observaciones..."
-          className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-900 transition-colors resize-none"
+          className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-900 transition-colors resize-none"
         />
       </div>
 

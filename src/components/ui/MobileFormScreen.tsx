@@ -1,4 +1,5 @@
 // src/components/ui/MobileFormScreen.tsx
+import { useEffect, useRef } from 'react'
 import { ChevronLeft, X } from 'lucide-react'
 
 interface MobileFormScreenProps {
@@ -13,6 +14,12 @@ interface MobileFormScreenProps {
  * Solo visible en mobile (md:hidden). Para desktop usar Modal.
  */
 export function MobileFormScreen({ open, onClose, title, children }: MobileFormScreenProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (open) scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })
+  }, [open])
+
   if (!open) return null
 
   return (
@@ -41,7 +48,7 @@ export function MobileFormScreen({ open, onClose, title, children }: MobileFormS
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-4 pt-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pt-4">
         {children}
       </div>
     </div>

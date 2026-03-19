@@ -327,7 +327,7 @@ export function ProyectoNuevoPage() {
           if (variant.plano) {
             const ext = variant.plano.name.split('.').pop()
             const planPath = `${project.id}/plan-${def.id}-${variant._id}.${ext}`
-            const { error: uploadErr } = await supabase.storage.from('project-photos').upload(planPath, variant.plano)
+            const { error: uploadErr } = await supabase.storage.from('project-media').upload(planPath, variant.plano)
             if (!uploadErr) floorPlanPath = planPath
           }
           await createTypology({
@@ -348,7 +348,7 @@ export function ProyectoNuevoPage() {
         const file = s.fotos[i]
         const ext = file.name.split('.').pop()
         const path = `${project.id}/${Date.now()}-${i}.${ext}`
-        const { error } = await supabase.storage.from('project-photos').upload(path, file)
+        const { error } = await supabase.storage.from('project-media').upload(path, file)
         if (error) continue
         await supabase.from('project_photos').insert({ project_id: project.id, storage_path: path, sort_order: i })
       }

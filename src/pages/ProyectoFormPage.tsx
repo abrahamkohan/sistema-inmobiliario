@@ -251,7 +251,6 @@ export function ProyectoFormPage() {
     const d = s.amenityDrafts.find(a => a._id === aid)
     if (d?.previewUrl) URL.revokeObjectURL(d.previewUrl)
     update({ amenityDrafts: s.amenityDrafts.filter(a => a._id !== aid) })
-    if (activePasteId === aid) setActivePasteId(null)
   }
   function setAmenityPhoto(aid: string, file: File) {
     update({ amenityDrafts: s.amenityDrafts.map(a => {
@@ -342,7 +341,7 @@ export function ProyectoFormPage() {
     try {
       const dbLinks = [
         s.maps_url && { type: 'maps', name: 'Google Maps', url: s.maps_url },
-        ...s.links.filter(l => l.url.trim()).map(l => ({ type: l.type, name: LINK_TYPE_OPTIONS.find(o => o.value === l.type)?.label ?? 'Link', url: l.url.trim() })),
+        ...s.links.filter(l => l.url.trim()).map(l => ({ type: l.type, name: linkPreset(l.type)?.label ?? 'Link', url: l.url.trim() })),
       ].filter(Boolean) as Array<{ type: string; name: string; url: string }>
 
       const payload = {

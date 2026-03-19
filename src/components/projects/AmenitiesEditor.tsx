@@ -217,7 +217,7 @@ export function AmenitiesEditor({ projectId }: AmenitiesEditorProps) {
                 ))}
 
                 {/* Spinner subida */}
-                {addImage.isPending && activePasteId === amenity.id && (
+                {addImage.isPending && pasteModal?.amenityId === amenity.id && (
                   <div className="h-8 w-8 rounded border border-gray-200 flex items-center justify-center flex-shrink-0">
                     <Loader2 className="h-3 w-3 animate-spin text-gray-400" />
                   </div>

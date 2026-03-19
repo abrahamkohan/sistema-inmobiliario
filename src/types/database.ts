@@ -19,6 +19,8 @@ export interface Database {
           precio_hasta: number | null
           moneda: 'USD' | 'PYG'
           caracteristicas: string | null
+          publicado_en_web: boolean
+          badge_analisis: 'oportunidad' | 'estable' | 'a_evaluar' | null
           created_at: string
           updated_at: string
         }
@@ -38,6 +40,8 @@ export interface Database {
           precio_hasta?: number | null
           moneda?: 'USD' | 'PYG'
           caracteristicas?: string | null
+          publicado_en_web?: boolean
+          badge_analisis?: 'oportunidad' | 'estable' | 'a_evaluar' | null
         }
         Update: {
           name?: string
@@ -55,6 +59,8 @@ export interface Database {
           precio_hasta?: number | null
           moneda?: 'USD' | 'PYG'
           caracteristicas?: string | null
+          publicado_en_web?: boolean
+          badge_analisis?: 'oportunidad' | 'estable' | 'a_evaluar' | null
         }
         Relationships: []
       }

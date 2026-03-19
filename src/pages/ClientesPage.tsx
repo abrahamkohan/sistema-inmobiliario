@@ -180,19 +180,19 @@ export function ClientesPage() {
 
       {/* Mobile: full-screen */}
       <MobileFormScreen open={sheetOpen} onClose={() => setSheetOpen(false)}
-        title={editing ? 'Editar' : 'Nuevo'}>
+        title={editing ? 'Editar' : 'Nuevo lead'}>
         <ClientForm key={editing?.id ?? 'new'} defaultValues={editing ?? undefined}
           onSubmit={handleSubmit} onCancel={() => setSheetOpen(false)}
-          isSubmitting={isPending} stickyButtons />
+          isSubmitting={isPending} stickyButtons mode={editing ? 'full' : 'quick'} />
       </MobileFormScreen>
 
       {/* Desktop: modal */}
       <div className="hidden md:block">
         <Modal open={sheetOpen} onClose={() => setSheetOpen(false)}
-          title={editing ? 'Editar' : 'Nuevo'}>
+          title={editing ? 'Editar' : 'Nuevo lead'}>
           <ClientForm key={editing?.id ?? 'new'} defaultValues={editing ?? undefined}
             onSubmit={handleSubmit} onCancel={() => setSheetOpen(false)}
-            isSubmitting={isPending} />
+            isSubmitting={isPending} mode={editing ? 'full' : 'quick'} />
         </Modal>
       </div>
     </div>

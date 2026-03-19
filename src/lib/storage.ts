@@ -66,6 +66,24 @@ export async function uploadPresupuestoFloorPlan(file: File): Promise<string> {
   return path
 }
 
+export async function uploadAmenityImage(
+  projectId: string,
+  amenityId: string,
+  file: File
+): Promise<string> {
+  const ext = file.name.split('.').pop() || 'jpg'
+  const path = `${projectId}/amenities/${amenityId}/${Date.now()}.${ext}`
+  const { error } = await supabase.storage
+    .from(MEDIA_BUCKET)
+    .upload(path, file, { upsert: false })
+  if (error) throw error
+  return path
+}
+
+export async function deleteAmenityImage(path: string): Promise<void> {
+  await deleteStorageFile(path).catch(() => null)
+}
+
 export function getPublicUrl(path: string): string {
   const { data } = supabase.storage
     .from(MEDIA_BUCKET)

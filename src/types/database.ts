@@ -195,6 +195,43 @@ export interface Database {
         }
         Relationships: []
       }
+      project_amenities: {
+        Row: {
+          id:         string
+          project_id: string
+          name:       string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          project_id: string
+          name:       string
+          sort_order?: number
+        }
+        Update: {
+          name?:       string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      project_amenity_images: {
+        Row: {
+          id:           string
+          amenity_id:   string
+          storage_path: string
+          sort_order:   number
+          created_at:   string
+        }
+        Insert: {
+          amenity_id:   string
+          storage_path: string
+          sort_order?:  number
+        }
+        Update: {
+          sort_order?: number
+        }
+        Relationships: []
+      }
       project_photos: {
         Row: {
           id: string

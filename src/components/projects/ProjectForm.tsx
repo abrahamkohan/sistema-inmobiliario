@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { AmenitiesCheckbox } from './AmenitiesCheckbox'
+import { AmenitiesEditor } from './AmenitiesEditor'
 import type { Database } from '@/types/database'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
@@ -37,7 +37,6 @@ const projectSchema = z.object({
   status:          z.enum(['en_pozo', 'en_construccion', 'entregado']),
   delivery_date:   z.string().optional(),
   developer_name:  z.string().optional(),
-  amenities:       z.array(z.string()),
   usd_to_pyg_rate: z.number().positive().nullable().optional(),
 })
 
@@ -65,7 +64,6 @@ export function ProjectForm({ defaultValues, onSubmit, onCancel, isSubmitting, s
       status:          defaultValues?.status          ?? 'en_pozo',
       delivery_date:   defaultValues?.delivery_date   ?? '',
       developer_name:  defaultValues?.developer_name  ?? '',
-      amenities:       defaultValues?.amenities        ?? [],
       usd_to_pyg_rate: defaultValues?.usd_to_pyg_rate ?? null,
     },
   })
@@ -138,13 +136,12 @@ export function ProjectForm({ defaultValues, onSubmit, onCancel, isSubmitting, s
       </div>
 
       {/* Amenities */}
-      <div className="grid gap-1.5">
-        <Label>Amenities</Label>
-        <AmenitiesCheckbox
-          value={form.watch('amenities')}
-          onChange={(v) => form.setValue('amenities', v)}
-        />
-      </div>
+      {defaultValues?.id && (
+        <div className="grid gap-2">
+          <Label>Amenities</Label>
+          <AmenitiesEditor projectId={defaultValues.id} />
+        </div>
+      )}
 
       {/* Links */}
       <div className="grid gap-2">

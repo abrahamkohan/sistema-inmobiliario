@@ -66,7 +66,8 @@ function parseFuente(stored: string | null) {
   return { fuente: 'Otro', fuente_otro: stored }
 }
 
-const INPUT_CLS = 'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400'
+const INPUT_CLS = 'w-full h-12 px-3 border border-gray-200 bg-gray-50 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-900 transition-colors'
+const LABEL_CLS = 'text-xs font-medium text-gray-500 mb-1.5 block'
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -146,18 +147,18 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
       </div>
 
       {/* Nombre */}
-      <div className="grid gap-1.5">
-        <label className="text-sm font-medium text-gray-700">Nombre *</label>
+      <div className="flex flex-col gap-1.5">
+        <label className={LABEL_CLS}>Nombre *</label>
         <input
           value={s.full_name} onChange={e => { update({ full_name: e.target.value }); setNameError('') }}
-          placeholder="Ej: Juan García" className={INPUT_CLS}
+          placeholder="Ej: Juan García" autoComplete="name" className={INPUT_CLS}
         />
         {nameError && <p className="text-xs text-red-500">{nameError}</p>}
       </div>
 
       {/* Apodo */}
-      <div className="grid gap-1.5">
-        <label className="text-sm font-medium text-gray-700">Apodo / referencia</label>
+      <div className="flex flex-col gap-1.5">
+        <label className={LABEL_CLS}>Apodo / referencia</label>
         <input
           value={s.apodo} onChange={e => update({ apodo: e.target.value })}
           placeholder="Ej: Señor alto Expo" className={INPUT_CLS}
@@ -166,12 +167,16 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
 
       {/* Teléfono + Nacionalidad */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="grid gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Teléfono</label>
-          <input value={s.phone} onChange={e => update({ phone: e.target.value })} placeholder="+595 981 123456" className={INPUT_CLS} />
+        <div className="flex flex-col gap-1.5">
+          <label className={LABEL_CLS}>Teléfono</label>
+          <input
+            type="tel" inputMode="numeric" autoComplete="tel"
+            value={s.phone} onChange={e => update({ phone: e.target.value })}
+            placeholder="+595 981 123456" className={INPUT_CLS}
+          />
         </div>
-        <div className="grid gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Nacionalidad</label>
+        <div className="flex flex-col gap-1.5">
+          <label className={LABEL_CLS}>Nacionalidad</label>
           <input value={s.nationality} onChange={e => update({ nationality: e.target.value })} placeholder="Paraguayo" className={INPUT_CLS} />
         </div>
       </div>
@@ -180,30 +185,30 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
       {s.tipo === 'cliente' && (
         <>
           <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
-              <label className="text-sm font-medium text-gray-700">Email</label>
-              <input type="email" value={s.email} onChange={e => update({ email: e.target.value })} placeholder="juan@email.com" className={INPUT_CLS} />
+            <div className="flex flex-col gap-1.5">
+              <label className={LABEL_CLS}>Email</label>
+              <input type="email" autoComplete="email" value={s.email} onChange={e => update({ email: e.target.value })} placeholder="juan@email.com" className={INPUT_CLS} />
             </div>
-            <div className="grid gap-1.5">
-              <label className="text-sm font-medium text-gray-700">DNI / CI / Pasaporte</label>
+            <div className="flex flex-col gap-1.5">
+              <label className={LABEL_CLS}>DNI / CI / Pasaporte</label>
               <input value={s.dni} onChange={e => update({ dni: e.target.value })} placeholder="4.567.890" className={INPUT_CLS} />
             </div>
           </div>
 
-          <div className="grid gap-1.5" style={{ maxWidth: 200 }}>
-            <label className="text-sm font-medium text-gray-700">Fecha de nacimiento</label>
+          <div className="flex flex-col gap-1.5" style={{ maxWidth: 200 }}>
+            <label className={LABEL_CLS}>Fecha de nacimiento</label>
             <input type="date" value={s.fecha_nacimiento} onChange={e => update({ fecha_nacimiento: e.target.value })} className={INPUT_CLS} />
           </div>
         </>
       )}
 
       {/* Fuente de lead */}
-      <div className="grid gap-1.5">
-        <label className="text-sm font-medium text-gray-700">Fuente de lead</label>
+      <div className="flex flex-col gap-1.5">
+        <label className={LABEL_CLS}>Fuente de lead</label>
         <select
           value={s.fuente}
           onChange={e => update({ fuente: e.target.value, fuente_otro: '' })}
-          className={INPUT_CLS + ' bg-white'}
+          className={INPUT_CLS + ' bg-gray-50 focus:bg-white'}
         >
           <option value="">— Seleccionar —</option>
           {FUENTE_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
@@ -218,12 +223,12 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
       </div>
 
       {/* Notas */}
-      <div className="grid gap-1.5">
-        <label className="text-sm font-medium text-gray-700">Notas</label>
+      <div className="flex flex-col gap-1.5">
+        <label className={LABEL_CLS}>Notas</label>
         <textarea
           value={s.notes} onChange={e => update({ notes: e.target.value })} rows={2}
           placeholder="Observaciones..."
-          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 resize-none"
+          className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-900 transition-colors resize-none"
         />
       </div>
 
@@ -234,9 +239,9 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
             const def = EXTRA_FIELD_OPTIONS.find(o => o.key === key)
             if (!def) return null
             return (
-              <div key={key} className="grid gap-1.5">
+              <div key={key} className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">{def.label}</label>
+                  <label className={LABEL_CLS}>{def.label}</label>
                   <button type="button" onClick={() => removeExtraField(key)} className="text-gray-300 hover:text-red-400 transition-colors">
                     <X className="w-3.5 h-3.5" />
                   </button>

@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { createProject } from '@/lib/projects'
 import { createTypology } from '@/lib/typologies'
+import { AmenitiesEditor } from '@/components/projects/AmenitiesEditor'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -154,6 +155,7 @@ export function ProyectoNuevoPage() {
   const navigate = useNavigate()
   const [s, setS] = useState<FormState>(INITIAL)
   const [isSaving, setIsSaving] = useState(false)
+  const [createdProjectId, setCreatedProjectId] = useState<string | null>(null)
   const [isResolvingMap, setIsResolvingMap] = useState(false)
   const [resolvedEmbed, setResolvedEmbed] = useState<{ embedSrc: string; lat: number | null; lng: number | null } | null>(null)
   const [planoModal, setPlanoModal] = useState<PlanoModalState | null>(null)
@@ -354,7 +356,7 @@ export function ProyectoNuevoPage() {
       }
 
       toast.success('Proyecto creado')
-      navigate('/proyectos')
+      setCreatedProjectId(project.id)
     } catch (err) {
       toast.error('Error al guardar el proyecto')
       console.error(err)
@@ -364,6 +366,38 @@ export function ProyectoNuevoPage() {
 
   const TIPO_LABEL: Record<TipoProyecto, string> = { residencial: 'Residencial', comercial: 'Comercial', mixto: 'Mixto' }
   const hasHeaderSummary = !!(s.name || s.tipo_proyecto)
+
+  // ── Step 2: amenities ──────────────────────────────────────────────────────
+  if (createdProjectId) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-8">
+        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100 px-6 py-4 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-sm font-semibold text-gray-900">Amenities del proyecto</h1>
+            <p className="text-xs text-gray-400 mt-0.5">Opcional — podés agregarlo después</p>
+          </div>
+        </header>
+        <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-6">
+          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Amenities</h2>
+            <AmenitiesEditor projectId={createdProjectId} />
+          </div>
+        </div>
+        <div className="fixed bottom-6 right-6 z-30 w-[280px] bg-gray-900 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.35)] p-4 flex flex-col gap-2">
+          <button type="button" onClick={() => navigate('/proyectos')}
+            className="w-full py-3 rounded-xl text-sm font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors"
+          >
+            Finalizar
+          </button>
+          <button type="button" onClick={() => navigate('/proyectos')}
+            className="w-full py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 transition-colors"
+          >
+            Omitir amenities
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-8">

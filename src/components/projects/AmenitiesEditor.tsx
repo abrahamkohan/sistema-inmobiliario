@@ -1,5 +1,5 @@
 // src/components/projects/AmenitiesEditor.tsx
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2, Upload, X, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { amenityImageUrl } from '@/lib/projectAmenities'

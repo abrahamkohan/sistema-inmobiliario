@@ -13,24 +13,26 @@ export interface AmenityWithImages extends AmenityRow {
 // ─── Read ─────────────────────────────────────────────────────────────────────
 
 export async function getProjectAmenities(projectId: string): Promise<AmenityWithImages[]> {
-  const { data: amenities, error } = await supabase
+  const { data: raw, error } = await supabase
     .from('project_amenities')
     .select('*')
     .eq('project_id', projectId)
     .order('sort_order', { ascending: true })
   if (error) throw error
-  if (!amenities?.length) return []
+  const amenities = (raw ?? []) as unknown as AmenityRow[]
+  if (!amenities.length) return []
 
-  const { data: images } = await supabase
+  const { data: rawImgs } = await supabase
     .from('project_amenity_images')
     .select('*')
     .in('amenity_id', amenities.map(a => a.id))
     .order('sort_order', { ascending: true })
+  const images = (rawImgs ?? []) as unknown as AmenityImageRow[]
 
   return amenities.map(a => ({
     ...a,
-    images: (images ?? []).filter(img => img.amenity_id === a.id),
-  })) as AmenityWithImages[]
+    images: images.filter(img => img.amenity_id === a.id),
+  }))
 }
 
 // ─── Create ───────────────────────────────────────────────────────────────────

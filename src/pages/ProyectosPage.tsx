@@ -60,7 +60,6 @@ export function ProyectosPage() {
         status:          values.status,
         delivery_date:   values.delivery_date   ?? null,
         developer_name:  values.developer_name  ?? null,
-        amenities:       values.amenities,
         usd_to_pyg_rate: values.usd_to_pyg_rate ?? null,
         links:           values.links           ?? [],
       }

@@ -14,7 +14,7 @@ import { PropiedadesPage } from '@/pages/PropiedadesPage'
 import { PropiedadDetallePage } from '@/pages/PropiedadDetallePage'
 import { PropiedadNuevaPage } from '@/pages/PropiedadNuevaPage'
 import { PropiedadEditarPage } from '@/pages/PropiedadEditarPage'
-import { ProyectoNuevoPage } from '@/pages/ProyectoNuevoPage'
+import { ProyectoFormPage } from '@/pages/ProyectoFormPage'
 import { LeadQuickPage } from '@/pages/LeadQuickPage'
 import { LeadShortLinkPage } from '@/pages/LeadShortLinkPage'
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
@@ -28,8 +28,9 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/inicio" replace /> },
       { path: 'inicio',     element: <InicioPage /> },
-      { path: 'proyectos',       element: <ProyectosPage /> },
-      { path: 'proyectos/nueva', element: <ProyectoNuevoPage /> },
+      { path: 'proyectos',              element: <ProyectosPage /> },
+      { path: 'proyectos/nueva',        element: <ProyectoFormPage /> },
+      { path: 'proyectos/:id/editar',   element: <ProyectoFormPage /> },
       { path: 'clientes', element: <ClientesPage /> },
       { path: 'simulador', element: <SimuladorPage /> },
       { path: 'informes', element: <InformesPage /> },

@@ -1,5 +1,6 @@
 // src/components/projects/ProjectCard.tsx
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Pencil, Trash2, Images, LayoutGrid, DollarSign, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -32,13 +33,13 @@ const BADGE_OPTIONS: { value: BadgeAnalisis; label: string; cls: string }[] = [
 
 interface ProjectCardProps {
   project: ProjectRow
-  onEdit: (project: ProjectRow) => void
   onDelete: (id: string) => void
   onTogglePublicado?: (id: string, value: boolean) => void
   onChangeBadge?: (id: string, value: BadgeAnalisis | null) => void
 }
 
-export function ProjectCard({ project, onEdit, onDelete, onTogglePublicado, onChangeBadge }: ProjectCardProps) {
+export function ProjectCard({ project, onDelete, onTogglePublicado, onChangeBadge }: ProjectCardProps) {
+  const navigate = useNavigate()
   const [photosOpen,    setPhotosOpen]    = useState(false)
   const [financingOpen, setFinancingOpen] = useState(false)
   const [typologiesOpen, setTypologiesOpen] = useState(false)
@@ -149,7 +150,7 @@ export function ProjectCard({ project, onEdit, onDelete, onTogglePublicado, onCh
 
         {/* Actions */}
         <div className="flex flex-wrap gap-1.5 pt-1 border-t">
-          <Button variant="outline" size="sm" className="text-xs" onClick={() => onEdit(project)}>
+          <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate(`/proyectos/${project.id}/editar`)}>
             <Pencil className="h-3 w-3 mr-1" />Editar
           </Button>
           <Button variant="outline" size="sm" className="text-xs" onClick={() => setTypologiesOpen(true)}>

@@ -7,20 +7,18 @@ type BadgeAnalisis = 'oportunidad' | 'estable' | 'a_evaluar'
 
 interface ProjectListProps {
   projects: ProjectRow[]
-  onEdit: (project: ProjectRow) => void
   onDelete: (id: string) => void
   onTogglePublicado?: (id: string, value: boolean) => void
   onChangeBadge?: (id: string, value: BadgeAnalisis | null) => void
 }
 
-export function ProjectList({ projects, onEdit, onDelete, onTogglePublicado, onChangeBadge }: ProjectListProps) {
+export function ProjectList({ projects, onDelete, onTogglePublicado, onChangeBadge }: ProjectListProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {projects.map((project) => (
         <ProjectCard
           key={project.id}
           project={project}
-          onEdit={onEdit}
           onDelete={onDelete}
           onTogglePublicado={onTogglePublicado}
           onChangeBadge={onChangeBadge}

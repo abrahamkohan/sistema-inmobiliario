@@ -166,8 +166,9 @@ export function ProyectoFormPage() {
           developer_name:  proj.developer_name  ?? '',
           tipo_proyecto:   (proj.tipo_proyecto  ?? null) as TipoProyecto | null,
           delivery_date:   proj.delivery_date   ?? '',
-          maps_url:        mapsLink?.url        ?? '',
-          zona:            proj.location        ?? '',
+          maps_url:        mapsLink?.url                           ?? '',
+          zona:            proj.zona     ?? proj.location            ?? '',
+          direccion:       proj.direccion                            ?? '',
           links:           otherLinks,
           caracteristicas: proj.caracteristicas ?? '',
           resumen:         proj.description     ?? '',
@@ -350,6 +351,8 @@ export function ProyectoFormPage() {
         developer_name:  s.developer_name || null,
         tipo_proyecto:   s.tipo_proyecto,
         location:        s.zona || null,
+        zona:            s.zona || null,
+        direccion:       s.direccion || null,
         description:     s.resumen || null,
         delivery_date:   s.delivery_date || null,
         links:           dbLinks,
@@ -468,13 +471,18 @@ export function ProyectoFormPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <FieldLabel>Ubicación / Zona</FieldLabel>
+              <FieldLabel>Zona</FieldLabel>
               <TextInput value={s.zona} onChange={e => update({ zona: e.target.value })} placeholder="Ej: Luque – Zona CIT" />
             </div>
             <div>
-              <FieldLabel>Desarrolladora</FieldLabel>
-              <TextInput value={s.developer_name} onChange={e => update({ developer_name: e.target.value })} placeholder="Ej: Urban Domus" />
+              <FieldLabel>Dirección</FieldLabel>
+              <TextInput value={s.direccion} onChange={e => update({ direccion: e.target.value })} placeholder="Ej: Av. Mariscal López 123" />
             </div>
+          </div>
+
+          <div className="mb-4">
+            <FieldLabel>Desarrolladora</FieldLabel>
+            <TextInput value={s.developer_name} onChange={e => update({ developer_name: e.target.value })} placeholder="Ej: Urban Domus" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">

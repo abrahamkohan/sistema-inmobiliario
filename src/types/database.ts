@@ -7,6 +7,8 @@ export interface Database {
           name: string
           description: string | null
           location: string | null
+          zona: string | null
+          direccion: string | null
           status: 'en_pozo' | 'en_construccion' | 'entregado'
           delivery_date: string | null
           developer_name: string | null
@@ -28,6 +30,8 @@ export interface Database {
           name: string
           description?: string | null
           location?: string | null
+          zona?: string | null
+          direccion?: string | null
           status: 'en_pozo' | 'en_construccion' | 'entregado'
           delivery_date?: string | null
           developer_name?: string | null
@@ -47,6 +51,8 @@ export interface Database {
           name?: string
           description?: string | null
           location?: string | null
+          zona?: string | null
+          direccion?: string | null
           status?: 'en_pozo' | 'en_construccion' | 'entregado'
           delivery_date?: string | null
           developer_name?: string | null

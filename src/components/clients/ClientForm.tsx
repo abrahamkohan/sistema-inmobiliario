@@ -4,6 +4,7 @@ import { Plus, X, ChevronDown, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CountryPicker, COUNTRIES } from '@/components/ui/CountryPicker'
 import type { Country } from '@/components/ui/CountryPicker'
+import { cleanDigits, formatPhone, isValidPhone, getMaxDigits, buildWhatsAppUrl } from '@/lib/phone'
 import type { Database } from '@/types/database'
 
 type ClientRow = Database['public']['Tables']['clients']['Row']
@@ -84,14 +85,6 @@ function parseNationality(stored: string | null): Country | null {
   return COUNTRIES.find(c => c.name.toLowerCase() === stored.toLowerCase()) ?? null
 }
 
-function buildWhatsAppUrl(dial: string, num: string, name: string) {
-  const clean = num.replace(/\D/g, '')
-  if (!clean) return null
-  const full = dial.replace('+', '') + clean
-  const msg  = encodeURIComponent(`Hola ${name}, te contacto en relación a tu consulta en Kohan & Campos.`)
-  return `https://wa.me/${full}?text=${msg}`
-}
-
 const INPUT_CLS = 'w-full h-12 px-3 border border-gray-200 bg-gray-50 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-900 transition-colors'
 const LABEL_CLS = 'text-xs font-medium text-gray-500 mb-1.5 block'
 
@@ -119,13 +112,14 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
     apodo:            defaultValues?.apodo ?? '',
   })
 
-  const [nameError,      setNameError]      = useState('')
+  const [nameError,       setNameError]       = useState('')
+  const [phoneError,      setPhoneError]      = useState('')
   const [showFieldPicker, setShowFieldPicker] = useState(false)
-  const [showMore,        setShowMore]        = useState(mode === 'full')  // collapsed in quick mode
+  const [showMore,        setShowMore]        = useState(mode === 'full')
 
-  const nameRef  = useRef<HTMLInputElement>(null)
-  const phoneRef = useRef<HTMLInputElement>(null)
-  const withWARef = useRef(false)   // tracks which button triggered submit
+  const nameRef   = useRef<HTMLInputElement>(null)
+  const phoneRef  = useRef<HTMLInputElement>(null)
+  const withWARef = useRef(false)
 
   // Autofocus name in quick mode
   useEffect(() => {
@@ -133,6 +127,19 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
   }, [mode])
 
   function update(patch: Partial<FormState>) { setS(p => ({ ...p, ...patch })) }
+
+  function handlePhoneChange(raw: string) {
+    const digits    = cleanDigits(raw)
+    const max       = getMaxDigits(s.dialCountry.code)
+    const trimmed   = digits.slice(0, max)
+    const formatted = formatPhone(trimmed, s.dialCountry.code)
+    update({ phoneNum: formatted })
+    if (trimmed.length >= 6) {
+      setPhoneError(isValidPhone(trimmed, s.dialCountry.code) ? '' : 'Número inválido')
+    } else {
+      setPhoneError('')
+    }
+  }
 
   function handleNameKey(e: React.KeyboardEvent) {
     if (e.key === 'Enter') { e.preventDefault(); phoneRef.current?.focus() }
@@ -158,28 +165,42 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
     e.preventDefault()
     if (!s.full_name.trim()) { setNameError('El nombre es requerido'); nameRef.current?.focus(); return }
     setNameError('')
-    const phoneVal = s.phoneNum.trim() ? `${s.dialCountry.dial} ${s.phoneNum.trim()}` : ''
+
+    const digits   = cleanDigits(s.phoneNum)
+    const phoneVal = digits ? `${s.dialCountry.dial} ${digits}` : ''
+
+    // Validate phone if provided
+    if (digits && !isValidPhone(digits, s.dialCountry.code)) {
+      setPhoneError('Número inválido'); return
+    }
+
     const wa = withWARef.current
     withWARef.current = false
 
-    await onSubmit({
-      tipo:             s.tipo,
-      full_name:        s.full_name.trim(),
-      phone:            phoneVal,
-      nationality:      s.natCountry ? s.natCountry.name : '',
-      fuente:           s.fuente === 'Otro' ? s.fuente_otro : s.fuente,
-      notes:            s.notes,
-      email:            s.email,
-      dni:              s.dni,
-      fecha_nacimiento: s.fecha_nacimiento,
-      campos_extra:     s.campos_extra,
-      apodo:            s.apodo,
-    })
+    // ⚡ Open WhatsApp SYNCHRONOUSLY before async (Safari popup fix)
+    let waWindow: Window | null = null
+    if (wa && digits) {
+      const url = buildWhatsAppUrl(s.dialCountry.dial, digits, s.full_name.trim())
+      if (url) waWindow = window.open(url, '_blank')
+    }
 
-    // Open WhatsApp after successful save
-    if (wa && s.phoneNum.trim()) {
-      const url = buildWhatsAppUrl(s.dialCountry.dial, s.phoneNum, s.full_name.trim())
-      if (url) window.open(url, '_blank')
+    try {
+      await onSubmit({
+        tipo:             s.tipo,
+        full_name:        s.full_name.trim(),
+        phone:            phoneVal,
+        nationality:      s.natCountry ? s.natCountry.name : '',
+        fuente:           s.fuente === 'Otro' ? s.fuente_otro : s.fuente,
+        notes:            s.notes,
+        email:            s.email,
+        dni:              s.dni,
+        fecha_nacimiento: s.fecha_nacimiento,
+        campos_extra:     s.campos_extra,
+        apodo:            s.apodo,
+      })
+    } catch {
+      // If save failed, close the WhatsApp tab we opened
+      waWindow?.close()
     }
   }
 
@@ -187,26 +208,21 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
 
   // ─── Buttons ──────────────────────────────────────────────────────────────
 
+  const disabled = isSubmitting || !!phoneError
+
   const btnSave = (
-    <Button
-      type="submit"
-      disabled={isSubmitting}
-      onClick={() => { withWARef.current = false }}
-      className="flex-1 h-11"
-    >
-      {isSubmitting && !withWARef.current ? 'Guardando...' : 'Guardar'}
+    <Button type="submit" disabled={disabled}
+      onClick={() => { withWARef.current = false }} className="flex-1 h-11">
+      {isSubmitting ? 'Guardando...' : 'Guardar'}
     </Button>
   )
 
   const btnWA = (
-    <Button
-      type="submit"
-      disabled={isSubmitting}
+    <Button type="submit" disabled={disabled}
       onClick={() => { withWARef.current = true }}
-      className="flex-[2] h-11 bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5"
-    >
+      className="flex-[2] h-11 bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5">
       <MessageCircle className="w-4 h-4" />
-      {isSubmitting && withWARef.current ? 'Guardando...' : 'Guardar + WhatsApp'}
+      {isSubmitting ? 'Guardando...' : 'Guardar + WhatsApp'}
     </Button>
   )
 
@@ -253,15 +269,22 @@ export function ClientForm({ defaultValues, onSubmit, onCancel, isSubmitting, st
       <div className="flex flex-col gap-1.5">
         <label className={LABEL_CLS}>Teléfono</label>
         <div className="flex gap-2">
-          <CountryPicker value={s.dialCountry} onChange={c => update({ dialCountry: c })} mode="dial" className="w-[30%]" />
+          <CountryPicker
+            value={s.dialCountry}
+            onChange={c => { update({ dialCountry: c, phoneNum: '' }); setPhoneError('') }}
+            mode="dial" className="w-[30%]"
+          />
           <input
             ref={phoneRef}
             type="tel" inputMode="tel" autoComplete="tel"
-            value={s.phoneNum} onChange={e => update({ phoneNum: e.target.value })}
+            value={s.phoneNum}
+            onChange={e => handlePhoneChange(e.target.value)}
             onKeyDown={handlePhoneKey}
-            placeholder="981 123456" className={INPUT_CLS + ' flex-1'}
+            placeholder="981 123456"
+            className={INPUT_CLS + ' flex-1' + (phoneError ? ' border-red-400 bg-red-50 focus:border-red-500' : '')}
           />
         </div>
+        {phoneError && <p className="text-xs text-red-500">{phoneError}</p>}
       </div>
 
       {/* ── Más datos (collapsible in quick mode) ── */}

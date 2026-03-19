@@ -4,6 +4,7 @@ import { Check, MessageCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { CountryPicker, COUNTRIES } from '@/components/ui/CountryPicker'
 import type { Country } from '@/components/ui/CountryPicker'
+import { cleanDigits, formatPhone, isValidPhone, getMaxDigits, buildWhatsAppUrl } from '@/lib/phone'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,7 @@ export function LeadQuickPage() {
   const [s, setS]               = useState<FormState>(EMPTY)
   const [dialCountry, setDial]  = useState<Country>(PY)
   const [detected, setDetected] = useState<Country | null>(null)
+  const [phoneError, setPhoneError] = useState('')
   const [saving, setSaving]     = useState(false)
   const [saved, setSaved]       = useState(false)
 
@@ -81,19 +83,24 @@ export function LeadQuickPage() {
 
   function update(patch: Partial<FormState>) { setS(p => ({ ...p, ...patch })) }
 
+  function handlePhoneChange(raw: string) {
+    const digits    = cleanDigits(raw)
+    const max       = getMaxDigits(dialCountry.code)
+    const trimmed   = digits.slice(0, max)
+    const formatted = formatPhone(trimmed, dialCountry.code)
+    update({ phoneNum: formatted })
+    if (trimmed.length >= 6) {
+      setPhoneError(isValidPhone(trimmed, dialCountry.code) ? '' : 'Número inválido')
+    } else {
+      setPhoneError('')
+    }
+  }
+
   function handleNameKey(e: React.KeyboardEvent) {
     if (e.key === 'Enter') { e.preventDefault(); phoneRef.current?.focus() }
   }
   function handlePhoneKey(e: React.KeyboardEvent) {
     if (e.key === 'Enter') { e.preventDefault(); doSave(false) }
-  }
-
-  function openWhatsApp(name: string) {
-    const clean = s.phoneNum.replace(/\D/g, '')
-    if (!clean) return
-    const fullNum = dialCountry.dial.replace('+', '') + clean
-    const msg = encodeURIComponent(`Hola ${name}, te contacto por tu consulta en Kohan & Campos.`)
-    window.open(`https://wa.me/${fullNum}?text=${msg}`, '_blank')
   }
 
   async function doSave(withWhatsApp: boolean) {
@@ -102,11 +109,23 @@ export function LeadQuickPage() {
       nameRef.current?.focus()
       return
     }
+    const digits = cleanDigits(s.phoneNum)
+    if (digits && !isValidPhone(digits, dialCountry.code)) {
+      setPhoneError('Número inválido'); return
+    }
+
+    // ⚡ Open WhatsApp SYNCHRONOUSLY before async (Safari popup fix)
+    let waWindow: Window | null = null
+    if (withWhatsApp && digits) {
+      const url = buildWhatsAppUrl(dialCountry.dial, digits, s.full_name.trim())
+      if (url) waWindow = window.open(url, '_blank')
+    }
+
     setSaving(true)
     try {
       const natValue  = s.nat === 'Otro' ? s.nat_otro : (NAT_LABEL[s.nat] ?? s.nat)
       const fuenValue = s.fuente === 'Otro' ? s.fuente_otro : s.fuente
-      const fullPhone = s.phoneNum.trim() ? `${dialCountry.dial} ${s.phoneNum.trim()}` : ''
+      const fullPhone = digits ? `${dialCountry.dial} ${digits}` : ''
 
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quick-service`, {
         method: 'POST',
@@ -128,11 +147,10 @@ export function LeadQuickPage() {
       if (!res.ok) throw new Error(data.error ?? 'Error al guardar')
 
       if ('vibrate' in navigator) navigator.vibrate(30)
-      if (withWhatsApp) openWhatsApp(s.full_name.trim())
-
       setSaved(true)
       setTimeout(() => { setSaved(false); setS(EMPTY); nameRef.current?.focus() }, 1400)
     } catch (err) {
+      waWindow?.close()
       toast.error(err instanceof Error ? err.message : 'Error al guardar')
     }
     setSaving(false)
@@ -196,17 +214,22 @@ export function LeadQuickPage() {
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Teléfono</label>
           <div className="flex gap-2">
-            <CountryPicker value={dialCountry} onChange={setDial} mode="dial" className="w-[32%]" />
+            <CountryPicker
+              value={dialCountry}
+              onChange={c => { setDial(c); update({ phoneNum: '' }); setPhoneError('') }}
+              mode="dial" className="w-[32%]"
+            />
             <input
               ref={phoneRef}
               type="tel" inputMode="tel" autoComplete="tel"
               value={s.phoneNum}
-              onChange={e => update({ phoneNum: e.target.value })}
+              onChange={e => handlePhoneChange(e.target.value)}
               onKeyDown={handlePhoneKey}
               placeholder="981 123456"
-              className={INPUT + ' flex-1'}
+              className={INPUT + ' flex-1' + (phoneError ? ' border-red-400 bg-red-50' : '')}
             />
           </div>
+          {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
         </div>
 
         {/* Apodo */}
@@ -284,12 +307,12 @@ export function LeadQuickPage() {
           </div>
         ) : (
           <div className="flex gap-3">
-            <button type="button" onClick={() => doSave(false)} disabled={saving}
+            <button type="button" onClick={() => doSave(false)} disabled={saving || !!phoneError}
               className="flex-1 h-14 rounded-2xl text-base font-bold border-2 border-gray-900 text-gray-900 bg-white active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {saving ? '...' : 'Guardar'}
             </button>
-            <button type="button" onClick={() => doSave(true)} disabled={saving}
+            <button type="button" onClick={() => doSave(true)} disabled={saving || !!phoneError}
               className="flex-[2] h-14 rounded-2xl text-base font-bold bg-emerald-600 text-white active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-5 h-5" />

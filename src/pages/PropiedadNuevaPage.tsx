@@ -53,6 +53,7 @@ export function PropiedadNuevaPage() {
         precio: state.precio ? parseFloat(state.precio) : null,
         moneda: state.moneda,
         financiacion: state.financiacion,
+        amoblado: state.amoblado,
         estado: 'activo',
         publicado_en_web: !isDraft,
       })

@@ -13,6 +13,7 @@ export interface PropertyFormState {
   precio: string
   moneda: 'USD' | 'PYG'
   financiacion: boolean
+  amoblado: boolean
   mapsLink: string
   lat: number | null
   lng: number | null
@@ -38,7 +39,7 @@ export interface PropertyFormState {
 
 export const INITIAL_FORM_STATE: PropertyFormState = {
   operacion: null, tipo: null,
-  precio: '', moneda: 'USD', financiacion: false,
+  precio: '', moneda: 'USD', financiacion: false, amoblado: false,
   mapsLink: '', lat: null, lng: null,
   ciudad: '', barrio: '', zona: '', direccion: '',
   dormitorios: null, banos: null,
@@ -448,6 +449,15 @@ export function PropertyForm({
                   className="w-4 h-4 rounded border-gray-300 accent-gray-900 cursor-pointer"
                 />
                 <span className="text-sm text-gray-600 whitespace-nowrap">Ofrece financiación</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={s.amoblado}
+                  onChange={e => update({ amoblado: e.target.checked })}
+                  className="w-4 h-4 rounded border-gray-300 accent-gray-900 cursor-pointer"
+                />
+                <span className="text-sm text-gray-600 whitespace-nowrap">Amoblado</span>
               </label>
             </div>
             {s.precio && parseFloat(s.precio) > 0 && (

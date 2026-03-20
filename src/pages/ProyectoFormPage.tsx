@@ -149,6 +149,8 @@ export function ProyectoFormPage() {
   const [resolvedEmbed, setResolvedEmbed]   = useState<{ embedSrc: string; lat: number | null; lng: number | null } | null>(null)
   const [typologiesOpen, setTypologiesOpen] = useState(false)
   const [urlInput, setUrlInput] = useState('')
+  const [pasteZoneFocused, setPasteZoneFocused] = useState(false)
+  const pasteZoneRef = useRef<HTMLDivElement>(null)
   const inputRef    = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const previewUrls = useRef<Record<string, string>>({})
@@ -235,27 +237,15 @@ export function ProyectoFormPage() {
     setS(prev => ({ ...prev, fotos: [...prev.fotos, ...valid].slice(0, 20) }))
   }
 
-  // ── Listener global de paste (Ctrl+V) ─────────────────────────────────────
-  useEffect(() => {
-    function handleGlobalPaste(e: ClipboardEvent) {
-      // Ignorar si hay foco en un input de texto (URL, nombre, etc.)
-      const tag = (document.activeElement as HTMLElement)?.tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return
-
-      const items = Array.from(e.clipboardData?.items ?? [])
-      const imageItem = items.find(item => item.type.startsWith('image/'))
-      if (!imageItem) return
-
-      const file = imageItem.getAsFile()
-      if (!file) return
-
-      setS(prev => ({ ...prev, fotos: [...prev.fotos, file].slice(0, 20) }))
-      toast.success('Imagen pegada desde clipboard')
-    }
-
-    window.addEventListener('paste', handleGlobalPaste)
-    return () => window.removeEventListener('paste', handleGlobalPaste)
-  }, []) // setS es estable, no hay dependencias
+  // ── Paste zone handler ────────────────────────────────────────────────────
+  function handlePasteZone(e: React.ClipboardEvent) {
+    const items = Array.from(e.clipboardData?.items ?? [])
+    const imageItem = items.find(item => item.type.startsWith('image/'))
+    const file = imageItem?.getAsFile()
+    if (!file) return
+    setS(prev => ({ ...prev, fotos: [...prev.fotos, file].slice(0, 20) }))
+    toast.success('Imagen pegada')
+  }
   function removeNewFile(i: number) {
     const file = s.fotos[i]; const key = fileKey(file)
     const url = previewUrls.current[key]; if (url) URL.revokeObjectURL(url)
@@ -876,23 +866,40 @@ export function ProyectoFormPage() {
             {/* ─ Bloque 1: Subir imágenes ─ */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Subir imágenes</p>
+              {/* Drop zone */}
               <div
                 onClick={() => inputRef.current?.click()}
                 onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={e => { e.preventDefault(); setIsDragging(false); addFiles(e.dataTransfer.files) }}
-                onPaste={e => {
-                  const items = Array.from(e.clipboardData?.items ?? [])
-                  const imageItem = items.find(i => i.type.startsWith('image/'))
-                  const file = imageItem?.getAsFile()
-                  if (file) { addFiles([file]); toast.success('Imagen pegada') }
-                }}
-                className={`border-2 border-dashed rounded-2xl px-6 py-5 text-center cursor-pointer transition-colors ${isDragging ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:border-gray-400'}`}
+                className={`border-2 border-dashed rounded-2xl px-6 py-4 text-center cursor-pointer transition-colors ${isDragging ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:border-gray-400'}`}
               >
                 <Upload className="w-6 h-6 text-gray-300 mx-auto mb-1.5" />
-                <p className="text-sm text-gray-500">Arrastrá, clic para seleccionar o <kbd className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-xs">Ctrl+V</kbd> para pegar</p>
+                <p className="text-sm text-gray-500">Arrastrá o hacé clic para seleccionar</p>
                 <p className="text-xs text-gray-400 mt-0.5">JPG, PNG · máx. 20</p>
                 <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => e.target.files && addFiles(e.target.files)} />
+              </div>
+              {/* Paste zone — focusable, igual al modal de tipologías */}
+              <div
+                ref={pasteZoneRef}
+                tabIndex={0}
+                onFocus={() => setPasteZoneFocused(true)}
+                onBlur={() => setPasteZoneFocused(false)}
+                onPaste={handlePasteZone}
+                onClick={() => pasteZoneRef.current?.focus()}
+                className={`mt-2 flex items-center justify-center gap-2 rounded-xl border-2 py-3 cursor-pointer transition-all outline-none ${
+                  pasteZoneFocused
+                    ? 'border-gray-900 bg-gray-900/5 ring-2 ring-gray-900/10'
+                    : 'border-dashed border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                <Clipboard className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-sm text-gray-500">
+                  {pasteZoneFocused
+                    ? <><span className="font-semibold text-gray-700">Listo</span> — presioná <kbd className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-xs">Ctrl+V</kbd></>
+                    : <>Hacé clic acá y presioná <kbd className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-xs">Ctrl+V</kbd> para pegar imagen</>
+                  }
+                </span>
               </div>
               {s.fotos.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mt-2">

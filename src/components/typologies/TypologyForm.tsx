@@ -7,35 +7,32 @@ import { X, Plus, Upload, ImageOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { usdToCents } from '@/utils/money'
 import { getPublicUrl } from '@/lib/storage'
 import type { Database } from '@/types/database'
 
 type TypologyRow = Database['public']['Tables']['typologies']['Row']
 
-// ─── Unit type options ────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-type UnitType =
-  | 'monoambiente' | '1_dormitorio' | '2_dormitorios' | '3_dormitorios'
-  | 'cochera' | 'cochera_xl' | 'baulera' | 'otro'
-
-const UNIT_TYPES: { value: UnitType; label: string; category: 'unidad' | 'cochera' | 'baulera' }[] = [
-  { value: 'monoambiente',  label: 'Monoambiente',   category: 'unidad'   },
-  { value: '1_dormitorio',  label: '1 Dormitorio',   category: 'unidad'   },
-  { value: '2_dormitorios', label: '2 Dormitorios',  category: 'unidad'   },
-  { value: '3_dormitorios', label: '3+ Dormitorios', category: 'unidad'   },
-  { value: 'cochera',       label: 'Cochera',        category: 'cochera'  },
-  { value: 'cochera_xl',    label: 'Cochera XL',     category: 'cochera'  },
-  { value: 'baulera',       label: 'Baulera',        category: 'baulera'  },
-  { value: 'otro',          label: 'Otro',           category: 'unidad'   },
+const BEDROOM_OPTIONS = [
+  { value: 0, label: 'Studio' },
+  { value: 1, label: '1'      },
+  { value: 2, label: '2'      },
+  { value: 3, label: '3'      },
+  { value: 4, label: '4+'     },
 ]
 
-const UNIT_TYPES_FIRST_ROW  = UNIT_TYPES.slice(0, 4)
-const UNIT_TYPES_SECOND_ROW = UNIT_TYPES.slice(4)
+export const BEDROOM_NAMES: Record<number, string> = {
+  0: 'Monoambiente',
+  1: '1 Dormitorio',
+  2: '2 Dormitorios',
+  3: '3 Dormitorios',
+  4: '4+ Dormitorios',
+}
 
 const BATHROOM_OPTIONS = [
-  { value: 1, label: '1' },
-  { value: 2, label: '2' },
+  { value: 1, label: '1'  },
+  { value: 2, label: '2'  },
   { value: 3, label: '3+' },
 ]
 
@@ -45,18 +42,30 @@ const FEATURES_PREDEFINED = [
   'Aire acondicionado', 'Chimenea', 'Piso de porcelanato', 'Doble altura',
 ]
 
+// ─── Parse old unit_type string → bedrooms number ────────────────────────────
+
+function unitTypeToBedrooms(unitType: string | null): number | null {
+  if (!unitType) return null
+  const n = parseInt(unitType)
+  if (!isNaN(n) && n >= 0) return n
+  if (unitType === 'monoambiente' || unitType === 'mono') return 0
+  if (unitType === '1_dormitorio' || unitType === '1dorm') return 1
+  if (unitType === '2_dormitorios' || unitType === '2dorm') return 2
+  if (unitType === '3_dormitorios' || unitType === '3dorm') return 3
+  if (unitType === '4dorm') return 4
+  return null
+}
+
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
 const typologySchema = z.object({
-  unit_type: z.string().min(1, 'Seleccioná un tipo'),
   name:      z.string().min(1, 'Requerido'),
-  bathrooms: z.number().nullable().optional(),
   area_m2:   z.number().positive('Debe ser mayor a 0'),
+  bedrooms:  z.number().nullable().optional(),
+  bathrooms: z.number().nullable().optional(),
 })
 
-export type TypologyFormValues = z.infer<typeof typologySchema> & {
-  features: string[]
-}
+export type TypologyFormValues = z.infer<typeof typologySchema> & { features: string[] }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -80,13 +89,11 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
   const [floorPlanPreview, setFloorPlanPreview] = useState<string | null>(null)
   const pasteZoneRef = useRef<HTMLDivElement>(null)
 
-  // Gallery images
   const existingFloorPlan = defaultValues?.floor_plan ?? defaultValues?.floor_plan_path ?? null
-  const [keptImages,      setKeptImages]      = useState<string[]>(defaultValues?.images ?? [])
-  const [newImageFiles,   setNewImageFiles]   = useState<File[]>([])
-  const newImagePreviews  = useRef<Map<File, string>>(new Map())
+  const [keptImages,    setKeptImages]    = useState<string[]>(defaultValues?.images ?? [])
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([])
+  const newImagePreviews = useRef<Map<File, string>>(new Map())
 
-  // Features
   const [features,      setFeatures]      = useState<string[]>(defaultValues?.features ?? [])
   const [customFeature, setCustomFeature] = useState('')
 
@@ -143,23 +150,26 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
   const form = useForm<z.infer<typeof typologySchema>>({
     resolver: zodResolver(typologySchema),
     defaultValues: {
-      unit_type: defaultValues?.unit_type ?? '',
       name:      defaultValues?.name      ?? '',
-      bathrooms: defaultValues?.bathrooms ?? null,
       area_m2:   defaultValues?.area_m2   ?? undefined,
+      bedrooms:  unitTypeToBedrooms(defaultValues?.unit_type ?? null),
+      bathrooms: defaultValues?.bathrooms ?? null,
     },
   })
 
-  const selectedType = form.watch('unit_type') as UnitType | ''
-  const selectedBath = form.watch('bathrooms')
-  const typeInfo = UNIT_TYPES.find((t) => t.value === selectedType)
-  const isUnit = typeInfo?.category === 'unidad'
+  const selectedBedrooms = form.watch('bedrooms')
+  const selectedBath     = form.watch('bathrooms')
 
-  function handleTypeSelect(type: UnitType) {
-    form.setValue('unit_type', type)
-    const info = UNIT_TYPES.find((t) => t.value === type)!
-    if (type !== 'otro') form.setValue('name', info.label)
-    if (info.category !== 'unidad') form.setValue('bathrooms', null)
+  function handleBedroomSelect(n: number) {
+    const current = form.getValues('bedrooms')
+    const newVal  = current === n ? null : n
+    form.setValue('bedrooms', newVal)
+    // Auto-fill name if empty or matches a preset
+    const currentName = form.getValues('name')
+    const isPreset = currentName === '' || Object.values(BEDROOM_NAMES).includes(currentName)
+    if (isPreset && newVal !== null) {
+      form.setValue('name', BEDROOM_NAMES[newVal] ?? currentName)
+    }
   }
 
   const handleSubmit = form.handleSubmit(async (values) => {
@@ -171,52 +181,45 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-      {/* ── Tipo ── */}
+      {/* ── Dormitorios ── */}
       <div className="grid gap-2">
-        <Label className="text-xs text-gray-500 uppercase tracking-wider">Tipo</Label>
-        <div className="flex flex-wrap gap-2">
-          {UNIT_TYPES_FIRST_ROW.map((opt) => (
-            <button key={opt.value} type="button" onClick={() => handleTypeSelect(opt.value)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                selectedType === opt.value ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+        <Label className="text-xs text-gray-500 uppercase tracking-wider">Dormitorios</Label>
+        <div className="flex gap-1.5">
+          {BEDROOM_OPTIONS.map(opt => (
+            <button key={opt.value} type="button"
+              onClick={() => handleBedroomSelect(opt.value)}
+              className={`flex-1 py-1.5 rounded-md border text-xs font-medium transition-colors ${
+                selectedBedrooms === opt.value
+                  ? 'bg-gray-900 text-white border-gray-900'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
               }`}
             >{opt.label}</button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {UNIT_TYPES_SECOND_ROW.map((opt) => (
-            <button key={opt.value} type="button" onClick={() => handleTypeSelect(opt.value)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                selectedType === opt.value ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
-              }`}
-            >{opt.label}</button>
-          ))}
-        </div>
-        {form.formState.errors.unit_type && <p className="text-xs text-destructive">{form.formState.errors.unit_type.message}</p>}
       </div>
 
       {/* ── Baños ── */}
-      {isUnit && (
-        <div className="border-t pt-3 grid gap-2">
-          <Label className="text-xs text-gray-500 uppercase tracking-wider">Baños</Label>
-          <div className="flex gap-2">
-            {BATHROOM_OPTIONS.map((opt) => (
-              <button key={opt.value} type="button"
-                onClick={() => form.setValue('bathrooms', selectedBath === opt.value ? null : opt.value)}
-                className={`w-12 rounded-md border py-1.5 text-sm font-medium transition-colors ${
-                  selectedBath === opt.value ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
-                }`}
-              >{opt.label}</button>
-            ))}
-          </div>
+      <div className="grid gap-2">
+        <Label className="text-xs text-gray-500 uppercase tracking-wider">Baños</Label>
+        <div className="flex gap-2">
+          {BATHROOM_OPTIONS.map(opt => (
+            <button key={opt.value} type="button"
+              onClick={() => form.setValue('bathrooms', selectedBath === opt.value ? null : opt.value)}
+              className={`w-12 rounded-md border py-1.5 text-sm font-medium transition-colors ${
+                selectedBath === opt.value
+                  ? 'bg-gray-900 text-white border-gray-900'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+              }`}
+            >{opt.label}</button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* ── Nombre + m² ── */}
       <div className="grid grid-cols-2 gap-3">
         <div className="grid gap-1.5">
           <Label htmlFor="ty-name" className="text-xs text-gray-500">Nombre *</Label>
-          <Input id="ty-name" {...form.register('name')} placeholder="Ej: 2 Dormitorios Torre A" />
+          <Input id="ty-name" {...form.register('name')} placeholder="Ej: 2 Dormitorios" />
           {form.formState.errors.name && <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>}
         </div>
         <div className="grid gap-1.5">
@@ -274,8 +277,6 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
           <Label className="text-xs text-gray-500 uppercase tracking-wider">Imágenes</Label>
           {totalImages > 0 && <span className="text-[10px] text-gray-400">{totalImages} imagen{totalImages !== 1 ? 'es' : ''}</span>}
         </div>
-
-        {/* Existentes */}
         {keptImages.length > 0 && (
           <div className="grid grid-cols-4 gap-2">
             {keptImages.map(path => (
@@ -288,8 +289,6 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
             ))}
           </div>
         )}
-
-        {/* Nuevas */}
         {newImageFiles.length > 0 && (
           <div className="grid grid-cols-4 gap-2">
             {newImageFiles.map((file, i) => (
@@ -302,8 +301,6 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
             ))}
           </div>
         )}
-
-        {/* Upload area */}
         <label className="flex items-center justify-center gap-2 h-9 px-3 rounded-xl border-2 border-dashed border-gray-200 text-xs text-gray-400 hover:border-gray-400 hover:text-gray-600 cursor-pointer transition-colors">
           <Upload className="w-3.5 h-3.5" />
           Agregar imágenes
@@ -346,7 +343,7 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
       {/* ── Actions ── */}
       <div className="flex gap-2 pt-1">
         <Button type="submit" disabled={isSubmitting} size="sm" className="flex-1">
-          {isSubmitting ? 'Guardando...' : 'Guardar tipología'}
+          {isSubmitting ? 'Guardando...' : 'Guardar'}
         </Button>
         <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isSubmitting}>
           Cancelar
@@ -356,7 +353,7 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
   )
 }
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+// ─── Helper to build insert payload ──────────────────────────────────────────
 
 export function typologyFormToInsert(
   projectId: string,
@@ -365,14 +362,13 @@ export function typologyFormToInsert(
   images: string[],
   existingFloorPlan?: string | null
 ) {
-  const typeInfo = UNIT_TYPES.find((t) => t.value === values.unit_type)
   return {
     project_id:      projectId,
-    category:        typeInfo?.category ?? 'unidad',
-    unit_type:       values.unit_type,
+    category:        'unidad' as const,
+    unit_type:       values.bedrooms != null ? String(values.bedrooms) : null,
     name:            values.name,
     area_m2:         values.area_m2,
-    price_usd:       usdToCents(0),
+    price_usd:       0,
     bathrooms:       values.bathrooms ?? null,
     units_available: 0,
     features:        values.features ?? [],

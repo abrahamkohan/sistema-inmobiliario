@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProjectList } from '@/components/projects/ProjectList'
+import { toast } from 'sonner'
 import {
   useProjects,
   useUpdateProject,
@@ -16,15 +17,21 @@ export function ProyectosPage() {
   const deleteProject = useDeleteProject()
 
   function handleDelete(id: string) {
-    deleteProject.mutate(id)
+    deleteProject.mutate(id, {
+      onError: (err) => toast.error(`Error al eliminar: ${err instanceof Error ? err.message : String(err)}`),
+    })
   }
 
   function handleTogglePublicado(id: string, value: boolean) {
-    updateProject.mutate({ id, input: { publicado_en_web: value } })
+    updateProject.mutate({ id, input: { publicado_en_web: value } }, {
+      onError: (err) => toast.error(`Error: ${err instanceof Error ? err.message : String(err)}`),
+    })
   }
 
   function handleChangeBadge(id: string, value: 'oportunidad' | 'estable' | 'a_evaluar' | null) {
-    updateProject.mutate({ id, input: { badge_analisis: value } })
+    updateProject.mutate({ id, input: { badge_analisis: value } }, {
+      onError: (err) => toast.error(`Error: ${err instanceof Error ? err.message : String(err)}`),
+    })
   }
 
   return (

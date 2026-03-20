@@ -99,6 +99,7 @@ export async function deleteAmenityImage(path: string): Promise<void> {
 }
 
 export function getPublicUrl(path: string): string {
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
   const { data } = supabase.storage
     .from(MEDIA_BUCKET)
     .getPublicUrl(path)

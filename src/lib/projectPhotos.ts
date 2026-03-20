@@ -40,5 +40,8 @@ export async function deleteProjectPhoto(photo: PhotoRow): Promise<void> {
     .delete()
     .eq('id', photo.id)
   if (error) throw error
-  await deleteStorageFile(photo.storage_path).catch(() => null)
+  // External URLs are not in storage — skip deletion
+  if (!photo.storage_path.startsWith('http')) {
+    await deleteStorageFile(photo.storage_path).catch(() => null)
+  }
 }

@@ -35,15 +35,12 @@ export async function createProject(input: ProjectInsert): Promise<ProjectRow> {
   return data as unknown as ProjectRow
 }
 
-export async function updateProject(id: string, input: ProjectUpdate): Promise<ProjectRow> {
-  const { data, error } = await supabase
+export async function updateProject(id: string, input: ProjectUpdate): Promise<void> {
+  const { error } = await supabase
     .from('projects')
     .update(input)
     .eq('id', id)
-    .select()
-    .single()
   if (error) throw error
-  return data as unknown as ProjectRow
 }
 
 export async function deleteProject(id: string): Promise<void> {

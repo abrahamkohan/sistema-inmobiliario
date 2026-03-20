@@ -31,7 +31,10 @@ export function TypologyCard({ typology, onEdit, onDelete }: TypologyCardProps) 
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="font-medium text-sm">{typology.name}</p>
-            <p className="text-xs text-muted-foreground">{typology.area_m2} m²</p>
+            <p className="text-xs text-muted-foreground">
+              {typology.area_m2} m²
+              {typology.bathrooms ? ` · ${typology.bathrooms} baño${typology.bathrooms > 1 ? 's' : ''}` : ''}
+            </p>
           </div>
           <div className="flex gap-1 flex-shrink-0">
             <Button variant="ghost" size="sm" onClick={() => onEdit(typology)}>

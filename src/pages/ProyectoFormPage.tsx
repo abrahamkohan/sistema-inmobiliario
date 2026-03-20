@@ -2,7 +2,7 @@
 // Pantalla única para Nuevo proyecto y Editar proyecto
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { X, Upload, Link as LinkIcon, Check, Plus, Trash2, Clipboard, ChevronDown, Globe, FolderOpen, MessageCircle, FileText, Eye, ExternalLink } from 'lucide-react'
+import { X, Upload, Link as LinkIcon, Check, Plus, Trash2, Clipboard, ChevronDown, FileText, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { createProject, updateProject } from '@/lib/projects'
@@ -18,28 +18,36 @@ type PhotoRow   = Database['public']['Tables']['project_photos']['Row']
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Status       = 'en_pozo' | 'en_construccion' | 'entregado'
-type TipoProyecto = 'residencial' | 'comercial' | 'mixto'
-type TypologyType = 'mono' | '1dorm' | '2dorm' | '3dorm' | '4dorm' | 'cochera' | 'cochera_xl' | 'baulera'
-type SectionId    = 'esencial' | 'tipologias' | 'amenities' | 'media' | 'contenido' | 'links'
+type Status        = 'en_pozo' | 'en_construccion' | 'entregado'
+type TipoProyecto  = 'residencial' | 'comercial' | 'mixto'
+type BadgeAnalisis = 'oportunidad' | 'estable' | 'a_evaluar'
+type SectionId     = 'info' | 'proyecto' | 'links' | 'tipologias' | 'amenities' | 'media'
 
-interface TypologyVariant { _id: string; area_m2: string; plano: File | null }
-interface TypologyDraft   { banos: number | null; variants: TypologyVariant[] }
-interface LinkEntry        { _id: string; type: string; url: string }
-interface AmenityDraft     { _id: string; name: string; categoria: string; icon: string; custom: boolean; photo: File | null; previewUrl: string | null }
+interface UnitDraft    { _id: string; name: string; area_m2: string; bedrooms: number | null; bathrooms: number | null; image: File | null; previewUrl: string | null }
+interface AmenityDraft { _id: string; name: string; categoria: string; icon: string; custom: boolean; photo: File | null; previewUrl: string | null }
+interface UrlPhotoDraft { _id: string; url: string }
 
 interface FormState {
-  name: string; status: Status; developer_name: string; tipo_proyecto: TipoProyecto | null
-  delivery_date: string; maps_url: string; lat: number | null; lng: number | null
-  ciudad: string; barrio: string; zona: string; direccion: string; links: LinkEntry[]
-  selected_types: TypologyType[]; typology_data: Partial<Record<TypologyType, TypologyDraft>>
-  caracteristicas: string; fotos: File[]; resumen: string; amenityDrafts: AmenityDraft[]
+  name: string; status: Status; badge_analisis: BadgeAnalisis | null; publicado_en_web: boolean
+  developer_name: string; tipo_proyecto: TipoProyecto | null
+  delivery_date: string; precio_desde: string
+  maps_url: string; tour_360_url: string; brochure_url: string
+  lat: number | null; lng: number | null
+  ciudad: string; barrio: string; zona: string; direccion: string
+  unitDrafts: UnitDraft[]
+  caracteristicas: string; fotos: File[]; urlPhotos: UrlPhotoDraft[]; resumen: string; amenityDrafts: AmenityDraft[]
+  // index into fotos[] that is the hero; -1 = first file is hero
+  heroBucket: 'existing' | 'file' | 'url'
+  heroId: string | null  // photo.id (existing), file index as string (file), _id (url)
 }
 
 const EMPTY: FormState = {
-  name: '', status: 'en_pozo', developer_name: '', tipo_proyecto: null, delivery_date: '',
-  maps_url: '', lat: null, lng: null, ciudad: '', barrio: '', zona: '', direccion: '', links: [],
-  selected_types: [], typology_data: {}, caracteristicas: '', fotos: [], resumen: '', amenityDrafts: [],
+  name: '', status: 'en_pozo', badge_analisis: null, publicado_en_web: false,
+  developer_name: '', tipo_proyecto: null, delivery_date: '', precio_desde: '',
+  maps_url: '', tour_360_url: '', brochure_url: '',
+  lat: null, lng: null, ciudad: '', barrio: '', zona: '', direccion: '',
+  unitDrafts: [], caracteristicas: '', fotos: [], urlPhotos: [], resumen: '', amenityDrafts: [],
+  heroBucket: 'file', heroId: null,
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -62,26 +70,14 @@ const AMENITY_ICON_PRESETS: Record<string, string> = {
   'Estacionamiento': 'car',
 }
 
-const TYPOLOGY_DEFS: Array<{ id: TypologyType; label: string; hasBanos: boolean; category: 'unidad'|'cochera'|'baulera' }> = [
-  { id: 'mono',       label: 'Monoambiente',  hasBanos: true,  category: 'unidad'  },
-  { id: '1dorm',      label: '1 Dormitorio',  hasBanos: true,  category: 'unidad'  },
-  { id: '2dorm',      label: '2 Dormitorios', hasBanos: true,  category: 'unidad'  },
-  { id: '3dorm',      label: '3 Dormitorios', hasBanos: true,  category: 'unidad'  },
-  { id: '4dorm',      label: '4 Dormitorios', hasBanos: true,  category: 'unidad'  },
-  { id: 'cochera',    label: 'Cochera',        hasBanos: false, category: 'cochera' },
-  { id: 'cochera_xl', label: 'Cochera XL',     hasBanos: false, category: 'cochera' },
-  { id: 'baulera',    label: 'Baulera',        hasBanos: false, category: 'baulera' },
-]
-// Orden: primero lo comercial, después lo técnico
-const LINK_PRESETS: { value: string; label: string; icon: React.ElementType; color: string; single?: boolean }[] = [
-  { value: 'web',      label: 'Web',       icon: Globe,         color: '#1a56db', single: true  },
-  { value: 'whatsapp', label: 'WhatsApp',  icon: MessageCircle, color: '#25D366'               },
-  { value: 'drive',    label: 'Drive',     icon: FolderOpen,    color: '#0F9D58'               },
-  { value: 'brochure', label: 'Brochure',  icon: FileText,      color: '#6366f1', single: true  },
-  { value: 'vista360', label: 'Vista 360', icon: Eye,           color: '#f59e0b', single: true  },
-  { value: 'otro',     label: 'Otro',      icon: ExternalLink,  color: '#6b7280'               },
-]
-function linkPreset(type: string) { return LINK_PRESETS.find(p => p.value === type) }
+const BEDROOM_NAMES: Record<number, string> = {
+  0: 'Monoambiente',
+  1: '1 Dormitorio',
+  2: '2 Dormitorios',
+  3: '3 Dormitorios',
+  4: '4+ Dormitorios',
+}
+
 const AMENITIES_INTERIOR = ['Aire acondicionado', 'Calefacción', 'Lavandería', 'Cocina equipada', 'Placares', 'Balcón', 'Terraza']
 const AMENITIES_EDIFICIO = ['Piscina', 'Gimnasio', 'Parrilla / Quincho', 'Jardín', 'Seguridad 24h', 'Ascensor', 'Salón de usos', 'Estacionamiento']
 
@@ -142,25 +138,23 @@ export function ProyectoFormPage() {
   const { id }      = useParams<{ id?: string }>()
   const isEdit      = !!id
 
-  const [s, setS]             = useState<FormState>(EMPTY)
+  const [s, setS]               = useState<FormState>(EMPTY)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(isEdit)
-  const [openSection, setOpenSection] = useState<SectionId>('esencial')
+  const [openSection, setOpenSection] = useState<SectionId | null>(null)
   const [existingPhotos, setExistingPhotos] = useState<PhotoRow[]>([])
   const [amenityModal, setAmenityModal] = useState<{ draftId: string; file: File | null; previewUrl: string | null } | null>(null)
   const amenityModalRef = useRef<HTMLDivElement>(null)
   const [isResolvingMap, setIsResolvingMap] = useState(false)
   const [resolvedEmbed, setResolvedEmbed]   = useState<{ embedSrc: string; lat: number | null; lng: number | null } | null>(null)
-  const [planoModal, setPlanoModal]         = useState<{ typologyType: TypologyType; variantId: string; previewUrl: string | null; file: File | null } | null>(null)
   const [typologiesOpen, setTypologiesOpen] = useState(false)
+  const [urlInput, setUrlInput] = useState('')
   const inputRef    = useRef<HTMLInputElement>(null)
-  const brochureRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const previewUrls = useRef<Record<string, string>>({})
-  const modalRef    = useRef<HTMLDivElement>(null)
 
   function update(patch: Partial<FormState>) { setS(prev => ({ ...prev, ...patch })) }
-  function toggle(sid: SectionId) { setOpenSection(prev => prev === sid ? 'esencial' : sid) }
+  function toggle(sid: SectionId) { setOpenSection(prev => prev === sid ? null : sid) }
 
   // ── Load project for edit ─────────────────────────────────────────────────
   useEffect(() => {
@@ -173,25 +167,25 @@ export function ProyectoFormPage() {
           getProjectPhotos(projectId),
         ])
         if (!proj) { navigate('/proyectos'); return }
-        const otherLinks: LinkEntry[] = [
-          proj.brochure_url ? { _id: crypto.randomUUID(), type: 'brochure', url: proj.brochure_url } : null,
-          proj.tour_360_url ? { _id: crypto.randomUUID(), type: 'vista360', url: proj.tour_360_url } : null,
-        ].filter(Boolean) as LinkEntry[]
         setS({
           ...EMPTY,
           name:            proj.name           ?? '',
           status:          proj.status          ?? 'en_pozo',
+          badge_analisis:  (proj.badge_analisis as BadgeAnalisis | null) ?? null,
+          publicado_en_web: proj.publicado_en_web ?? false,
           developer_name:  proj.developer_name  ?? '',
           tipo_proyecto:   (proj.tipo_proyecto  ?? null) as TipoProyecto | null,
           delivery_date:   proj.delivery_date   ?? '',
-          maps_url:        proj.maps_url         ?? '',
-          ciudad:          proj.ciudad           ?? '',
-          barrio:          proj.barrio           ?? '',
-          zona:            proj.zona     ?? proj.location ?? '',
-          direccion:       proj.direccion         ?? '',
-          links:           otherLinks,
-          caracteristicas: proj.caracteristicas  ?? '',
-          resumen:         proj.description      ?? '',
+          precio_desde:    proj.precio_desde != null ? String(proj.precio_desde) : '',
+          maps_url:        proj.maps_url        ?? '',
+          tour_360_url:    proj.tour_360_url    ?? '',
+          brochure_url:    proj.brochure_url    ?? '',
+          ciudad:          proj.ciudad          ?? '',
+          barrio:          proj.barrio          ?? '',
+          zona:            proj.zona    ?? proj.location ?? '',
+          direccion:       proj.direccion        ?? '',
+          caracteristicas: proj.caracteristicas ?? '',
+          resumen:         proj.description     ?? '',
         })
         setExistingPhotos(photos)
       } catch { navigate('/proyectos') }
@@ -228,11 +222,6 @@ export function ProyectoFormPage() {
     update({ lat: parsed?.lat ?? null, lng: parsed?.lng ?? null })
   }
 
-  // ── Links ─────────────────────────────────────────────────────────────────
-  function addLink(type = 'otro') { update({ links: [...s.links, { _id: crypto.randomUUID(), type, url: '' }] }) }
-  function removeLink(i: string) { update({ links: s.links.filter(l => l._id !== i) }) }
-  function setLinkField(i: string, f: 'type' | 'url', v: string) { update({ links: s.links.map(l => l._id === i ? { ...l, [f]: v } : l) }) }
-
   // ── Photos ────────────────────────────────────────────────────────────────
   function fileKey(file: File) { return `${file.name}-${file.size}-${file.lastModified}` }
   function getPreviewUrl(file: File) {
@@ -253,6 +242,28 @@ export function ProyectoFormPage() {
   async function removeExistingPhoto(photo: PhotoRow) {
     await deleteProjectPhoto(photo).catch(() => null)
     setExistingPhotos(prev => prev.filter(p => p.id !== photo.id))
+  }
+
+  // ── URL photos ────────────────────────────────────────────────────────────
+  function addUrlPhoto() {
+    const url = urlInput.trim()
+    if (!url) return
+    update({ urlPhotos: [...s.urlPhotos, { _id: crypto.randomUUID(), url }] })
+    setUrlInput('')
+  }
+  function removeUrlPhoto(uid: string) {
+    update({ urlPhotos: s.urlPhotos.filter(u => u._id !== uid) })
+  }
+
+  // ── Hero photo (edit mode — reorder existing in DB) ───────────────────────
+  async function setHeroPhoto(photo: PhotoRow) {
+    if (photo.sort_order === 0) return
+    const sorted = [...existingPhotos].sort((a, b) => a.sort_order - b.sort_order)
+    const reordered = [photo, ...sorted.filter(p => p.id !== photo.id)]
+    setExistingPhotos(reordered.map((p, i) => ({ ...p, sort_order: i })))
+    await Promise.all(
+      reordered.map((p, i) => supabase.from('project_photos').update({ sort_order: i }).eq('id', p.id))
+    )
   }
 
   // ── Amenities (create mode only — edit uses AmenitiesEditor) ─────────────
@@ -305,67 +316,31 @@ export function ProyectoFormPage() {
     if (amenityModal) { const t = setTimeout(() => amenityModalRef.current?.focus(), 50); return () => clearTimeout(t) }
   }, [amenityModal])
 
-  // ── Typologies ────────────────────────────────────────────────────────────
-  function toggleTypology(type: TypologyType) {
-    if (s.selected_types.includes(type)) {
-      update({ selected_types: s.selected_types.filter(t => t !== type) })
-    } else {
-      const newData = { ...s.typology_data }
-      if (!newData[type]) newData[type] = { banos: null, variants: [{ _id: crypto.randomUUID(), area_m2: '', plano: null }] }
-      update({ selected_types: [...s.selected_types, type], typology_data: newData })
-    }
+  // ── Unit drafts (create mode only) ───────────────────────────────────────
+  function addUnitDraft() {
+    update({ unitDrafts: [...s.unitDrafts, { _id: crypto.randomUUID(), name: '', area_m2: '', bedrooms: null, bathrooms: null, image: null, previewUrl: null }] })
   }
-  function updateBanos(type: TypologyType, banos: number | null) {
-    update({ typology_data: { ...s.typology_data, [type]: { ...s.typology_data[type]!, banos } } })
+  function removeUnitDraft(uid: string) {
+    const d = s.unitDrafts.find(u => u._id === uid)
+    if (d?.previewUrl) URL.revokeObjectURL(d.previewUrl)
+    update({ unitDrafts: s.unitDrafts.filter(u => u._id !== uid) })
   }
-  function addVariant(type: TypologyType) {
-    const draft = s.typology_data[type]!
-    update({ typology_data: { ...s.typology_data, [type]: { ...draft, variants: [...draft.variants, { _id: crypto.randomUUID(), area_m2: '', plano: null }] } } })
+  function updateUnitDraft(uid: string, patch: Partial<UnitDraft>) {
+    update({ unitDrafts: s.unitDrafts.map(u => u._id === uid ? { ...u, ...patch } : u) })
   }
-  function removeVariant(type: TypologyType, variantId: string) {
-    const draft = s.typology_data[type]!
-    if (draft.variants.length <= 1) return
-    update({ typology_data: { ...s.typology_data, [type]: { ...draft, variants: draft.variants.filter(v => v._id !== variantId) } } })
-  }
-  function updateVariantField(type: TypologyType, variantId: string, field: 'area_m2' | 'plano', value: string | File | null) {
-    const draft = s.typology_data[type]!
-    update({ typology_data: { ...s.typology_data, [type]: { ...draft, variants: draft.variants.map(v => v._id === variantId ? { ...v, [field]: value } : v) } } })
-  }
-
-  // ── Plano modal ───────────────────────────────────────────────────────────
-  function openPlanoModal(type: TypologyType, variantId: string) { setPlanoModal({ typologyType: type, variantId, previewUrl: null, file: null }) }
-  function closePlanoModal() { if (planoModal?.previewUrl) URL.revokeObjectURL(planoModal.previewUrl); setPlanoModal(null) }
-  function handleModalPaste(e: React.ClipboardEvent) {
-    for (const item of Array.from(e.clipboardData?.items ?? [])) {
-      if (item.type.startsWith('image/')) {
-        const f = item.getAsFile(); if (!f) break
-        if (planoModal?.previewUrl) URL.revokeObjectURL(planoModal.previewUrl)
-        setPlanoModal(prev => prev ? { ...prev, file: f, previewUrl: URL.createObjectURL(f) } : null)
-        break
-      }
-    }
-  }
-  function confirmPlano() {
-    if (!planoModal?.file) return
-    updateVariantField(planoModal.typologyType, planoModal.variantId, 'plano', planoModal.file)
-    if (planoModal.previewUrl) URL.revokeObjectURL(planoModal.previewUrl)
-    setPlanoModal(null)
-  }
-  useEffect(() => {
-    if (planoModal) { const t = setTimeout(() => modalRef.current?.focus(), 50); return () => clearTimeout(t) }
-  }, [planoModal])
 
   // ── Save ──────────────────────────────────────────────────────────────────
   async function handleSave() {
     if (!s.name.trim()) { toast.error('El nombre es requerido'); return }
     setIsSaving(true)
     try {
-      const brochureUrl = s.links.find(l => l.type === 'brochure')?.url.trim() || null
-      const tour360Url  = s.links.find(l => l.type === 'vista360')?.url.trim() || null
+      const precioDesde = s.precio_desde.trim() ? parseFloat(s.precio_desde) : null
 
       const payload = {
         name:            s.name.trim(),
         status:          s.status,
+        badge_analisis:  s.badge_analisis,
+        publicado_en_web: s.publicado_en_web,
         developer_name:  s.developer_name || null,
         tipo_proyecto:   s.tipo_proyecto,
         location:        s.zona || null,
@@ -375,9 +350,10 @@ export function ProyectoFormPage() {
         direccion:       s.direccion || null,
         description:     s.resumen || null,
         delivery_date:   s.delivery_date || null,
+        precio_desde:    precioDesde,
         maps_url:        s.maps_url || null,
-        brochure_url:    brochureUrl,
-        tour_360_url:    tour360Url,
+        tour_360_url:    s.tour_360_url || null,
+        brochure_url:    s.brochure_url || null,
         caracteristicas: s.caracteristicas || null,
       }
 
@@ -390,20 +366,28 @@ export function ProyectoFormPage() {
         const created = await createProject(payload)
         projectId = created.id
 
-        // Tipologías (solo en crear)
-        for (const def of TYPOLOGY_DEFS) {
-          if (!s.selected_types.includes(def.id)) continue
-          const typDraft = s.typology_data[def.id]!
-          for (const variant of typDraft.variants) {
-            let floorPlanPath: string | null = null
-            if (variant.plano) {
-              const ext = variant.plano.name.split('.').pop()
-              const planPath = `${projectId}/plan-${def.id}-${variant._id}.${ext}`
-              const { error: upErr } = await supabase.storage.from('project-media').upload(planPath, variant.plano)
-              if (!upErr) floorPlanPath = planPath
-            }
-            await createTypology({ project_id: projectId, name: def.label, area_m2: parseFloat(variant.area_m2) || 0, price_usd: 0, units_available: 0, category: def.category, unit_type: def.id, bathrooms: typDraft.banos, floor_plan_path: floorPlanPath })
+        // Unidades (solo en crear)
+        for (const unit of s.unitDrafts) {
+          if (!unit.name.trim()) continue
+          let imagePaths: string[] = []
+          if (unit.image) {
+            const ext = unit.image.name.split('.').pop() ?? 'jpg'
+            const imgPath = `${projectId}/typologies/${unit._id}.${ext}`
+            const { error: upErr } = await supabase.storage.from('project-media').upload(imgPath, unit.image)
+            if (!upErr) imagePaths = [imgPath]
           }
+          await createTypology({
+            project_id: projectId,
+            name: unit.name.trim(),
+            area_m2: parseFloat(unit.area_m2) || 0,
+            unit_type: unit.bedrooms != null ? String(unit.bedrooms) : null,
+            bathrooms: unit.bathrooms ?? null,
+            price_usd: 0,
+            units_available: 0,
+            images: imagePaths,
+            features: [],
+            category: 'unidad',
+          })
         }
 
         // Amenities (solo en crear)
@@ -420,7 +404,7 @@ export function ProyectoFormPage() {
         }
       }
 
-      // Fotos nuevas (ambos modos)
+      // Fotos nuevas por archivo (ambos modos)
       const startOrder = isEdit ? existingPhotos.length : 0
       for (let i = 0; i < s.fotos.length; i++) {
         const file = s.fotos[i]
@@ -431,20 +415,20 @@ export function ProyectoFormPage() {
         await supabase.from('project_photos').insert({ project_id: projectId, storage_path: path, sort_order: startOrder + i })
       }
 
-      // Brochure
-      const brochureFile = brochureRef.current?.files?.[0]
-      if (brochureFile) {
-        const ext  = brochureFile.name.split('.').pop()
-        const path = `${projectId}/brochure.${ext}`
-        await supabase.storage.from('project-media').upload(path, brochureFile, { upsert: true })
-        await updateProject(projectId, { brochure_path: path })
+      // Fotos nuevas por URL (ambos modos)
+      const urlStartOrder = isEdit ? existingPhotos.length + s.fotos.length : s.fotos.length
+      for (let i = 0; i < s.urlPhotos.length; i++) {
+        const { url } = s.urlPhotos[i]
+        if (!url.trim()) continue
+        await supabase.from('project_photos').insert({ project_id: projectId, storage_path: url.trim(), sort_order: urlStartOrder + i })
       }
 
       toast.success(isEdit ? 'Cambios guardados' : 'Proyecto creado')
       navigate('/proyectos')
     } catch (err) {
-      toast.error('Error al guardar')
-      console.error(err)
+      const msg = err instanceof Error ? err.message : String(err)
+      toast.error(`Error al guardar: ${msg}`)
+      console.error('[handleSave]', err)
     }
     setIsSaving(false)
   }
@@ -459,7 +443,11 @@ export function ProyectoFormPage() {
     )
   }
 
-  const TIPO_LABEL: Record<TipoProyecto, string> = { residencial: 'Residencial', comercial: 'Comercial', mixto: 'Mixto' }
+  const BADGE_OPTIONS: { value: BadgeAnalisis; label: string; cls: string }[] = [
+    { value: 'oportunidad', label: 'Oportunidad', cls: 'border-amber-400 bg-amber-50 text-amber-700' },
+    { value: 'estable',     label: 'Estable',     cls: 'border-blue-400  bg-blue-50  text-blue-700'  },
+    { value: 'a_evaluar',   label: 'A evaluar',   cls: 'border-gray-400  bg-gray-100 text-gray-600'  },
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -473,7 +461,6 @@ export function ProyectoFormPage() {
           <h1 className="text-sm font-semibold text-gray-900">
             {isEdit ? s.name || 'Editar proyecto' : 'Nuevo proyecto'}
           </h1>
-          {s.tipo_proyecto && <span className="text-xs text-gray-400">· {TIPO_LABEL[s.tipo_proyecto]}</span>}
         </div>
         <button onClick={() => navigate('/proyectos')} className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors flex-shrink-0">
           <X className="w-5 h-5" />
@@ -482,42 +469,17 @@ export function ProyectoFormPage() {
 
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-3">
 
-        {/* ══ 1 — LO ESENCIAL (siempre visible) ══ */}
+        {/* ══ 1 — HERO / HEADER (siempre visible) ══ */}
         <div className="bg-white border-2 border-gray-900 rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.1)]">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Lo esencial</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Hero / Header</h2>
 
+          {/* Nombre */}
           <div className="mb-4">
             <FieldLabel>Nombre del proyecto</FieldLabel>
             <TextInput value={s.name} onChange={e => update({ name: e.target.value })} placeholder="Ej: Urban Cumbres Torre B" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <div>
-              <FieldLabel>Ciudad</FieldLabel>
-              <TextInput value={s.ciudad} onChange={e => update({ ciudad: e.target.value })} placeholder="Ej: Asunción" />
-            </div>
-            <div>
-              <FieldLabel>Barrio</FieldLabel>
-              <TextInput value={s.barrio} onChange={e => update({ barrio: e.target.value })} placeholder="Ej: Ycuá Bolados" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <div>
-              <FieldLabel>Zona</FieldLabel>
-              <TextInput value={s.zona} onChange={e => update({ zona: e.target.value })} placeholder="Ej: Luque – Zona CIT" />
-            </div>
-            <div>
-              <FieldLabel>Dirección</FieldLabel>
-              <TextInput value={s.direccion} onChange={e => update({ direccion: e.target.value })} placeholder="Ej: Av. Mariscal López 123" />
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <FieldLabel>Desarrolladora</FieldLabel>
-            <TextInput value={s.developer_name} onChange={e => update({ developer_name: e.target.value })} placeholder="Ej: Urban Domus" />
-          </div>
-
+          {/* Estado + Entrega */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <FieldLabel>Estado</FieldLabel>
@@ -537,21 +499,178 @@ export function ProyectoFormPage() {
             </div>
           </div>
 
-          <div>
-            <FieldLabel>Tipo</FieldLabel>
+          {/* Badge análisis */}
+          <div className="mb-4">
+            <FieldLabel>Badge de análisis</FieldLabel>
             <div className="flex gap-2">
-              {([{ v: 'residencial' as TipoProyecto, l: 'Residencial' }, { v: 'comercial' as TipoProyecto, l: 'Comercial' }, { v: 'mixto' as TipoProyecto, l: 'Mixto' }]).map(({ v, l }) => (
-                <button key={v} type="button" onClick={() => update({ tipo_proyecto: v })}
-                  className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-all ${s.tipo_proyecto === v ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
-                >{l}</button>
+              {BADGE_OPTIONS.map(opt => (
+                <button key={opt.value} type="button"
+                  onClick={() => update({ badge_analisis: s.badge_analisis === opt.value ? null : opt.value })}
+                  className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                    s.badge_analisis === opt.value ? `border-2 ${opt.cls}` : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                  }`}
+                >{opt.label}</button>
               ))}
+            </div>
+          </div>
+
+          {/* Publicado en web */}
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 mb-4">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Publicado en web</p>
+              <p className="text-xs text-gray-400">Visible en kohancampos.com</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => update({ publicado_en_web: !s.publicado_en_web })}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none ${
+                s.publicado_en_web ? 'bg-emerald-500' : 'bg-gray-200'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                s.publicado_en_web ? 'translate-x-[22px]' : 'translate-x-[4px]'
+              }`} />
+            </button>
+          </div>
+
+          {/* Ciudad + Barrio */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <FieldLabel>Ciudad</FieldLabel>
+              <TextInput value={s.ciudad} onChange={e => update({ ciudad: e.target.value })} placeholder="Ej: Asunción" />
+            </div>
+            <div>
+              <FieldLabel>Barrio</FieldLabel>
+              <TextInput value={s.barrio} onChange={e => update({ barrio: e.target.value })} placeholder="Ej: Ycuá Bolados" />
+            </div>
+          </div>
+
+          {/* Zona */}
+          <div className="mb-4">
+            <FieldLabel>Zona</FieldLabel>
+            <TextInput value={s.zona} onChange={e => update({ zona: e.target.value })} placeholder="Ej: Luque – Zona CIT" />
+          </div>
+
+          {/* Desarrolladora + Precio desde */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <FieldLabel>Desarrolladora</FieldLabel>
+              <TextInput value={s.developer_name} onChange={e => update({ developer_name: e.target.value })} placeholder="Ej: Urban Domus" />
+            </div>
+            <div>
+              <FieldLabel>Precio desde (USD)</FieldLabel>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">USD</span>
+                <TextInput
+                  type="number"
+                  value={s.precio_desde}
+                  onChange={e => update({ precio_desde: e.target.value })}
+                  placeholder="85000"
+                  className="pl-11"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ══ 2 — TIPOLOGÍAS ══ */}
+        {/* ══ 2 — INFORMACIÓN GENERAL ══ */}
+        <Section title="Información general" open={openSection === 'info'} onToggle={() => toggle('info')}>
+          <div className="flex flex-col gap-4">
+            <div>
+              <FieldLabel>Dirección</FieldLabel>
+              <TextInput value={s.direccion} onChange={e => update({ direccion: e.target.value })} placeholder="Ej: Av. Mariscal López 123" />
+            </div>
+            <div>
+              <FieldLabel>Tipo de proyecto</FieldLabel>
+              <div className="flex gap-2">
+                {([{ v: 'residencial' as TipoProyecto, l: 'Residencial' }, { v: 'comercial' as TipoProyecto, l: 'Comercial' }, { v: 'mixto' as TipoProyecto, l: 'Mixto' }]).map(({ v, l }) => (
+                  <button key={v} type="button" onClick={() => update({ tipo_proyecto: s.tipo_proyecto === v ? null : v })}
+                    className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-all ${s.tipo_proyecto === v ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
+                  >{l}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        {/* ══ 3 — SOBRE EL PROYECTO ══ */}
+        <Section title="Sobre el proyecto" open={openSection === 'proyecto'} onToggle={() => toggle('proyecto')}>
+          <div className="flex flex-col gap-4">
+            <div>
+              <FieldLabel>Resumen</FieldLabel>
+              <textarea value={s.resumen} onChange={e => update({ resumen: e.target.value })} rows={5}
+                placeholder={"URBAN CUMBRES TORRE B\nEntrega: Marzo 2027\n\nUbicación estratégica en el corazón de Luque..."}
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 resize-none"
+              />
+            </div>
+            <div>
+              <FieldLabel>Características del edificio</FieldLabel>
+              <textarea value={s.caracteristicas} onChange={e => update({ caracteristicas: e.target.value })} rows={4}
+                placeholder={"4 Torres · 6 pisos · 14 dptos por piso\n2 Piscinas · Solarium\nSeguridad 24h · Ascensor panorámico"}
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 resize-none"
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* ══ 4 — LINKS ══ */}
+        <Section title="Links" open={openSection === 'links'} onToggle={() => toggle('links')}>
+          <div className="flex flex-col gap-4">
+
+            {/* Google Maps */}
+            <div>
+              <FieldLabel>Google Maps</FieldLabel>
+              <div className="relative">
+                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input type="url" value={s.maps_url} onChange={e => handleMapsLink(e.target.value)}
+                  placeholder="https://www.google.com/maps/place/..."
+                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                />
+              </div>
+              {isResolvingMap && <p className="text-xs text-gray-400 mt-1.5">Resolviendo link…</p>}
+              {!isResolvingMap && mapsData && (
+                <p className="text-xs text-emerald-600 mt-1.5 flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" />
+                  {mapsData.lat ? `${mapsData.lat.toFixed(4)}, ${mapsData.lng?.toFixed(4)}` : 'Link válido'}
+                </p>
+              )}
+              {mapsData && !isResolvingMap && (
+                <div className="overflow-hidden rounded-xl border border-gray-200 mt-2" style={{ height: 160 }}>
+                  <iframe src={mapsData.embedSrc} className="w-full h-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                </div>
+              )}
+            </div>
+
+            {/* Vista 360° */}
+            <div>
+              <FieldLabel>Vista 360°</FieldLabel>
+              <div className="relative">
+                <Eye className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input type="url" value={s.tour_360_url} onChange={e => update({ tour_360_url: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                />
+              </div>
+            </div>
+
+            {/* Brochure PDF */}
+            <div>
+              <FieldLabel>Brochure PDF</FieldLabel>
+              <div className="relative">
+                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input type="url" value={s.brochure_url} onChange={e => update({ brochure_url: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                />
+              </div>
+            </div>
+
+          </div>
+        </Section>
+
+        {/* ══ 5 — TIPOLOGÍAS ══ */}
         <Section title="Tipologías" open={openSection === 'tipologias'} onToggle={() => toggle('tipologias')}
-          badge={isEdit ? 'Ver existentes →' : s.selected_types.length > 0 ? `${s.selected_types.length} seleccionadas` : undefined}
+          badge={isEdit ? undefined : s.unitDrafts.length > 0 ? `${s.unitDrafts.length} unidad${s.unitDrafts.length !== 1 ? 'es' : ''}` : undefined}
         >
           {isEdit ? (
             <div className="flex flex-col gap-3">
@@ -563,80 +682,77 @@ export function ProyectoFormPage() {
               </button>
             </div>
           ) : (
-            <>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {TYPOLOGY_DEFS.map(def => {
-                  const active = s.selected_types.includes(def.id)
-                  return (
-                    <button key={def.id} type="button" onClick={() => toggleTypology(def.id)}
-                      className={`px-3 py-1.5 rounded-xl border-2 text-sm font-medium transition-all ${active ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
-                    >{def.label}</button>
-                  )
-                })}
-              </div>
-              {s.selected_types.length > 0 ? (
-                <div className="flex flex-col gap-3">
-                  {TYPOLOGY_DEFS.filter(def => s.selected_types.includes(def.id)).map(def => {
-                    const draft = s.typology_data[def.id]!
-                    return (
-                      <div key={def.id} className="border border-gray-200 rounded-2xl p-4">
-                        <p className="text-sm font-semibold text-gray-800 mb-3">{def.label}</p>
-                        {def.hasBanos && (
-                          <div className="flex items-center gap-2.5 mb-3">
-                            <span className="text-xs text-gray-400 w-9 flex-shrink-0">Baños</span>
-                            <div className="flex gap-1">
-                              {[1, 2, 3].map(n => (
-                                <button key={n} type="button" onClick={() => updateBanos(def.id, draft.banos === n ? null : n)}
-                                  className={`w-8 h-8 rounded-xl border-2 text-xs font-medium transition-all ${draft.banos === n ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`}
-                                >{n === 3 ? '3+' : n}</button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        <div className="flex flex-col gap-2">
-                          {draft.variants.map((variant, idx) => (
-                            <div key={variant._id} className="flex items-center gap-2">
-                              {draft.variants.length > 1 && <span className="text-xs text-gray-400 w-14 flex-shrink-0">Var. {idx + 1}</span>}
-                              <div className="flex items-center gap-1.5 flex-shrink-0">
-                                <span className="text-xs text-gray-400">m²</span>
-                                <input type="number" value={variant.area_m2} onChange={e => updateVariantField(def.id, variant._id, 'area_m2', e.target.value)}
-                                  placeholder="50" style={{ width: 76 }}
-                                  className="px-2 py-1.5 border border-gray-200 rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-gray-900/20"
-                                />
-                              </div>
-                              <div className="flex-1 flex gap-1.5">
-                                <label className="flex items-center gap-1 px-2.5 py-1.5 border border-gray-200 rounded-xl text-xs text-gray-500 hover:border-gray-400 cursor-pointer transition-colors flex-shrink-0">
-                                  <Upload className="w-3 h-3" />
-                                  {variant.plano ? <span className="text-emerald-600 max-w-[60px] truncate">{variant.plano.name}</span> : 'Subir'}
-                                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={e => e.target.files?.[0] && updateVariantField(def.id, variant._id, 'plano', e.target.files[0])} />
-                                </label>
-                                <button type="button" onClick={() => openPlanoModal(def.id, variant._id)}
-                                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 transition-colors"
-                                ><Clipboard className="w-3 h-3" /> Pegar plano</button>
-                              </div>
-                              {draft.variants.length > 1 && (
-                                <button type="button" onClick={() => removeVariant(def.id, variant._id)} className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <button type="button" onClick={() => addVariant(def.id)} className="flex items-center gap-1.5 mt-2.5 text-xs text-gray-400 hover:text-gray-700 transition-colors">
-                          <Plus className="w-3.5 h-3.5" /> Agregar variante
-                        </button>
-                      </div>
-                    )
-                  })}
+            <div className="flex flex-col gap-3">
+              {s.unitDrafts.map((unit, idx) => (
+                <div key={unit._id} className="border border-gray-200 rounded-2xl p-4 flex flex-col gap-3">
+
+                  {/* Header row */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Unidad {idx + 1}</span>
+                    <button type="button" onClick={() => removeUnitDraft(unit._id)} className="text-gray-300 hover:text-red-400 transition-colors">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Dormitorios */}
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1.5">Dormitorios</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(Object.entries(BEDROOM_NAMES) as [string, string][]).map(([k, label]) => {
+                        const n = parseInt(k)
+                        return (
+                          <button key={k} type="button"
+                            onClick={() => updateUnitDraft(unit._id, { bedrooms: unit.bedrooms === n ? null : n, name: unit.name || label })}
+                            className={`px-3 py-1.5 rounded-xl border-2 text-xs font-medium transition-all ${unit.bedrooms === n ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
+                          >{label}</button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Nombre + m² + Baños */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-1">
+                      <p className="text-xs text-gray-400 mb-1">Nombre</p>
+                      <TextInput value={unit.name} onChange={e => updateUnitDraft(unit._id, { name: e.target.value })} placeholder="Ej: 2 Dormitorios" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">m²</p>
+                      <TextInput type="number" value={unit.area_m2} onChange={e => updateUnitDraft(unit._id, { area_m2: e.target.value })} placeholder="65" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">Baños</p>
+                      <TextInput type="number" value={unit.bathrooms ?? ''} onChange={e => updateUnitDraft(unit._id, { bathrooms: e.target.value ? parseInt(e.target.value) : null })} placeholder="1" />
+                    </div>
+                  </div>
+
+                  {/* Imagen */}
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-xl text-xs text-gray-500 hover:border-gray-400 cursor-pointer transition-colors">
+                      <Upload className="w-3 h-3" />
+                      {unit.image ? <span className="text-emerald-600 max-w-[80px] truncate">{unit.image.name}</span> : 'Imagen'}
+                      <input type="file" accept="image/*" className="hidden" onChange={e => {
+                        const f = e.target.files?.[0]
+                        if (!f) return
+                        if (unit.previewUrl) URL.revokeObjectURL(unit.previewUrl)
+                        updateUnitDraft(unit._id, { image: f, previewUrl: URL.createObjectURL(f) })
+                      }} />
+                    </label>
+                    {unit.previewUrl && <img src={unit.previewUrl} alt="" className="h-10 w-10 rounded-lg object-cover border border-gray-200" />}
+                  </div>
                 </div>
-              ) : (
-                <p className="text-sm text-gray-400 text-center py-1">Seleccioná las tipologías del proyecto arriba</p>
-              )}
-            </>
+              ))}
+
+              <button type="button" onClick={addUnitDraft}
+                className="self-start flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-dashed border-gray-300 text-sm text-gray-500 hover:border-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" /> Agregar unidad
+              </button>
+            </div>
           )}
         </Section>
 
-        {/* ══ 3 — AMENITIES ══ */}
+        {/* ══ 6 — AMENITIES ══ */}
         <Section title="Amenities" open={openSection === 'amenities'} onToggle={() => toggle('amenities')}>
           {isEdit && id ? (
             <AmenitiesEditor projectId={id} />
@@ -695,21 +811,36 @@ export function ProyectoFormPage() {
           )}
         </Section>
 
-        {/* ══ 4 — MEDIA (Fotos + Brochure) ══ */}
+        {/* ══ 7 — MEDIA ══ */}
         <Section title="Media" open={openSection === 'media'} onToggle={() => toggle('media')}
-          badge={`${existingPhotos.length + s.fotos.length} foto${existingPhotos.length + s.fotos.length !== 1 ? 's' : ''}`}
+          badge={`${existingPhotos.length + s.fotos.length + s.urlPhotos.length} foto${existingPhotos.length + s.fotos.length + s.urlPhotos.length !== 1 ? 's' : ''}`}
         >
-          <div className="flex flex-col gap-4">
-            {/* Fotos existentes (edit) */}
+          <div className="flex flex-col gap-6">
+
+            {/* ─ Fotos existentes (edit) ─ */}
             {existingPhotos.length > 0 && (
               <div>
-                <p className="text-xs text-gray-400 mb-2">Fotos actuales</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Fotos actuales</p>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                   {existingPhotos.map((photo, i) => (
                     <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden group">
                       <img src={getPublicUrl(photo.storage_path)} alt="" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-                      {i === 0 && <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">Portada</span>}
+                      {/* Hero star */}
+                      <button
+                        type="button"
+                        onClick={() => setHeroPhoto(photo)}
+                        title={i === 0 ? 'Portada' : 'Marcar como portada'}
+                        className={`absolute bottom-1 left-1 p-1 rounded-full transition-opacity ${
+                          i === 0
+                            ? 'bg-amber-400 text-white opacity-100'
+                            : 'bg-black/50 text-white opacity-0 group-hover:opacity-100'
+                        }`}
+                      >
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </button>
                       <button type="button" onClick={() => removeExistingPhoto(photo)} className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
                         <X className="w-3 h-3" />
                       </button>
@@ -719,130 +850,80 @@ export function ProyectoFormPage() {
               </div>
             )}
 
-            {/* Agregar fotos nuevas */}
-            <div
-              onClick={() => inputRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={e => { e.preventDefault(); setIsDragging(false); addFiles(e.dataTransfer.files) }}
-              className={`border-2 border-dashed rounded-2xl px-6 py-5 text-center cursor-pointer transition-colors ${isDragging ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:border-gray-400'}`}
-            >
-              <Upload className="w-6 h-6 text-gray-300 mx-auto mb-1.5" />
-              <p className="text-sm text-gray-500">{isEdit ? 'Agregar más fotos' : 'Tocá para agregar fotos'}</p>
-              <p className="text-xs text-gray-400 mt-0.5">JPG, PNG · máx. 20</p>
-              <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => e.target.files && addFiles(e.target.files)} />
-            </div>
-            {s.fotos.length > 0 && (
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                {s.fotos.map((file, i) => (
-                  <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
-                    <img src={getPreviewUrl(file)} alt="" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-                    <button type="button" onClick={() => removeNewFile(i)} className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
+            {/* ─ Bloque 1: Subir imágenes ─ */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Subir imágenes</p>
+              <div
+                onClick={() => inputRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={e => { e.preventDefault(); setIsDragging(false); addFiles(e.dataTransfer.files) }}
+                className={`border-2 border-dashed rounded-2xl px-6 py-5 text-center cursor-pointer transition-colors ${isDragging ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:border-gray-400'}`}
+              >
+                <Upload className="w-6 h-6 text-gray-300 mx-auto mb-1.5" />
+                <p className="text-sm text-gray-500">Arrastrá o hacé clic para seleccionar</p>
+                <p className="text-xs text-gray-400 mt-0.5">JPG, PNG · máx. 20</p>
+                <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => e.target.files && addFiles(e.target.files)} />
               </div>
-            )}
-
-            {/* Brochure */}
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1.5">Brochure (PDF)</p>
-              <input ref={brochureRef} type="file" accept=".pdf"
-                className="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-gray-100 file:text-gray-700 cursor-pointer"
-              />
-            </div>
-          </div>
-        </Section>
-
-        {/* ══ 5 — CONTENIDO (Resumen + Características) ══ */}
-        <Section title="Contenido" open={openSection === 'contenido'} onToggle={() => toggle('contenido')}>
-          <div className="flex flex-col gap-4">
-            <div>
-              <FieldLabel>Resumen</FieldLabel>
-              <textarea value={s.resumen} onChange={e => update({ resumen: e.target.value })} rows={5}
-                placeholder={"URBAN CUMBRES TORRE B\nEntrega: Marzo 2027\n\nUbicación estratégica en el corazón de Luque..."}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 resize-none"
-              />
-            </div>
-            <div>
-              <FieldLabel>Características del edificio</FieldLabel>
-              <textarea value={s.caracteristicas} onChange={e => update({ caracteristicas: e.target.value })} rows={4}
-                placeholder={"4 Torres · 6 pisos · 14 dptos por piso\n2 Piscinas · Solarium\nSeguridad 24h · Ascensor panorámico"}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 resize-none"
-              />
-            </div>
-          </div>
-        </Section>
-
-        {/* ══ 6 — LINKS ══ */}
-        <Section title="Links" open={openSection === 'links'} onToggle={() => toggle('links')}
-          badge={s.links.length > 0 ? `${s.links.length}` : undefined}
-        >
-          <div className="flex flex-col gap-3">
-            <div>
-              <FieldLabel>Google Maps</FieldLabel>
-              <div className="relative">
-                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input type="url" value={s.maps_url} onChange={e => handleMapsLink(e.target.value)}
-                  placeholder="https://www.google.com/maps/place/..."
-                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
-                />
-              </div>
-              {isResolvingMap && <p className="text-xs text-gray-400 mt-1.5">Resolviendo link…</p>}
-              {!isResolvingMap && mapsData && (
-                <p className="text-xs text-emerald-600 mt-1.5 flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5" />
-                  {mapsData.lat ? `${mapsData.lat.toFixed(4)}, ${mapsData.lng?.toFixed(4)}` : 'Link válido'}
-                </p>
-              )}
-            </div>
-            {mapsData && !isResolvingMap && (
-              <div className="overflow-hidden rounded-xl border border-gray-200" style={{ height: 160 }}>
-                <iframe src={mapsData.embedSrc} className="w-full h-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-              </div>
-            )}
-
-            {/* Chips para agregar links */}
-            <div className="flex flex-wrap gap-1.5">
-              {LINK_PRESETS.map(preset => {
-                const Icon = preset.icon
-                const already = preset.single && s.links.some(l => l.type === preset.value)
-                return (
-                  <button key={preset.value} type="button" disabled={already} onClick={() => addLink(preset.value)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
-                    style={{ borderColor: already ? '#e5e7eb' : preset.color, color: already ? '#9ca3af' : preset.color }}
-                  >
-                    <Icon className="h-3 w-3" />{preset.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            {s.links.length > 0 && (
-              <div className="flex flex-col gap-2 mt-1">
-                {s.links.map(link => {
-                  const preset = linkPreset(link.type)
-                  const Icon = preset?.icon ?? ExternalLink
-                  const color = preset?.color ?? '#6b7280'
-                  return (
-                    <div key={link._id} className="flex items-center gap-2 p-2.5 rounded-xl border bg-gray-50/60">
-                      <div className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '18' }}>
-                        <Icon className="h-3.5 w-3.5" style={{ color }} />
-                      </div>
-                      <input type="url" value={link.url} onChange={e => setLinkField(link._id, 'url', e.target.value)}
-                        placeholder="https://..."
-                        className="flex-1 min-w-0 h-7 px-2 border border-gray-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/20"
-                      />
-                      <button type="button" onClick={() => removeLink(link._id)} className="flex-shrink-0 text-gray-300 hover:text-red-400 transition-colors">
-                        <X className="w-3.5 h-3.5" />
+              {s.fotos.length > 0 && (
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mt-2">
+                  {s.fotos.map((file, i) => (
+                    <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
+                      <img src={getPreviewUrl(file)} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+                      {i === 0 && existingPhotos.length === 0 && (
+                        <span className="absolute bottom-1 left-1 text-[9px] bg-amber-400 text-white px-1.5 py-0.5 rounded-full font-semibold">Portada</span>
+                      )}
+                      <button type="button" onClick={() => removeNewFile(i)} className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <X className="w-3 h-3" />
                       </button>
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ─ Bloque 2: Pegar URL ─ */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Pegar URL de imagen</p>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={urlInput}
+                  onChange={e => setUrlInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addUrlPhoto())}
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                />
+                <button
+                  type="button"
+                  onClick={addUrlPhoto}
+                  disabled={!urlInput.trim()}
+                  className="px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-40 flex-shrink-0"
+                >
+                  Agregar
+                </button>
               </div>
-            )}
+              {s.urlPhotos.length > 0 && (
+                <div className="flex flex-col gap-2 mt-3">
+                  {s.urlPhotos.map(up => (
+                    <div key={up._id} className="flex items-center gap-3 border border-gray-100 rounded-xl p-2">
+                      <img
+                        src={up.url}
+                        alt=""
+                        className="h-12 w-12 rounded-lg object-cover flex-shrink-0 bg-gray-100"
+                        onError={e => { (e.currentTarget as HTMLImageElement).src = '' }}
+                      />
+                      <span className="flex-1 text-xs text-gray-500 truncate min-w-0">{up.url}</span>
+                      <button type="button" onClick={() => removeUrlPhoto(up._id)} className="flex-shrink-0 text-gray-300 hover:text-red-400 transition-colors">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
           </div>
         </Section>
 
@@ -853,7 +934,7 @@ export function ProyectoFormPage() {
         <button type="button" onClick={handleSave} disabled={isSaving}
           className="w-full py-3 rounded-xl text-sm font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
         >
-          {isSaving ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Publicar proyecto'}
+          {isSaving ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear proyecto'}
         </button>
         <button type="button" onClick={() => navigate('/proyectos')} disabled={isSaving}
           className="w-full py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 transition-colors"
@@ -861,36 +942,6 @@ export function ProyectoFormPage() {
           Cancelar
         </button>
       </div>
-
-      {/* ── Modal plano ──────────────────────────────────────────────────────── */}
-      {planoModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={closePlanoModal}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm font-semibold text-gray-900">Pegar plano</p>
-              <button onClick={closePlanoModal} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
-            </div>
-            <div ref={modalRef} tabIndex={0} onPaste={handleModalPaste}
-              className="border-2 border-dashed border-gray-300 rounded-xl focus:outline-none focus:border-gray-900 transition-colors cursor-default" style={{ minHeight: 180 }}
-            >
-              {planoModal.previewUrl ? (
-                <img src={planoModal.previewUrl} alt="preview" className="w-full rounded-xl object-contain" style={{ maxHeight: 240 }} />
-              ) : (
-                <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-                  <Clipboard className="w-8 h-8 text-gray-300 mb-3" />
-                  <p className="text-sm text-gray-500 font-medium">Pegá con Ctrl + V</p>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2 mt-4">
-              <button onClick={closePlanoModal} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">Cancelar</button>
-              <button onClick={confirmPlano} disabled={!planoModal.file}
-                className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors disabled:opacity-40"
-              >{planoModal.file ? 'Confirmar' : 'Esperando imagen…'}</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── Modal pegar imagen amenity ───────────────────────────────────────── */}
       {amenityModal && (

@@ -23,6 +23,7 @@ interface FormState {
   fotos: File[]
   precio: string
   moneda: 'USD' | 'PYG'
+  financiacion: boolean
   titulo: string
   descripcion: string
 }
@@ -32,7 +33,7 @@ const INITIAL: FormState = {
   mapsLink: '', lat: null, lng: null, zona: '', direccion: '',
   dormitorios: null, banos: null, superficie_m2: '', terreno_m2: '',
   amenities: [], fotos: [],
-  precio: '', moneda: 'USD',
+  precio: '', moneda: 'USD', financiacion: false,
   titulo: '', descripcion: '',
 }
 
@@ -297,6 +298,7 @@ export function PropiedadNuevaPage() {
         amenities: s.amenities,
         precio: s.precio ? parseFloat(s.precio) : null,
         moneda: s.moneda,
+        financiacion: s.financiacion,
         estado: 'activo',
         publicado_en_web: !draft,
       })
@@ -469,6 +471,16 @@ export function PropiedadNuevaPage() {
                 style={{ width: 200 }}
                 className="px-3 py-2 border border-gray-200 rounded-xl text-base font-medium text-right focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
               />
+              {/* Checkbox financiación */}
+              <label className="flex items-center gap-2 cursor-pointer select-none ml-1">
+                <input
+                  type="checkbox"
+                  checked={s.financiacion}
+                  onChange={e => update({ financiacion: e.target.checked })}
+                  className="w-4 h-4 rounded border-gray-300 accent-gray-900 cursor-pointer"
+                />
+                <span className="text-sm text-gray-600 whitespace-nowrap">Ofrece financiación</span>
+              </label>
             </div>
             {s.precio && parseFloat(s.precio) > 0 && (
               <p className="text-xs text-gray-400 mt-1.5" style={{ marginLeft: 94 }}>

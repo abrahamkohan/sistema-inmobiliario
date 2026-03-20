@@ -427,6 +427,7 @@ export interface Database {
           garajes: number | null
           precio: number | null
           moneda: 'USD' | 'PYG'
+          financiacion: boolean
           zona: string | null
           direccion: string | null
           latitud: number | null
@@ -454,6 +455,7 @@ export interface Database {
           garajes?: number | null
           precio?: number | null
           moneda?: 'USD' | 'PYG'
+          financiacion?: boolean
           zona?: string | null
           direccion?: string | null
           latitud?: number | null
@@ -481,6 +483,7 @@ export interface Database {
           garajes?: number | null
           precio?: number | null
           moneda?: 'USD' | 'PYG'
+          financiacion?: boolean
           zona?: string | null
           direccion?: string | null
           latitud?: number | null

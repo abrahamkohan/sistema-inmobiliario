@@ -133,9 +133,14 @@ export function PropertyCard({ property, onConsultar }: Props) {
 
         {/* Price */}
         {property.precio != null && (
-          <p className="text-sm font-semibold text-gray-800">
-            {formatPrice(property.precio, property.moneda)}
-          </p>
+          <div className="flex flex-col gap-0.5">
+            <p className="text-sm font-semibold text-gray-800">
+              {formatPrice(property.precio, property.moneda)}
+            </p>
+            {property.financiacion && (
+              <p className="text-xs font-medium text-amber-700">Consultar financiación</p>
+            )}
+          </div>
         )}
 
         {/* Actions */}

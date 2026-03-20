@@ -36,9 +36,11 @@ interface FormState {
   ciudad: string; barrio: string; zona: string; direccion: string
   unitDrafts: UnitDraft[]
   caracteristicas: string; fotos: File[]; urlPhotos: UrlPhotoDraft[]; resumen: string; amenityDrafts: AmenityDraft[]
-  // index into fotos[] that is the hero; -1 = first file is hero
-  heroBucket: 'existing' | 'file' | 'url'
-  heroId: string | null  // photo.id (existing), file index as string (file), _id (url)
+  // Hero separado de la galería
+  hero_file: File | null         // archivo subido para el hero
+  hero_previewUrl: string | null // preview local del archivo
+  hero_url: string               // input de URL para el hero
+  hero_image_url: string | null  // valor guardado en DB (edit mode)
 }
 
 const EMPTY: FormState = {
@@ -47,7 +49,7 @@ const EMPTY: FormState = {
   maps_url: '', tour_360_url: '', brochure_url: '',
   lat: null, lng: null, ciudad: '', barrio: '', zona: '', direccion: '',
   unitDrafts: [], caracteristicas: '', fotos: [], urlPhotos: [], resumen: '', amenityDrafts: [],
-  heroBucket: 'file', heroId: null,
+  hero_file: null, hero_previewUrl: null, hero_url: '', hero_image_url: null,
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -150,7 +152,10 @@ export function ProyectoFormPage() {
   const [typologiesOpen, setTypologiesOpen] = useState(false)
   const [urlInput, setUrlInput] = useState('')
   const [pasteZoneFocused, setPasteZoneFocused] = useState(false)
-  const pasteZoneRef = useRef<HTMLDivElement>(null)
+  const [heroPasteZoneFocused, setHeroPasteZoneFocused] = useState(false)
+  const pasteZoneRef     = useRef<HTMLDivElement>(null)
+  const heroPasteZoneRef = useRef<HTMLDivElement>(null)
+  const heroFileInputRef = useRef<HTMLInputElement>(null)
   const inputRef    = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const previewUrls = useRef<Record<string, string>>({})
@@ -188,6 +193,7 @@ export function ProyectoFormPage() {
           direccion:       proj.direccion        ?? '',
           caracteristicas: proj.caracteristicas ?? '',
           resumen:         proj.description     ?? '',
+          hero_image_url:  (proj as unknown as { hero_image_url: string | null }).hero_image_url ?? null,
         })
         setExistingPhotos(photos)
       } catch { navigate('/proyectos') }
@@ -235,6 +241,22 @@ export function ProyectoFormPage() {
     const valid = Array.from(files).filter(f => f.type.startsWith('image/'))
     // Usar setS funcional para evitar stale closure en el listener global de paste
     setS(prev => ({ ...prev, fotos: [...prev.fotos, ...valid].slice(0, 20) }))
+  }
+
+  // ── Hero handlers ─────────────────────────────────────────────────────────
+  function handleHeroFile(file: File) {
+    if (s.hero_previewUrl) URL.revokeObjectURL(s.hero_previewUrl)
+    update({ hero_file: file, hero_previewUrl: URL.createObjectURL(file), hero_url: '' })
+  }
+  function handleHeroPaste(e: React.ClipboardEvent) {
+    const items = Array.from(e.clipboardData?.items ?? [])
+    const imageItem = items.find(item => item.type.startsWith('image/'))
+    const file = imageItem?.getAsFile()
+    if (file) { handleHeroFile(file); toast.success('Hero pegado desde clipboard') }
+  }
+  function clearHero() {
+    if (s.hero_previewUrl) URL.revokeObjectURL(s.hero_previewUrl)
+    update({ hero_file: null, hero_previewUrl: null, hero_url: '', hero_image_url: null })
   }
 
   // ── Paste zone handler ────────────────────────────────────────────────────
@@ -364,6 +386,21 @@ export function ProyectoFormPage() {
     try {
       const precioDesde = s.precio_desde.trim() ? parseFloat(s.precio_desde) : null
 
+      // ── Resolver hero_image_url ────────────────────────────────────────────
+      let heroImageUrl: string | null = s.hero_image_url  // valor previo (edit)
+      if (s.hero_file) {
+        // Subir archivo a storage y obtener URL pública
+        const ext  = s.hero_file.name.split('.').pop() ?? 'jpg'
+        const path = `hero/${Date.now()}.${ext}`  // path temporal; se asocia al proyecto después
+        const { error: upErr } = await supabase.storage.from('project-media').upload(path, s.hero_file)
+        if (!upErr) {
+          const { data } = supabase.storage.from('project-media').getPublicUrl(path)
+          heroImageUrl = data.publicUrl
+        }
+      } else if (s.hero_url.trim()) {
+        heroImageUrl = s.hero_url.trim()
+      }
+
       const payload = {
         name:            s.name.trim(),
         status:          s.status,
@@ -383,6 +420,7 @@ export function ProyectoFormPage() {
         tour_360_url:    s.tour_360_url || null,
         brochure_url:    s.brochure_url || null,
         caracteristicas: s.caracteristicas || null,
+        hero_image_url:  heroImageUrl,
       }
 
       let projectId: string
@@ -596,6 +634,99 @@ export function ProyectoFormPage() {
                   placeholder="85000"
                   className="pl-11"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Imagen de portada (hero) ── */}
+          <div className="mt-5 pt-5 border-t border-gray-100">
+            <FieldLabel>Imagen de portada (hero)</FieldLabel>
+            <p className="text-xs text-gray-400 mb-3">Esta imagen se muestra como banner principal en el frontend. Independiente de la galería.</p>
+
+            {/* Preview actual */}
+            {(s.hero_previewUrl || s.hero_image_url) && (
+              <div className="relative mb-3 rounded-xl overflow-hidden bg-gray-100" style={{ height: 160 }}>
+                <img
+                  src={s.hero_previewUrl ?? s.hero_image_url ?? ''}
+                  alt="Hero"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={clearHero}
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+                <span className="absolute bottom-2 left-2 text-[10px] bg-black/60 text-white px-2 py-0.5 rounded-full font-semibold">
+                  {s.hero_previewUrl ? 'Nueva portada (sin guardar)' : 'Portada actual'}
+                </span>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2">
+              {/* Upload */}
+              <label className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-400 transition-colors">
+                <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-sm text-gray-500">Subir imagen</span>
+                <input
+                  ref={heroFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleHeroFile(f) }}
+                />
+              </label>
+
+              {/* Paste Ctrl+V */}
+              <div
+                ref={heroPasteZoneRef}
+                tabIndex={0}
+                onFocus={() => setHeroPasteZoneFocused(true)}
+                onBlur={() => setHeroPasteZoneFocused(false)}
+                onPaste={handleHeroPaste}
+                onClick={() => heroPasteZoneRef.current?.focus()}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-all outline-none ${
+                  heroPasteZoneFocused
+                    ? 'border-gray-900 bg-gray-900/5 ring-2 ring-gray-900/10'
+                    : 'border-dashed border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                <Clipboard className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-sm text-gray-500">
+                  {heroPasteZoneFocused
+                    ? <><span className="font-semibold text-gray-700">Listo</span> — presioná <kbd className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-xs">Ctrl+V</kbd></>
+                    : <>Clic + <kbd className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-xs">Ctrl+V</kbd> para pegar</>
+                  }
+                </span>
+              </div>
+
+              {/* URL */}
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={s.hero_url}
+                  onChange={e => update({ hero_url: e.target.value })}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && s.hero_url.trim()) {
+                      e.preventDefault()
+                      update({ hero_image_url: s.hero_url.trim(), hero_url: '', hero_file: null, hero_previewUrl: null })
+                    }
+                  }}
+                  placeholder="https://ejemplo.com/portada.jpg"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                />
+                <button
+                  type="button"
+                  disabled={!s.hero_url.trim()}
+                  onClick={() => {
+                    if (!s.hero_url.trim()) return
+                    update({ hero_image_url: s.hero_url.trim(), hero_url: '', hero_file: null, hero_previewUrl: null })
+                  }}
+                  className="px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-40 flex-shrink-0"
+                >
+                  Usar URL
+                </button>
               </div>
             </div>
           </div>

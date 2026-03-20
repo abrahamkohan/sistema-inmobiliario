@@ -27,6 +27,7 @@ export interface Database {
           caracteristicas: string | null
           publicado_en_web: boolean
           badge_analisis: 'oportunidad' | 'estable' | 'a_evaluar' | null
+          hero_image_url: string | null
           created_at: string
           updated_at: string
         }
@@ -79,6 +80,7 @@ export interface Database {
           caracteristicas?: string | null
           publicado_en_web?: boolean
           badge_analisis?: 'oportunidad' | 'estable' | 'a_evaluar' | null
+          hero_image_url?: string | null
         }
         Relationships: []
       }

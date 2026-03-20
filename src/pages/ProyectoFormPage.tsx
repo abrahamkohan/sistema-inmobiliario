@@ -26,23 +26,41 @@ type SectionId    = 'esencial' | 'tipologias' | 'amenities' | 'media' | 'conteni
 interface TypologyVariant { _id: string; area_m2: string; plano: File | null }
 interface TypologyDraft   { banos: number | null; variants: TypologyVariant[] }
 interface LinkEntry        { _id: string; type: string; url: string }
-interface AmenityDraft     { _id: string; name: string; categoria: string; custom: boolean; photo: File | null; previewUrl: string | null }
+interface AmenityDraft     { _id: string; name: string; categoria: string; icon: string; custom: boolean; photo: File | null; previewUrl: string | null }
 
 interface FormState {
   name: string; status: Status; developer_name: string; tipo_proyecto: TipoProyecto | null
   delivery_date: string; maps_url: string; lat: number | null; lng: number | null
-  zona: string; direccion: string; links: LinkEntry[]
+  ciudad: string; barrio: string; zona: string; direccion: string; links: LinkEntry[]
   selected_types: TypologyType[]; typology_data: Partial<Record<TypologyType, TypologyDraft>>
   caracteristicas: string; fotos: File[]; resumen: string; amenityDrafts: AmenityDraft[]
 }
 
 const EMPTY: FormState = {
   name: '', status: 'en_pozo', developer_name: '', tipo_proyecto: null, delivery_date: '',
-  maps_url: '', lat: null, lng: null, zona: '', direccion: '', links: [],
+  maps_url: '', lat: null, lng: null, ciudad: '', barrio: '', zona: '', direccion: '', links: [],
   selected_types: [], typology_data: {}, caracteristicas: '', fotos: [], resumen: '', amenityDrafts: [],
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+
+const AMENITY_ICON_PRESETS: Record<string, string> = {
+  'Aire acondicionado': 'wind',
+  'Calefacción': 'flame',
+  'Lavandería': 'washing-machine',
+  'Cocina equipada': 'utensils',
+  'Placares': 'archive',
+  'Balcón': 'door-open',
+  'Terraza': 'sun',
+  'Piscina': 'waves',
+  'Gimnasio': 'dumbbell',
+  'Parrilla / Quincho': 'beef',
+  'Jardín': 'tree-pine',
+  'Seguridad 24h': 'shield',
+  'Ascensor': 'arrow-up-down',
+  'Salón de usos': 'building-2',
+  'Estacionamiento': 'car',
+}
 
 const TYPOLOGY_DEFS: Array<{ id: TypologyType; label: string; hasBanos: boolean; category: 'unidad'|'cochera'|'baulera' }> = [
   { id: 'mono',       label: 'Monoambiente',  hasBanos: true,  category: 'unidad'  },
@@ -155,10 +173,10 @@ export function ProyectoFormPage() {
           getProjectPhotos(projectId),
         ])
         if (!proj) { navigate('/proyectos'); return }
-        const mapsLink = (proj.links as Array<{ type: string; url: string }>)?.find(l => l.type === 'maps')
-        const otherLinks = ((proj.links as Array<{ type: string; url: string }>) ?? [])
-          .filter(l => l.type !== 'maps')
-          .map(l => ({ _id: crypto.randomUUID(), type: l.type, url: l.url }))
+        const otherLinks: LinkEntry[] = [
+          proj.brochure_url ? { _id: crypto.randomUUID(), type: 'brochure', url: proj.brochure_url } : null,
+          proj.tour_360_url ? { _id: crypto.randomUUID(), type: 'vista360', url: proj.tour_360_url } : null,
+        ].filter(Boolean) as LinkEntry[]
         setS({
           ...EMPTY,
           name:            proj.name           ?? '',
@@ -166,12 +184,14 @@ export function ProyectoFormPage() {
           developer_name:  proj.developer_name  ?? '',
           tipo_proyecto:   (proj.tipo_proyecto  ?? null) as TipoProyecto | null,
           delivery_date:   proj.delivery_date   ?? '',
-          maps_url:        mapsLink?.url                           ?? '',
-          zona:            proj.zona     ?? proj.location            ?? '',
-          direccion:       proj.direccion                            ?? '',
+          maps_url:        proj.maps_url         ?? '',
+          ciudad:          proj.ciudad           ?? '',
+          barrio:          proj.barrio           ?? '',
+          zona:            proj.zona     ?? proj.location ?? '',
+          direccion:       proj.direccion         ?? '',
           links:           otherLinks,
-          caracteristicas: proj.caracteristicas ?? '',
-          resumen:         proj.description     ?? '',
+          caracteristicas: proj.caracteristicas  ?? '',
+          resumen:         proj.description      ?? '',
         })
         setExistingPhotos(photos)
       } catch { navigate('/proyectos') }
@@ -242,11 +262,11 @@ export function ProyectoFormPage() {
       if (exists.previewUrl) URL.revokeObjectURL(exists.previewUrl)
       update({ amenityDrafts: s.amenityDrafts.filter(d => d._id !== exists._id) })
     } else {
-      update({ amenityDrafts: [...s.amenityDrafts, { _id: crypto.randomUUID(), name, categoria, custom: false, photo: null, previewUrl: null }] })
+      update({ amenityDrafts: [...s.amenityDrafts, { _id: crypto.randomUUID(), name, categoria, icon: AMENITY_ICON_PRESETS[name] ?? '', custom: false, photo: null, previewUrl: null }] })
     }
   }
   function addCustomAmenity() {
-    update({ amenityDrafts: [...s.amenityDrafts, { _id: crypto.randomUUID(), name: '', categoria: 'edificio', custom: true, photo: null, previewUrl: null }] })
+    update({ amenityDrafts: [...s.amenityDrafts, { _id: crypto.randomUUID(), name: '', categoria: 'edificio', icon: '', custom: true, photo: null, previewUrl: null }] })
   }
   function removeAmenity(aid: string) {
     const d = s.amenityDrafts.find(a => a._id === aid)
@@ -340,10 +360,8 @@ export function ProyectoFormPage() {
     if (!s.name.trim()) { toast.error('El nombre es requerido'); return }
     setIsSaving(true)
     try {
-      const dbLinks = [
-        s.maps_url && { type: 'maps', name: 'Google Maps', url: s.maps_url },
-        ...s.links.filter(l => l.url.trim()).map(l => ({ type: l.type, name: linkPreset(l.type)?.label ?? 'Link', url: l.url.trim() })),
-      ].filter(Boolean) as Array<{ type: string; name: string; url: string }>
+      const brochureUrl = s.links.find(l => l.type === 'brochure')?.url.trim() || null
+      const tour360Url  = s.links.find(l => l.type === 'vista360')?.url.trim() || null
 
       const payload = {
         name:            s.name.trim(),
@@ -351,11 +369,15 @@ export function ProyectoFormPage() {
         developer_name:  s.developer_name || null,
         tipo_proyecto:   s.tipo_proyecto,
         location:        s.zona || null,
+        ciudad:          s.ciudad || null,
+        barrio:          s.barrio || null,
         zona:            s.zona || null,
         direccion:       s.direccion || null,
         description:     s.resumen || null,
         delivery_date:   s.delivery_date || null,
-        links:           dbLinks,
+        maps_url:        s.maps_url || null,
+        brochure_url:    brochureUrl,
+        tour_360_url:    tour360Url,
         caracteristicas: s.caracteristicas || null,
       }
 
@@ -365,7 +387,7 @@ export function ProyectoFormPage() {
         await updateProject(id, payload)
         projectId = id
       } else {
-        const created = await createProject({ ...payload, amenities: [] })
+        const created = await createProject(payload)
         projectId = created.id
 
         // Tipologías (solo en crear)
@@ -388,7 +410,7 @@ export function ProyectoFormPage() {
         for (let i = 0; i < s.amenityDrafts.length; i++) {
           const draft = s.amenityDrafts[i]
           if (!draft.name.trim()) continue
-          const { data: amenity } = await supabase.from('project_amenities').insert({ project_id: projectId, name: draft.name.trim(), sort_order: i, categoria: draft.categoria ?? 'edificio' }).select().single()
+          const { data: amenity } = await supabase.from('project_amenities').insert({ project_id: projectId, name: draft.name.trim(), sort_order: i, categoria: draft.categoria ?? 'edificio', icon: draft.icon || null }).select().single()
           if (draft.photo && amenity) {
             const ext = draft.photo.name.split('.').pop() ?? 'jpg'
             const path = `${projectId}/amenities/${(amenity as { id: string }).id}/${Date.now()}.${ext}`
@@ -467,6 +489,17 @@ export function ProyectoFormPage() {
           <div className="mb-4">
             <FieldLabel>Nombre del proyecto</FieldLabel>
             <TextInput value={s.name} onChange={e => update({ name: e.target.value })} placeholder="Ej: Urban Cumbres Torre B" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <FieldLabel>Ciudad</FieldLabel>
+              <TextInput value={s.ciudad} onChange={e => update({ ciudad: e.target.value })} placeholder="Ej: Asunción" />
+            </div>
+            <div>
+              <FieldLabel>Barrio</FieldLabel>
+              <TextInput value={s.barrio} onChange={e => update({ barrio: e.target.value })} placeholder="Ej: Ycuá Bolados" />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">

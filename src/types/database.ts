@@ -7,15 +7,19 @@ export interface Database {
           name: string
           description: string | null
           location: string | null
+          ciudad: string | null
+          barrio: string | null
           zona: string | null
           direccion: string | null
           status: 'en_pozo' | 'en_construccion' | 'entregado'
           delivery_date: string | null
           developer_name: string | null
-          amenities: string[]
           brochure_path: string | null
+          brochure_url: string | null
+          maps_url: string | null
+          tour_360_url: string | null
+          highlights: string | null
           usd_to_pyg_rate: number | null
-          links: Array<{ type: string; name: string; url: string }>
           tipo_proyecto: 'residencial' | 'comercial' | 'mixto' | null
           precio_desde: number | null
           precio_hasta: number | null
@@ -30,15 +34,19 @@ export interface Database {
           name: string
           description?: string | null
           location?: string | null
+          ciudad?: string | null
+          barrio?: string | null
           zona?: string | null
           direccion?: string | null
           status: 'en_pozo' | 'en_construccion' | 'entregado'
           delivery_date?: string | null
           developer_name?: string | null
-          amenities?: string[]
           brochure_path?: string | null
+          brochure_url?: string | null
+          maps_url?: string | null
+          tour_360_url?: string | null
+          highlights?: string | null
           usd_to_pyg_rate?: number | null
-          links?: Array<{ type: string; name: string; url: string }>
           tipo_proyecto?: 'residencial' | 'comercial' | 'mixto' | null
           precio_desde?: number | null
           precio_hasta?: number | null
@@ -51,15 +59,19 @@ export interface Database {
           name?: string
           description?: string | null
           location?: string | null
+          ciudad?: string | null
+          barrio?: string | null
           zona?: string | null
           direccion?: string | null
           status?: 'en_pozo' | 'en_construccion' | 'entregado'
           delivery_date?: string | null
           developer_name?: string | null
-          amenities?: string[]
           brochure_path?: string | null
+          brochure_url?: string | null
+          maps_url?: string | null
+          tour_360_url?: string | null
+          highlights?: string | null
           usd_to_pyg_rate?: number | null
-          links?: Array<{ type: string; name: string; url: string }>
           tipo_proyecto?: 'residencial' | 'comercial' | 'mixto' | null
           precio_desde?: number | null
           precio_hasta?: number | null
@@ -216,6 +228,7 @@ export interface Database {
           project_id: string
           name:       string
           categoria:  string
+          icon:       string | null
           sort_order: number
           created_at: string
         }
@@ -223,11 +236,13 @@ export interface Database {
           project_id: string
           name:       string
           categoria?: string
+          icon?:      string | null
           sort_order?: number
         }
         Update: {
           name?:       string
           categoria?:  string
+          icon?:       string | null
           sort_order?: number
         }
         Relationships: []

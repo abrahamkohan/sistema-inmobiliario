@@ -1,7 +1,7 @@
 // src/hooks/useProjectAmenities.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  getProjectAmenities, addAmenity, updateAmenityName, deleteAmenity,
+  getProjectAmenities, addAmenity, updateAmenityName, updateAmenityIcon, deleteAmenity,
   addAmenityImage, deleteAmenityImageRecord,
   type AmenityWithImages,
 } from '@/lib/projectAmenities'
@@ -22,8 +22,8 @@ export function useProjectAmenities(projectId: string) {
 export function useAddAmenity(projectId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ name, sortOrder, categoria }: { name: string; sortOrder: number; categoria?: string }) =>
-      addAmenity(projectId, name, sortOrder, categoria),
+    mutationFn: ({ name, sortOrder, categoria, icon }: { name: string; sortOrder: number; categoria?: string; icon?: string }) =>
+      addAmenity(projectId, name, sortOrder, categoria, icon),
     onSuccess: () => qc.invalidateQueries({ queryKey: key(projectId) }),
   })
 }
@@ -32,6 +32,14 @@ export function useUpdateAmenityName(projectId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, name }: { id: string; name: string }) => updateAmenityName(id, name),
+    onSuccess: () => qc.invalidateQueries({ queryKey: key(projectId) }),
+  })
+}
+
+export function useUpdateAmenityIcon(projectId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, icon }: { id: string; icon: string }) => updateAmenityIcon(id, icon),
     onSuccess: () => qc.invalidateQueries({ queryKey: key(projectId) }),
   })
 }

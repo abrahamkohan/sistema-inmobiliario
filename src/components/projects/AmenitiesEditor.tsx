@@ -6,6 +6,7 @@ import {
   useProjectAmenities,
   useAddAmenity,
   useUpdateAmenityName,
+  useUpdateAmenityIcon,
   useDeleteAmenity,
   useAddAmenityImage,
   useDeleteAmenityImage,
@@ -13,6 +14,26 @@ import {
 import type { Database } from '@/types/database'
 
 type AmenityImageRow = Database['public']['Tables']['project_amenity_images']['Row']
+
+// ─── Icon presets ─────────────────────────────────────────────────────────────
+
+const ICON_PRESETS: Record<string, string> = {
+  'Aire acondicionado': 'wind',
+  'Calefacción': 'flame',
+  'Lavandería': 'washing-machine',
+  'Cocina equipada': 'utensils',
+  'Placares': 'archive',
+  'Balcón': 'door-open',
+  'Terraza': 'sun',
+  'Piscina': 'waves',
+  'Gimnasio': 'dumbbell',
+  'Parrilla / Quincho': 'beef',
+  'Jardín': 'tree-pine',
+  'Seguridad 24h': 'shield',
+  'Ascensor': 'arrow-up-down',
+  'Salón de usos': 'building-2',
+  'Estacionamiento': 'car',
+}
 
 // ─── Listas predefinidas ──────────────────────────────────────────────────────
 
@@ -38,6 +59,7 @@ export function AmenitiesEditor({ projectId }: AmenitiesEditorProps) {
   const { data: amenities = [], isLoading } = useProjectAmenities(projectId)
   const addAmenity    = useAddAmenity(projectId)
   const updateName    = useUpdateAmenityName(projectId)
+  const updateIcon    = useUpdateAmenityIcon(projectId)
   const deleteAmenity = useDeleteAmenity(projectId)
   const addImage      = useAddAmenityImage(projectId)
   const deleteImage   = useDeleteAmenityImage(projectId)
@@ -56,7 +78,7 @@ export function AmenitiesEditor({ projectId }: AmenitiesEditorProps) {
     if (existing) {
       deleteAmenity.mutate(existing)
     } else {
-      addAmenity.mutate({ name, sortOrder: amenities.length, categoria })
+      addAmenity.mutate({ name, sortOrder: amenities.length, categoria, icon: ICON_PRESETS[name] })
     }
   }
 
@@ -192,7 +214,7 @@ export function AmenitiesEditor({ projectId }: AmenitiesEditorProps) {
 
                 {/* Nombre */}
                 {isPredefined ? (
-                  <span className="w-40 flex-shrink-0 text-xs font-medium text-gray-700 truncate">{amenity.name}</span>
+                  <span className="w-36 flex-shrink-0 text-xs font-medium text-gray-700 truncate">{amenity.name}</span>
                 ) : (
                   <input
                     defaultValue={amenity.name}
@@ -200,9 +222,22 @@ export function AmenitiesEditor({ projectId }: AmenitiesEditorProps) {
                       const v = e.target.value.trim()
                       if (v && v !== amenity.name) updateName.mutate({ id: amenity.id, name: v })
                     }}
-                    className="w-40 flex-shrink-0 px-2 py-1 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                    className="w-36 flex-shrink-0 px-2 py-1 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-gray-900/20"
                   />
                 )}
+
+                {/* Ícono */}
+                <input
+                  key={amenity.id + '-icon'}
+                  defaultValue={amenity.icon ?? ''}
+                  onBlur={e => {
+                    const v = e.target.value.trim()
+                    if (v !== (amenity.icon ?? '')) updateIcon.mutate({ id: amenity.id, icon: v })
+                  }}
+                  placeholder="ícono"
+                  title="Nombre del ícono (ej: waves, dumbbell, car)"
+                  className="w-24 flex-shrink-0 px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
+                />
 
                 {/* Previews existentes */}
                 {amenity.images.map((img: AmenityImageRow) => (

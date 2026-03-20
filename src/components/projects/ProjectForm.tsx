@@ -54,9 +54,7 @@ interface ProjectFormProps {
 
 export function ProjectForm({ defaultValues, onSubmit, onCancel, isSubmitting, stickyButtons }: ProjectFormProps) {
   const brochureRef = useRef<HTMLInputElement>(null)
-  const [links, setLinks] = useState<ProjectLink[]>(
-    (defaultValues?.links as ProjectLink[] | undefined) ?? []
-  )
+  const [links, setLinks] = useState<ProjectLink[]>([])
 
   const form = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),

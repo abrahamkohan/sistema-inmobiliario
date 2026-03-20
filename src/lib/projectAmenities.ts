@@ -41,11 +41,12 @@ export async function addAmenity(
   projectId: string,
   name: string,
   sortOrder: number,
-  categoria: string = 'edificio'
+  categoria: string = 'edificio',
+  icon?: string
 ): Promise<AmenityRow> {
   const { data, error } = await supabase
     .from('project_amenities')
-    .insert({ project_id: projectId, name, sort_order: sortOrder, categoria })
+    .insert({ project_id: projectId, name, sort_order: sortOrder, categoria, icon: icon ?? null })
     .select()
     .single()
   if (error) throw error
@@ -56,6 +57,11 @@ export async function addAmenity(
 
 export async function updateAmenityName(id: string, name: string): Promise<void> {
   const { error } = await supabase.from('project_amenities').update({ name }).eq('id', id)
+  if (error) throw error
+}
+
+export async function updateAmenityIcon(id: string, icon: string): Promise<void> {
+  const { error } = await supabase.from('project_amenities').update({ icon: icon || null }).eq('id', id)
   if (error) throw error
 }
 

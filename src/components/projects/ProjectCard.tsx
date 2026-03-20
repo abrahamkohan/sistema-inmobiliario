@@ -44,7 +44,11 @@ export function ProjectCard({ project, onDelete, onTogglePublicado, onChangeBadg
   const [financingOpen, setFinancingOpen] = useState(false)
   const [typologiesOpen, setTypologiesOpen] = useState(false)
 
-  const links     = (project.links ?? []) as Array<{ type: string; name: string; url: string }>
+  const links = [
+    project.maps_url     ? { type: 'maps',     name: 'Maps',      url: project.maps_url }     : null,
+    project.tour_360_url ? { type: 'vista360', name: 'Vista 360', url: project.tour_360_url } : null,
+    project.brochure_url ? { type: 'brochure', name: 'Brochure',  url: project.brochure_url } : null,
+  ].filter(Boolean) as Array<{ type: string; name: string; url: string }>
   const publicado = project.publicado_en_web ?? false
   const badge     = project.badge_analisis as BadgeAnalisis | null
   const badgeCfg  = BADGE_OPTIONS.find(b => b.value === badge)

@@ -268,6 +268,21 @@ export function ProyectoFormPage() {
     update({ urlPhotos: s.urlPhotos.filter(u => u._id !== uid) })
   }
 
+  // ── Portada (create mode) — mover al frente de la cola ───────────────────
+  function setFileCover(i: number) {
+    if (i === 0) return
+    const next = [...s.fotos]
+    const [item] = next.splice(i, 1)
+    setS(prev => ({ ...prev, fotos: [item, ...next] }))
+  }
+  function setUrlCover(uid: string) {
+    const idx = s.urlPhotos.findIndex(u => u._id === uid)
+    if (idx <= 0) return
+    const next = [...s.urlPhotos]
+    const [item] = next.splice(idx, 1)
+    update({ urlPhotos: [item, ...next] })
+  }
+
   // ── Hero photo (edit mode — reorder existing in DB) ───────────────────────
   async function setHeroPhoto(photo: PhotoRow) {
     if (photo.sort_order === 0) return
@@ -833,26 +848,31 @@ export function ProyectoFormPage() {
             {/* ─ Fotos existentes (edit) ─ */}
             {existingPhotos.length > 0 && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Fotos actuales</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Fotos actuales</p>
+                  <p className="text-[10px] text-gray-400">⭐ = portada · clic en otra foto para cambiarla</p>
+                </div>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                   {existingPhotos.map((photo, i) => (
                     <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden group">
                       <img src={getPublicUrl(photo.storage_path)} alt="" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-                      {/* Hero star */}
+                      {/* Estrella portada — siempre visible en la portada, visible en hover en las demás */}
                       <button
                         type="button"
                         onClick={() => setHeroPhoto(photo)}
-                        title={i === 0 ? 'Portada' : 'Marcar como portada'}
-                        className={`absolute bottom-1 left-1 p-1 rounded-full transition-opacity ${
+                        title={i === 0 ? 'Portada actual' : 'Usar como portada'}
+                        className={`absolute bottom-1 left-1 transition-all ${
                           i === 0
-                            ? 'bg-amber-400 text-white opacity-100'
-                            : 'bg-black/50 text-white opacity-0 group-hover:opacity-100'
+                            ? 'opacity-100 scale-100'
+                            : 'opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100'
                         }`}
                       >
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
+                        <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${
+                          i === 0 ? 'bg-amber-400 text-white' : 'bg-black/60 text-white/80 hover:bg-amber-400 hover:text-white'
+                        }`}>
+                          ⭐ {i === 0 ? 'Portada' : 'Portada'}
+                        </span>
                       </button>
                       <button type="button" onClick={() => removeExistingPhoto(photo)} className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
                         <X className="w-3 h-3" />
@@ -907,9 +927,21 @@ export function ProyectoFormPage() {
                     <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
                       <img src={getPreviewUrl(file)} alt="" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-                      {i === 0 && existingPhotos.length === 0 && (
-                        <span className="absolute bottom-1 left-1 text-[9px] bg-amber-400 text-white px-1.5 py-0.5 rounded-full font-semibold">Portada</span>
-                      )}
+                      {/* Estrella portada */}
+                      <button
+                        type="button"
+                        onClick={() => setFileCover(i)}
+                        title={i === 0 ? 'Portada' : 'Usar como portada'}
+                        className={`absolute bottom-1 left-1 transition-all ${
+                          i === 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}
+                      >
+                        <span className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${
+                          i === 0 ? 'bg-amber-400 text-white' : 'bg-black/60 text-white/80 hover:bg-amber-400 hover:text-white'
+                        }`}>
+                          ⭐ Portada
+                        </span>
+                      </button>
                       <button type="button" onClick={() => removeNewFile(i)} className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
                         <X className="w-3 h-3" />
                       </button>
@@ -942,8 +974,8 @@ export function ProyectoFormPage() {
               </div>
               {s.urlPhotos.length > 0 && (
                 <div className="flex flex-col gap-2 mt-3">
-                  {s.urlPhotos.map(up => (
-                    <div key={up._id} className="flex items-center gap-3 border border-gray-100 rounded-xl p-2">
+                  {s.urlPhotos.map((up, i) => (
+                    <div key={up._id} className={`flex items-center gap-3 rounded-xl p-2 border ${i === 0 && s.fotos.length === 0 ? 'border-amber-300 bg-amber-50/50' : 'border-gray-100'}`}>
                       <img
                         src={up.url}
                         alt=""
@@ -951,6 +983,19 @@ export function ProyectoFormPage() {
                         onError={e => { (e.currentTarget as HTMLImageElement).src = '' }}
                       />
                       <span className="flex-1 text-xs text-gray-500 truncate min-w-0">{up.url}</span>
+                      {/* Portada solo si no hay fotos de archivo (que tienen prioridad) */}
+                      {s.fotos.length === 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setUrlCover(up._id)}
+                          title={i === 0 ? 'Portada' : 'Usar como portada'}
+                          className={`flex-shrink-0 text-[10px] font-bold px-2 py-1 rounded-full transition-colors ${
+                            i === 0 ? 'bg-amber-400 text-white' : 'bg-gray-100 text-gray-400 hover:bg-amber-400 hover:text-white'
+                          }`}
+                        >
+                          ⭐ {i === 0 ? 'Portada' : ''}
+                        </button>
+                      )}
                       <button type="button" onClick={() => removeUrlPhoto(up._id)} className="flex-shrink-0 text-gray-300 hover:text-red-400 transition-colors">
                         <X className="w-4 h-4" />
                       </button>

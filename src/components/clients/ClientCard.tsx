@@ -1,8 +1,9 @@
 // src/components/clients/ClientCard.tsx
 import { useState } from 'react'
-import { Pencil, Trash2, History, Phone, MessageCircle, UserCheck } from 'lucide-react'
+import { Pencil, Trash2, History, Phone, MessageCircle, UserCheck, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ClientHistorySheet } from './ClientHistorySheet'
+import { TaskModal } from '@/components/tasks/TaskModal'
 import type { Database } from '@/types/database'
 
 type ClientRow = Database['public']['Tables']['clients']['Row']
@@ -53,6 +54,7 @@ function buildWhatsAppUrl(phone: string, name: string) {
 export function ClientCard({ client, onEdit, onDelete, onConvert, onChangeEstado }: ClientCardProps) {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [showEstados, setShowEstados] = useState(false)
+  const [taskOpen,    setTaskOpen]    = useState(false)
 
   const isLead    = (client.tipo ?? 'lead') === 'lead'
   const estado    = client.estado ?? 'nuevo'
@@ -167,6 +169,13 @@ export function ClientCard({ client, onEdit, onDelete, onConvert, onChangeEstado
             <History className="h-3 w-3 mr-1" /> Historial
           </Button>
 
+          <Button size="sm"
+            className="text-xs text-white"
+            style={{ backgroundColor: '#D4AF37' }}
+            onClick={() => setTaskOpen(true)}>
+            <Plus className="h-3 w-3 mr-1" /> Tarea
+          </Button>
+
           {isLead && onConvert && (
             <Button size="sm"
               className="text-xs bg-gray-900 text-white hover:bg-gray-700"
@@ -186,6 +195,11 @@ export function ClientCard({ client, onEdit, onDelete, onConvert, onChangeEstado
       </div>
 
       <ClientHistorySheet client={client} open={historyOpen} onOpenChange={setHistoryOpen} />
+      <TaskModal
+        isOpen={taskOpen}
+        onClose={() => setTaskOpen(false)}
+        defaultValues={{ context: 'lead', lead_id: client.id }}
+      />
     </>
   )
 }

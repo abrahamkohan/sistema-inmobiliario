@@ -64,6 +64,18 @@ function fromInputValue(val: string): string {
   return new Date(y, mo - 1, d, 12, 0, 0).toISOString()
 }
 
+function formatDateHuman(val: string): string {
+  if (!val) return ''
+  const date     = new Date(val + 'T12:00:00')
+  const today    = new Date(); today.setHours(12, 0, 0, 0)
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)
+  const dayMonth = new Intl.DateTimeFormat('es-PY', { day: 'numeric', month: 'long' }).format(date)
+  if (date.toDateString() === today.toDateString())    return `Hoy, ${dayMonth}`
+  if (date.toDateString() === tomorrow.toDateString()) return `Mañana, ${dayMonth}`
+  const wd = new Intl.DateTimeFormat('es-PY', { weekday: 'long' }).format(date)
+  return `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${dayMonth}`
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────
 
 interface DefaultValues {
@@ -208,57 +220,34 @@ export function TaskModal({
     <Sheet open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <SheetContent
         side="bottom"
-        className="rounded-t-2xl max-h-[92vh] overflow-y-auto pb-safe bg-background"
+        className="rounded-t-2xl max-h-[92vh] flex flex-col bg-background pb-0"
       >
         {/* Handle */}
-        <div className="mx-auto w-10 h-1 rounded-full bg-muted mb-5" />
+        <div className="mx-auto w-10 h-1 rounded-full bg-white/10 mb-4 flex-shrink-0" />
 
-        <SheetHeader className="mb-5">
-          <SheetTitle>{isEdit ? 'Editar tarea' : 'Nueva tarea'}</SheetTitle>
-        </SheetHeader>
+        {/* Título del modal */}
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-1 mb-4 flex-shrink-0">
+          {isEdit ? 'Editar tarea' : 'Nueva tarea'}
+        </p>
 
-        <div className="flex flex-col gap-4">
+        {/* Área scrollable */}
+        <div className="flex-1 overflow-y-auto flex flex-col gap-6 pb-4">
 
-          {/* ── Título ── */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Título *
-            </label>
-            <input
-              type="text"
-              placeholder="Ej: Seguimiento inicial"
-              value={form.title}
-              onChange={e => set('title', e.target.value)}
-              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              autoFocus
-            />
-          </div>
+          {/* ── INPUT TÍTULO — protagonista ── */}
+          <input
+            type="text"
+            placeholder="¿Qué hay que hacer?"
+            value={form.title}
+            onChange={e => set('title', e.target.value)}
+            autoFocus
+            className="w-full bg-transparent text-lg font-medium text-foreground
+                       placeholder:text-white/25 border-b border-white/10 pb-3
+                       focus:outline-none focus:border-[#D4AF37]/60 transition-colors"
+          />
 
-          {/* ── Fecha ── */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Fecha *
-            </label>
-            <input
-              type="date"
-              value={form.due_date}
-              min={toInputValue(new Date())}
-              onChange={e => set('due_date', e.target.value)}
-              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-            {form.due_date && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {new Intl.DateTimeFormat('es-PY', { day: 'numeric', month: 'long', year: 'numeric' })
-                  .format(new Date(form.due_date + 'T12:00:00'))}
-              </p>
-            )}
-          </div>
-
-          {/* ── Tipo (chips) ── */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Tipo
-            </label>
+          {/* ── CANAL (tipo) — protagonista ── */}
+          <div className="flex flex-col gap-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Canal</p>
             <div className="flex flex-wrap gap-2">
               {TYPE_CHIPS.map(chip => (
                 <button
@@ -266,155 +255,162 @@ export function TaskModal({
                   type="button"
                   onClick={() => set('type', chip.value)}
                   className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
+                    'flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-all',
                     form.type === chip.value
-                      ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-foreground'
-                      : 'border-border text-muted-foreground hover:border-border/80'
+                      ? 'border-[#D4AF37] bg-[#D4AF37]/12 text-foreground'
+                      : 'border-white/8 text-white/30 hover:text-white/60 hover:border-white/20'
                   )}
                 >
-                  <chip.icon className="w-3.5 h-3.5" />
+                  <chip.icon className="w-4 h-4" />
                   {chip.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* ── Contexto ── */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Contexto
-            </label>
-            <select
-              value={form.context}
-              onChange={e => set('context', e.target.value as Context)}
-              className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              {CONTEXT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
+          {/* ── FECHA ── */}
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Cuándo</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="date"
+                value={form.due_date}
+                min={toInputValue(new Date())}
+                onChange={e => set('due_date', e.target.value)}
+                className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm
+                           text-foreground focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/40"
+              />
+              {form.due_date && (
+                <span className="text-sm text-white/50">{formatDateHuman(form.due_date)}</span>
+              )}
+            </div>
           </div>
 
-          {/* Lead readonly (si viene fijo) */}
+          {/* ── CONTEXTO — pills compactas ── */}
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Contexto</p>
+            <div className="flex flex-wrap gap-1.5">
+              {CONTEXT_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => set('context', opt.value as Context)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
+                    form.context === opt.value
+                      ? 'border-white/30 bg-white/10 text-foreground'
+                      : 'border-white/8 text-white/25 hover:text-white/50'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Lead readonly */}
           {lockedLeadId && lead && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Lead
-              </label>
-              <div className="flex items-center px-3 py-2.5 rounded-lg border border-input bg-muted/30 text-sm text-muted-foreground">
-                {lead.full_name}
-              </div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/8">
+              <span className="text-xs text-white/40">Lead</span>
+              <span className="text-sm text-foreground font-medium">{lead.full_name}</span>
             </div>
           )}
 
-          {/* Propiedad readonly (si viene fija) */}
+          {/* Propiedad readonly */}
           {lockedPropertyId && !lockedLeadId && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Propiedad
-              </label>
-              <div className="flex items-center px-3 py-2.5 rounded-lg border border-input bg-muted/30 text-sm text-muted-foreground">
-                {lockedPropertyId}
-              </div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/8">
+              <span className="text-xs text-white/40">Propiedad</span>
+              <span className="text-sm text-foreground font-medium">{lockedPropertyId}</span>
             </div>
           )}
 
-          {/* Meet link — solo si type = meeting */}
+          {/* Meet link */}
           {form.type === 'meeting' && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Link de reunión (Meet / Zoom)
-              </label>
-              <input
-                type="url"
-                placeholder="https://meet.google.com/..."
-                value={form.meet_link}
-                onChange={e => set('meet_link', e.target.value)}
-                className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
+            <input
+              type="url"
+              placeholder="Link de reunión (Meet / Zoom)"
+              value={form.meet_link}
+              onChange={e => set('meet_link', e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5
+                         text-sm text-foreground placeholder:text-white/25
+                         focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/40"
+            />
           )}
 
-          {/* ── Más opciones (colapsable) ── */}
-          <button
-            type="button"
-            onClick={() => setMoreOpen(v => !v)}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-fit"
-          >
-            {moreOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            {moreOpen ? 'Menos opciones' : 'Más opciones'}
-          </button>
+          {/* ── Más opciones ── */}
+          <div className="flex flex-col gap-4">
+            <button
+              type="button"
+              onClick={() => setMoreOpen(v => !v)}
+              className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-colors w-fit"
+            >
+              {moreOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              {moreOpen ? 'Menos opciones' : 'Más opciones'}
+            </button>
 
-          {moreOpen && (
-            <div className="flex flex-col gap-4 pl-1 border-l-2 border-border/40 ml-1">
+            {moreOpen && (
+              <div className="flex flex-col gap-4 pl-1 border-l border-white/8 ml-1">
 
-              {/* Prioridad */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Prioridad
-                </label>
-                <div className="flex gap-2">
-                  {PRIORITY_OPTIONS.map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => set('priority', opt.value)}
-                      className={cn(
-                        'flex-1 py-2 rounded-lg border text-xs font-medium transition-all',
-                        form.priority === opt.value
-                          ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-foreground'
-                          : 'border-border text-muted-foreground hover:border-border/80'
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+                {/* Prioridad */}
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+                    Prioridad
+                  </p>
+                  <div className="flex gap-2">
+                    {PRIORITY_OPTIONS.map(opt => (
+                      <button key={opt.value} type="button" onClick={() => set('priority', opt.value)}
+                        className={cn(
+                          'flex-1 py-2 rounded-lg border text-xs font-medium transition-all',
+                          form.priority === opt.value
+                            ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-foreground'
+                            : 'border-white/8 text-white/30 hover:text-white/60'
+                        )}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Notas */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Notas
-                </label>
+                {/* Notas */}
                 <textarea
                   rows={2}
-                  placeholder="Contexto adicional..."
+                  placeholder="Notas..."
                   value={form.notes}
                   onChange={e => set('notes', e.target.value)}
-                  className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5
+                             text-sm text-foreground placeholder:text-white/25
+                             focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/40 resize-none"
                 />
-              </div>
 
-              {/* Recurrencia */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Repetición
-                </label>
+                {/* Recurrencia */}
                 <select
                   value={form.recurrence}
                   onChange={e => set('recurrence', e.target.value as Recurrence)}
-                  className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5
+                             text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/40"
                 >
                   {RECURRENCE_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
+
               </div>
+            )}
+          </div>
 
-            </div>
-          )}
-        </div>
+        </div>{/* fin scroll */}
 
-        {/* ── Botones ── */}
-        <div className="flex flex-col gap-2 mt-6">
+        {/* ── CTA STICKY ── */}
+        <div className="flex-shrink-0 flex flex-col gap-2 pt-4 pb-safe border-t border-white/8 bg-background">
           {hasLeadPhone && (
             <button
               type="button"
               disabled={!canSave || isSaving}
               onClick={() => handleSave(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ backgroundColor: canSave && !isSaving ? '#25D366' : undefined }}
+              className="w-full flex items-center justify-center gap-2 py-4 rounded-xl
+                         text-sm font-bold text-white transition-all
+                         disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ backgroundColor: canSave && !isSaving ? '#25D366' : '#25D36640' }}
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
               Guardar + WhatsApp
@@ -424,16 +420,23 @@ export function TaskModal({
             type="button"
             disabled={!canSave || isSaving}
             onClick={() => handleSave(false)}
-            className="w-full py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-xl
+                       text-sm font-bold transition-all
+                       disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ backgroundColor: '#D4AF37', color: '#000' }}
           >
-            {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-            Guardar
+            {isSaving && !hasLeadPhone && <Loader2 className="w-4 h-4 animate-spin" />}
+            Guardar tarea
           </button>
-          <Button variant="ghost" onClick={onClose} className="w-full text-muted-foreground">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2 text-xs text-white/30 hover:text-white/60 transition-colors"
+          >
             Cancelar
-          </Button>
+          </button>
         </div>
+
       </SheetContent>
     </Sheet>
   )

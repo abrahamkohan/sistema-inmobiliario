@@ -76,17 +76,17 @@ CREATE POLICY "agent_own_tasks" ON tasks
   USING (assigned_to = auth.uid());
 
 -- Supervisor: puede ver tareas de su equipo
-CREATE POLICY "supervisor_team_tasks" ON tasks
-  FOR SELECT
-  USING (
-    team_id IN (
-      SELECT team_id FROM users WHERE id = auth.uid() AND role = 'supervisor'
-    )
-  );
+-- CREATE POLICY "supervisor_team_tasks" ON tasks
+--   FOR SELECT
+--   USING (
+--     team_id IN (
+--       SELECT team_id FROM users WHERE id = auth.uid() AND role = 'supervisor'
+--     )
+--   );
 
 -- Admin: acceso total
-CREATE POLICY "admin_all_tasks" ON tasks
-  FOR ALL
-  USING (
-    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
-  );
+-- CREATE POLICY "admin_all_tasks" ON tasks
+--   FOR ALL
+--   USING (
+--     EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
+--   );

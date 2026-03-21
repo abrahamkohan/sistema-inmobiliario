@@ -23,13 +23,6 @@ type TaskType = TaskRow['type']
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
-function isToday(iso: string): boolean {
-  const d = new Date(iso); const n = new Date()
-  return d.getFullYear() === n.getFullYear() &&
-         d.getMonth()    === n.getMonth()    &&
-         d.getDate()     === n.getDate()
-}
-
 function sortByDueAsc(tasks: TaskRow[]) {
   return [...tasks].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
 }

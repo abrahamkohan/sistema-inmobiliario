@@ -47,7 +47,7 @@ export function MobileFormScreen({ open, onClose, title, children }: MobileFormS
       <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
         <div
           ref={scrollRef}
-          className="w-full min-w-0 flex flex-col overflow-y-auto overflow-x-hidden px-3 py-3"
+          className="h-full w-full min-w-0 overflow-y-auto overflow-x-hidden px-3 py-3"
         >
           {children}
         </div>

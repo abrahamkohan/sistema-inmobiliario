@@ -251,7 +251,7 @@ export function TaskModal({
               type="button"
               onClick={() => set('type', chip.value)}
               className={cn(
-                'flex items-center gap-1.5 px-4 py-2.5 rounded-2xl border text-sm font-semibold transition-all',
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm font-medium transition-all',
                 form.type === chip.value
                   ? 'border-[#D4AF37] bg-[#D4AF37] text-black shadow-sm'
                   : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100'

@@ -206,16 +206,16 @@ export function DayView() {
 
       {/* Counters */}
       {!loadingTasks && (overdue.length > 0 || today.length > 0) && (
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           {overdue.length > 0 && (
-            <div className="flex-1 rounded-xl border border-red-500/30 bg-red-500/8 px-4 py-3 flex flex-col gap-0.5">
-              <span className="text-2xl font-bold text-red-500">{overdue.length}</span>
+            <div className="flex-1 rounded-lg border border-red-500/30 bg-red-500/8 px-3 py-2 flex items-center gap-2">
+              <span className="text-lg font-bold text-red-500">{overdue.length}</span>
               <span className="text-xs text-muted-foreground">atrasadas</span>
             </div>
           )}
           {today.length > 0 && (
-            <div className="flex-1 rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/8 px-4 py-3 flex flex-col gap-0.5">
-              <span className="text-2xl font-bold" style={{ color: '#D4AF37' }}>{today.length}</span>
+            <div className="flex-1 rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/8 px-3 py-2 flex items-center gap-2">
+              <span className="text-lg font-bold" style={{ color: '#D4AF37' }}>{today.length}</span>
               <span className="text-xs text-muted-foreground">para hoy</span>
             </div>
           )}
@@ -224,9 +224,9 @@ export function DayView() {
 
       {/* Empty state global */}
       {isEmpty && (
-        <div className="flex items-center gap-2 py-3 px-4 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-          <p className="text-sm text-muted-foreground">Todo al día — sin tareas pendientes.</p>
+        <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-emerald-500/8 border border-emerald-500/20">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">No tenés tareas hoy ✅</p>
         </div>
       )}
 

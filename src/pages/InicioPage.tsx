@@ -19,6 +19,7 @@ import {
 import { useDashboardStats, useExchangeRates, useWeather } from '@/hooks/useDashboardStats'
 import { DayView } from '@/components/tasks/DayView'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
+import { useAuth } from '@/context/AuthContext'
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
 } from '@dnd-kit/core'
@@ -711,11 +712,15 @@ export function InicioPage() {
 
   const { data: stats, isLoading } = useDashboardStats()
   const { data: config } = useConsultoraConfig()
+  const { session } = useAuth()
 
   const now = new Date()
   const hour = now.getHours()
   const greeting = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches'
   const isMobile = breakpoint === 'sm'
+
+  const fullName = (session?.user?.user_metadata?.full_name as string | undefined) ?? ''
+  const firstName = fullName.split(' ')[0] || ''
 
   const containerRef = (node: HTMLDivElement | null) => {
     if (node) setContainerWidth(node.offsetWidth)
@@ -785,12 +790,24 @@ export function InicioPage() {
       {/* Header */}
       <Flex align="start" justify="between" mb={{ initial: '2', md: '4' }} wrap="wrap" gap="2">
         <Box>
-          <Text size="1" color="gray">
-            {now.toLocaleDateString('es-PY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-          </Text>
-          <Heading size={{ initial: '6', md: '7' }} weight="bold" mt="1">
-            {greeting}{config?.nombre ? `, ${config.nombre}` : ''}
-          </Heading>
+          {/* Mobile: compacto */}
+          <Box className="md:hidden">
+            <Text size="1" color="gray">
+              {now.toLocaleDateString('es-PY', { weekday: 'short', day: 'numeric', month: 'short' })}
+            </Text>
+            <Heading size="5" weight="bold" mt="1">
+              Hola{firstName ? `, ${firstName}` : ''} 👋
+            </Heading>
+          </Box>
+          {/* Desktop: completo */}
+          <Box className="hidden md:block">
+            <Text size="1" color="gray">
+              {now.toLocaleDateString('es-PY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </Text>
+            <Heading size="7" weight="bold" mt="1">
+              {greeting}{config?.nombre ? `, ${config.nombre}` : ''}
+            </Heading>
+          </Box>
           <Flex gap="1" mt="2">
             {(['tareas', 'dashboard'] as const).map(v => (
               <button key={v} onClick={() => setView(v)}

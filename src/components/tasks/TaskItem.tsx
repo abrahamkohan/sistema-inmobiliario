@@ -30,6 +30,14 @@ interface TaskItemProps {
 
 // ── Contexto / tipo → etiqueta legible ────────────────────────────────────
 
+const TYPE_LABEL: Record<string, string> = {
+  whatsapp: 'WhatsApp',
+  call:     'Llamar',
+  visit:    'Visita',
+  email:    'Email',
+  meeting:  'Reunión',
+}
+
 const CONTEXT_LABEL: Record<string, string> = {
   lead:      'lead',
   property:  'propiedad',
@@ -132,8 +140,10 @@ export function TaskItem({
             {task.title}
           </p>
 
-          {/* Contexto · prioridad */}
+          {/* Tipo · contexto · prioridad */}
           <p className="text-[10px] text-muted-foreground">
+            {TYPE_LABEL[task.type] ?? task.type}
+            {' · '}
             {CONTEXT_LABEL[task.context] ?? task.context}
             {' · '}
             {PRIORITY_LABEL[task.priority] ?? task.priority}
@@ -154,7 +164,7 @@ export function TaskItem({
       )}
 
       {/* ── Botones de acción ── */}
-      <div className="flex items-center gap-2 pt-1 border-t border-white/5">
+      <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/5">
 
         {/* WhatsApp */}
         {hasPhone && !isClosed && (

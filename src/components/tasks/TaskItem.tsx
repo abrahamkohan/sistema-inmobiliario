@@ -12,7 +12,7 @@ import type { Database } from '@/types/database'
 type TaskRow = Database['public']['Tables']['tasks']['Row']
 
 export interface TaskLead {
-  id: string
+  id: string otra vez me da todo cortado. Che, dame un solo markdown y dame el archivo entero taxitem.tsx para que lo pegue tal cual. No voy a poder hacerlo por parte
   full_name: string
   phone: string | null
 }

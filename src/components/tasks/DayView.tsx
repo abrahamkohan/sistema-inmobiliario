@@ -22,20 +22,6 @@ type TaskRow = Database['public']['Tables']['tasks']['Row']
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
-function getGreeting(): string {
-  const h = new Date().getHours()
-  if (h < 12) return 'Buenos días'
-  if (h < 19) return 'Buenas tardes'
-  return 'Buenas noches'
-}
-
-function getTodayLabel(): string {
-  const raw = new Intl.DateTimeFormat('es-PY', {
-    weekday: 'long', day: 'numeric', month: 'long',
-  }).format(new Date())
-  return raw.toLowerCase()
-}
-
 function sortByPriorityDesc(tasks: TaskRow[]): TaskRow[] {
   const ORDER = { high: 0, medium: 1, low: 2 }
   return [...tasks].sort((a, b) => (ORDER[a.priority] ?? 1) - (ORDER[b.priority] ?? 1))
@@ -146,9 +132,6 @@ function TaskListWithReschedule({
 export function DayView() {
   const navigate   = useNavigate()
   const { session } = useAuth()
-
-  // Nombre del usuario — email como fallback
-  const userName = (session?.user?.user_metadata?.full_name as string | undefined) ?? ''
 
   // ── Datos ──────────────────────────────────────────────────────────────
   const { data: allTasks = [], isLoading: loadingTasks } = useTasks()

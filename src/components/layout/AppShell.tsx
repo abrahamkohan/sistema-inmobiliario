@@ -70,7 +70,7 @@ export function AppShell() {
           </button>
         </header>
 
-        <main ref={mainRef} className="flex-1 overflow-y-auto">
+        <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
       </div>

@@ -214,7 +214,7 @@ export function TaskModal({
   // ── Contenido del formulario (compartido mobile/desktop) ─────────────────
 
   const formContent = (
-    <div className="w-full min-w-0 overflow-x-hidden flex flex-col gap-4 pb-2">
+    <div className="w-full max-w-full min-w-0 overflow-x-hidden flex flex-col gap-4 pb-2" style={{ boxSizing: 'border-box' }}>
 
       {/* ── Título ── */}
       <div>
@@ -242,9 +242,9 @@ export function TaskModal({
       </div>
 
       {/* ── Tipo (chips wrap) ── */}
-      <div className="min-w-0">
+      <div className="w-full min-w-0">
         <label className={LABEL_CLS}>TIPO</label>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="w-full flex flex-wrap gap-1.5">
           {TYPE_CHIPS.map(chip => (
             <button
               key={chip.value}

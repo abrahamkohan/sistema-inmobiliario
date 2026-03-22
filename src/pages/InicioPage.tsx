@@ -715,8 +715,6 @@ export function InicioPage() {
   const { session } = useAuth()
 
   const now = new Date()
-  const hour = now.getHours()
-  const greeting = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches'
   const isMobile = breakpoint === 'sm'
 
   const fullName = (session?.user?.user_metadata?.full_name as string | undefined) ?? ''
@@ -788,26 +786,14 @@ export function InicioPage() {
       `}</style>
 
       {/* Header */}
-      <Flex align="start" justify="between" mb={{ initial: '2', md: '4' }} wrap="wrap" gap="2">
+      <Flex align="start" justify="between" mb="2" wrap="wrap" gap="2">
         <Box>
-          {/* Mobile: compacto */}
-          <Box className="md:hidden">
-            <Text size="1" color="gray">
-              {now.toLocaleDateString('es-PY', { weekday: 'short', day: 'numeric', month: 'short' })}
-            </Text>
-            <Heading size="5" weight="bold" mt="1">
-              Hola{firstName ? `, ${firstName}` : ''} 👋
-            </Heading>
-          </Box>
-          {/* Desktop: completo */}
-          <Box className="hidden md:block">
-            <Text size="1" color="gray">
-              {now.toLocaleDateString('es-PY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-            </Text>
-            <Heading size="7" weight="bold" mt="1">
-              {greeting}{config?.nombre ? `, ${config.nombre}` : ''}
-            </Heading>
-          </Box>
+          <Text size="1" color="gray">
+            {now.toLocaleDateString('es-PY', { weekday: 'short', day: 'numeric', month: 'short' })}
+          </Text>
+          <Heading size="5" weight="bold" mt="1">
+            Hola{firstName ? `, ${firstName}` : ''} 👋
+          </Heading>
           <Flex gap="1" mt="2">
             {(['tareas', 'dashboard'] as const).map(v => (
               <button key={v} onClick={() => setView(v)}
@@ -824,8 +810,8 @@ export function InicioPage() {
             ))}
           </Flex>
         </Box>
-        {/* Personalizar — solo desktop */}
-        <Flex gap="2" className="hidden md:flex">
+        {/* Personalizar — oculto */}
+        <Flex gap="2" className="hidden">
           {editMode && (
             <RxButton variant="ghost" color="gray" size="2" onClick={resetLayout}>
               Resetear layout

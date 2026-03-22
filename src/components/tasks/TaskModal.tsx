@@ -136,6 +136,21 @@ export function TaskModal({
   const [moreOpen, setMoreOpen] = useState(false)
   const isSaving = createTask.isPending || updateTask.isPending
 
+  // Fix iOS Safari: bloquear scroll del body solo para este modal
+  useEffect(() => {
+    if (!isOpen) return
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [isOpen])
+
   // Poblar formulario en modo edición
   useEffect(() => {
     if (isOpen && isEdit && existingTask) {

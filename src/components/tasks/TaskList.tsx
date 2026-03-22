@@ -52,7 +52,7 @@ export function TaskList({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {tasks.map(task => (
         <TaskItem
           key={task.id}

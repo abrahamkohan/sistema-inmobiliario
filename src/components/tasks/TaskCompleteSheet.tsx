@@ -1,9 +1,9 @@
 // src/components/tasks/TaskCompleteSheet.tsx
-// Mini bottom sheet "¿Cómo resultó?" + nueva fecha sugerida.
+// Modal centrado "¿Cómo resultó?" — reemplaza el bottom sheet.
+// Backdrop oscuro con blur, escala + fade al abrir.
 
 import { useState, useEffect } from 'react'
-import { MessageCircle } from 'lucide-react'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { MessageCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { suggestNextDate } from '@/lib/tasks'
 import { useWhatsApp } from '@/hooks/useWhatsApp'
@@ -15,18 +15,17 @@ type TaskRow    = Database['public']['Tables']['tasks']['Row']
 export type OutcomeVal = 'interested' | 'no_response' | 'not_interested'
 
 interface TaskCompleteSheetProps {
-  isOpen:     boolean
-  task:       TaskRow | null
-  lead?:      TaskLead
+  isOpen:      boolean
+  task:        TaskRow | null
+  lead?:       TaskLead
   agencyName?: string
-  onClose:    () => void
-  onConfirm:  (outcome: OutcomeVal, nextDate: Date) => void
+  onClose:     () => void
+  onConfirm:   (outcome: OutcomeVal, nextDate: Date) => void
 }
 
 // ── Helpers de fecha ──────────────────────────────────────────────────────
 
 function toInputValue(date: Date): string {
-  // YYYY-MM-DD en hora local
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
@@ -58,18 +57,23 @@ export function TaskCompleteSheet({
 }: TaskCompleteSheetProps) {
   const { openWhatsApp, getTemplate } = useWhatsApp()
 
-  const [outcome,  setOutcome]  = useState<OutcomeVal | null>(null)
-  const [dateVal,  setDateVal]  = useState('')
+  const [outcome, setOutcome] = useState<OutcomeVal | null>(null)
+  const [dateVal, setDateVal] = useState('')
+  const [visible, setVisible] = useState(false)
 
-  // Resetear estado al abrir
+  // Resetear estado al abrir + animación
   useEffect(() => {
     if (isOpen) {
       setOutcome(null)
       setDateVal(toInputValue(suggestNextDate(null)))
+      // pequeño delay para que la animación de entrada se vea
+      requestAnimationFrame(() => setVisible(true))
+    } else {
+      setVisible(false)
     }
   }, [isOpen])
 
-  // Actualizar fecha sugerida al seleccionar outcome
+  // Actualizar fecha sugerida al elegir resultado
   function handleOutcome(val: OutcomeVal) {
     setOutcome(val)
     setDateVal(toInputValue(suggestNextDate(val)))
@@ -90,46 +94,69 @@ export function TaskCompleteSheet({
     onClose()
   }
 
-  if (!task) return null
+  if (!isOpen || !task) return null
 
-  const canConfirm  = !!outcome && !!dateVal
-  const hasPhone    = task.context === 'lead' && !!lead?.phone
+  const canConfirm = !!outcome && !!dateVal
+  const hasPhone   = task.context === 'lead' && !!lead?.phone
 
   return (
-    <Sheet open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
-      <SheetContent
-        side="bottom"
-        className="rounded-t-2xl max-h-[85vh] overflow-y-auto pb-safe"
+    /* Backdrop */
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        background: 'rgba(0,0,0,0.65)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+      }}
+      onClick={onClose}
+    >
+      {/* Panel centrado */}
+      <div
+        className="w-full max-w-sm flex flex-col gap-4 rounded-2xl p-5"
+        style={{
+          background: 'var(--card)',
+          boxShadow: '0 32px 72px rgba(0,0,0,0.5)',
+          transform: visible ? 'scale(1)' : 'scale(0.93)',
+          opacity:   visible ? 1 : 0,
+          transition: 'transform 0.18s ease-out, opacity 0.18s ease-out',
+        }}
+        onClick={e => e.stopPropagation()}
       >
-        {/* Handle */}
-        <div className="mx-auto w-10 h-1 rounded-full bg-muted mb-5" />
 
-        <SheetHeader className="mb-5">
-          <SheetTitle>¿Cómo resultó?</SheetTitle>
-        </SheetHeader>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-foreground">¿Cómo resultó?</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
-        {/* Opciones de outcome */}
-        <div className="flex flex-col gap-2 mb-5">
+        {/* 1. Opciones de resultado */}
+        <div className="flex flex-col gap-2">
           {OPTIONS.map(opt => (
             <button
               key={opt.value}
               type="button"
               onClick={() => handleOutcome(opt.value)}
               className={cn(
-                'flex items-center gap-3 px-4 py-3.5 rounded-xl border text-sm font-medium transition-all text-left',
+                'flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium transition-all text-left',
                 outcome === opt.value
                   ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-foreground'
-                  : 'border-border bg-background text-muted-foreground hover:border-border/80 hover:text-foreground'
+                  : 'border-border bg-background text-muted-foreground hover:border-border/60 hover:text-foreground'
               )}
             >
-              <span className="text-xl leading-none">{opt.emoji}</span>
+              <span className="text-lg leading-none">{opt.emoji}</span>
               {opt.label}
             </button>
           ))}
         </div>
 
-        {/* Fecha próximo seguimiento */}
-        <div className="flex flex-col gap-1.5 mb-6">
+        {/* 2. Fecha próximo seguimiento */}
+        <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Próximo seguimiento
           </label>
@@ -138,19 +165,19 @@ export function TaskCompleteSheet({
             value={dateVal}
             onChange={e => setDateVal(e.target.value)}
             min={toInputValue(new Date())}
-            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
 
-        {/* Botones */}
+        {/* 3. Botones */}
         <div className="flex flex-col gap-2">
           {hasPhone && (
             <button
               type="button"
               disabled={!canConfirm}
               onClick={() => handleConfirm(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ backgroundColor: canConfirm ? '#25D366' : undefined }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ backgroundColor: canConfirm ? '#25D366' : '#25D366' }}
             >
               <MessageCircle className="w-4 h-4" />
               Confirmar + WhatsApp
@@ -160,15 +187,16 @@ export function TaskCompleteSheet({
             variant="outline"
             disabled={!canConfirm}
             onClick={() => handleConfirm(false)}
-            className="w-full py-3"
+            className="w-full py-2.5"
           >
-            Confirmar sin WhatsApp
+            Confirmar
           </Button>
           <Button variant="ghost" onClick={onClose} className="w-full text-muted-foreground">
             Cancelar
           </Button>
         </div>
-      </SheetContent>
-    </Sheet>
+
+      </div>
+    </div>
   )
 }

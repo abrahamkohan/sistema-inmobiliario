@@ -1,4 +1,6 @@
 // src/components/tasks/TaskBadge.tsx
+// Refactor UX: badge tipo calendario + mejor jerarquía visual (sin tocar colores base)
+
 import { cn } from '@/lib/utils'
 import { getUrgency } from '@/lib/tasks'
 import { urgencyColors } from '@/utils/taskColors'
@@ -11,22 +13,50 @@ interface TaskBadgeProps {
   className?: string
 }
 
-/** Formatea due_date como "15 abr" para tareas upcoming */
-function formatShortDate(isoDate: string): string {
-  return new Intl.DateTimeFormat('es-PY', { day: 'numeric', month: 'short' })
-    .format(new Date(isoDate))
-    .replace('.', '')  // quita el punto que pone es-PY en algunos meses
+// ── Helpers ─────────────────────────────────────────────
+
+function getDateParts(isoDate: string) {
+  const date = new Date(isoDate)
+
+  const day = new Intl.DateTimeFormat('es-PY', { day: 'numeric' }).format(date)
+  const month = new Intl.DateTimeFormat('es-PY', { month: 'short' })
+    .format(date)
+    .replace('.', '')
+    .toUpperCase()
+
+  return { day, month }
 }
+
+// ── Componente ─────────────────────────────────────────
 
 export function TaskBadge({ task, className }: TaskBadgeProps) {
   const urgency = getUrgency(task)
   const colors  = urgencyColors[urgency]
 
-  const label =
-    urgency === 'upcoming'
-      ? formatShortDate(task.due_date)
-      : colors.badge
+  // 👉 SOLO mostramos calendario en upcoming y today
+  if (urgency === 'upcoming' || urgency === 'today') {
+    const { day, month } = getDateParts(task.due_date)
 
+    return (
+      <div
+        className={cn(
+          'flex flex-col items-center justify-center rounded-lg border px-2 py-1 min-w-[44px]',
+          colors.border,
+          className
+        )}
+      >
+        <span className="text-[9px] font-semibold text-muted-foreground leading-none">
+          {month}
+        </span>
+        <span className="text-sm font-bold leading-none text-foreground">
+          {day}
+        </span>
+      </div>
+    )
+  }
+
+  // 👉 Estados (overdue, etc) se mantienen como badge simple
+  const label = colors.badge
   if (!label) return null
 
   return (

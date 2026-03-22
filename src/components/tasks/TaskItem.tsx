@@ -120,8 +120,8 @@ export function TaskItem({
   return (
     <div
       className={cn(
-        'relative rounded-2xl bg-white p-4 flex flex-col gap-3 transition-all duration-150',
-        'shadow-[0_10px_25px_rgba(0,0,0,0.08)]',
+        'relative rounded-2xl bg-white p-3 flex flex-col gap-2 transition-all duration-150',
+        'shadow-[0_6px_16px_rgba(0,0,0,0.07)]',
         'active:scale-[0.98]',
         isClosed && 'opacity-50',
         swipeHint === 'complete' && 'translate-x-1',
@@ -131,100 +131,79 @@ export function TaskItem({
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* HEADER */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <TypeIcon className="w-4 h-4" />
-          <span className="font-medium">{TYPE_LABEL[task.type]}</span>
+      {/* BLOQUE 1: tipo + lead + título | fecha */}
+      <div className="flex items-start justify-between gap-2">
+
+        {/* Columna izquierda: tipo → lead → título pegados */}
+        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+            <TypeIcon className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="font-medium">{TYPE_LABEL[task.type]}</span>
+          </div>
+          {isLead && lead && (
+            <button
+              onClick={() => onOpenPeek?.(lead.id)}
+              className="text-xs font-semibold text-[#D4AF37] text-left truncate"
+            >
+              {lead.full_name}
+            </button>
+          )}
+          <p className={cn(
+            'text-sm font-semibold leading-snug',
+            isClosed ? 'text-gray-400 line-through' : 'text-gray-900'
+          )}>
+            {task.title}
+          </p>
         </div>
 
-        {/* FECHA PRO */}
-        <div className="
-          w-14 h-14
-          rounded-xl
-          flex flex-col items-center justify-center
-          leading-none
-          bg-gradient-to-br from-[#FFB86B] to-[#FF7A7A]
-          text-white
-          shadow-[0_6px_16px_rgba(0,0,0,0.15)]
-        ">
-          <span className="text-[10px] font-medium opacity-80">
-            {month}
-          </span>
-          <span className="text-lg font-bold">
-            {day}
-          </span>
+        {/* Fecha — más grande, protagonista */}
+        <div className="w-16 h-16 flex-shrink-0 rounded-xl flex flex-col items-center justify-center leading-none bg-gradient-to-br from-[#FFB86B] to-[#FF7A7A] text-white shadow-[0_4px_12px_rgba(255,120,100,0.35)]">
+          <span className="text-[11px] font-semibold opacity-90 tracking-wide">{month}</span>
+          <span className="text-2xl font-bold leading-none">{day}</span>
         </div>
       </div>
 
-      {/* LEAD */}
-      {isLead && lead && (
-        <button
-          onClick={() => onOpenPeek?.(lead.id)}
-          className="text-xs font-semibold text-[#D4AF37] text-left truncate"
-        >
-          {lead.full_name}
-        </button>
-      )}
-
-      {/* TITULO */}
-      <p
-        className={cn(
-          'text-base font-semibold leading-tight',
-          isClosed ? 'text-gray-400 line-through' : 'text-black'
-        )}
-      >
-        {task.title}
-      </p>
-
-      {/* META */}
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <span>{PRIORITY_DOT[task.priority]}</span>
-        <span>
-          {CONTEXT_LABEL[task.context]} · {PRIORITY_LABEL[task.priority]}
-        </span>
+      {/* BLOQUE 2: meta */}
+      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+        <span className="text-[11px]">{PRIORITY_DOT[task.priority]}</span>
+        <span>{CONTEXT_LABEL[task.context]} · {PRIORITY_LABEL[task.priority]}</span>
       </div>
 
-      {/* ACCIONES */}
-      <div className="flex items-center gap-2 pt-1 flex-wrap">
+      {/* BLOQUE 3: acciones */}
+      <div className="flex items-center gap-1.5 flex-wrap">
         {hasPhone && !isClosed && (
           <button
             onClick={handleWhatsApp}
-            className="h-8 px-3 rounded-lg text-xs font-semibold text-white shadow-sm"
+            className="h-7 px-3 rounded-lg text-xs font-semibold text-white"
             style={{ backgroundColor: '#25D366' }}
           >
             WhatsApp
           </button>
         )}
-
         {hasPhone && !isClosed && (
           <a
             href={`tel:${lead!.phone!.replace(/\s/g, '')}`}
-            className="h-8 px-3 flex items-center justify-center rounded-lg text-xs font-semibold bg-gray-100 text-gray-700"
+            className="h-7 px-3 flex items-center justify-center rounded-lg text-xs font-semibold bg-gray-100 text-gray-700"
           >
             Llamar
           </a>
         )}
-
         {hasMeet && !isClosed && (
           <a
             href={task.meet_link!}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-8 px-3 flex items-center justify-center rounded-lg text-xs font-semibold bg-blue-100 text-blue-600"
+            className="h-7 px-3 flex items-center justify-center rounded-lg text-xs font-semibold bg-blue-100 text-blue-600"
           >
             Meet
           </a>
         )}
-
         <button
           onClick={() => onComplete(task)}
           disabled={isClosed}
           className={cn(
-            'h-8 px-3 rounded-full text-xs font-semibold transition',
-            isClosed
-              ? 'bg-gray-200 text-gray-400'
-              : 'bg-black/5 text-black/70'
+            'h-7 px-3 rounded-full text-xs font-semibold transition',
+            isClosed ? 'bg-gray-100 text-gray-400' : 'bg-gray-900 text-white'
           )}
         >
           {isClosed ? 'Cerrado' : '✓ Hecho'}

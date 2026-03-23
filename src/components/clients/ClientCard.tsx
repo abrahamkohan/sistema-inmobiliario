@@ -191,7 +191,7 @@ export function ClientCard({ client, onEdit, onDelete, onConvert, onChangeEstado
               <Pencil className="h-3.5 w-3.5" />
             </button>
             <button onClick={handleDelete}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>

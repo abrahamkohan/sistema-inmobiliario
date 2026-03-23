@@ -54,15 +54,20 @@ const RECURRENCE_OPTIONS: { value: Recurrence; label: string }[] = [
 // ── Helpers de fecha ──────────────────────────────────────────────────────
 
 function toInputValue(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
+  const y  = date.getFullYear()
+  const m  = String(date.getMonth() + 1).padStart(2, '0')
+  const d  = String(date.getDate()).padStart(2, '0')
+  const hh = String(date.getHours()).padStart(2, '0')
+  const mm = String(date.getMinutes()).padStart(2, '0')
+  return `${y}-${m}-${d}T${hh}:${mm}`
 }
 
 function fromInputValue(val: string): string {
-  const [y, mo, d] = val.split('-').map(Number)
-  return new Date(y, mo - 1, d, 12, 0, 0).toISOString()
+  // val: "YYYY-MM-DDThh:mm"
+  const [datePart, timePart] = val.split('T')
+  const [y, mo, d] = datePart.split('-').map(Number)
+  const [hh, mm]   = (timePart ?? '00:00').split(':').map(Number)
+  return new Date(y, mo - 1, d, hh, mm, 0).toISOString()
 }
 
 // ── Estilos compartidos (mismo patrón que ClientForm) ─────────────────────
@@ -244,11 +249,11 @@ export function TaskModal({
         />
       </div>
 
-      {/* ── Fecha ── */}
+      {/* ── Fecha y hora ── */}
       <div className="flex flex-col gap-1.5">
-        <label className={LABEL_CLS}>FECHA *</label>
+        <label className={LABEL_CLS}>FECHA Y HORA *</label>
         <input
-          type="date"
+          type="datetime-local"
           value={form.due_date}
           min={toInputValue(new Date())}
           onChange={e => set('due_date', e.target.value)}

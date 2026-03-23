@@ -1,29 +1,10 @@
 // src/components/projects/ProjectTableDesktop.tsx
 // Tabla desktop-only. Solo recibe datos por props — sin fetches.
 import { useNavigate } from 'react-router'
-import { Trash2, Pencil } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Trash2, Pencil, FileText } from 'lucide-react'
 import type { Database } from '@/types/database'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
-
-const STATUS_LABEL: Record<ProjectRow['status'], string> = {
-  en_pozo:         'En pozo',
-  en_construccion: 'En construcción',
-  entregado:       'Entregado',
-}
-
-const STATUS_VARIANT: Record<ProjectRow['status'], 'default' | 'secondary' | 'outline'> = {
-  en_pozo:         'default',
-  en_construccion: 'secondary',
-  entregado:       'outline',
-}
-
-const BADGE_LABEL: Record<string, string> = {
-  oportunidad: 'Oportunidad',
-  estable:     'Estable',
-  a_evaluar:   'A evaluar',
-}
 
 interface ProjectTableDesktopProps {
   projects: ProjectRow[]
@@ -46,8 +27,7 @@ export function ProjectTableDesktop({ projects, onDelete }: ProjectTableDesktopP
           <tr className="border-b border-border bg-muted/40">
             <th className="px-4 py-3 text-left font-semibold text-foreground">Proyecto</th>
             <th className="px-4 py-3 text-left font-semibold text-foreground">Desarrolladora</th>
-            <th className="px-4 py-3 text-left font-semibold text-foreground">Estado</th>
-            <th className="px-4 py-3 text-left font-semibold text-foreground">Análisis</th>
+            <th className="px-4 py-3 text-left font-semibold text-foreground">Recursos de Venta</th>
             <th className="px-4 py-3 w-20" />
           </tr>
         </thead>
@@ -75,21 +55,21 @@ export function ProjectTableDesktop({ projects, onDelete }: ProjectTableDesktopP
                 {project.developer_name ?? <span className="text-muted-foreground/40">—</span>}
               </td>
 
-              {/* Estado */}
-              <td className="px-4 py-3">
-                <Badge variant={STATUS_VARIANT[project.status]}>
-                  {STATUS_LABEL[project.status]}
-                </Badge>
-              </td>
-
-              {/* Análisis */}
-              <td className="px-4 py-3">
-                {project.badge_analisis ? (
-                  <span className="text-xs font-semibold text-[#D4AF37]">
-                    {BADGE_LABEL[project.badge_analisis] ?? project.badge_analisis}
-                  </span>
+              {/* Recursos de Venta */}
+              <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                {project.brochure_url ? (
+                  <a
+                    href={project.brochure_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#D4AF37] hover:underline"
+                  >
+                    <FileText className="w-4 h-4 flex-shrink-0" />
+                    📄 Carpeta de Venta
+                    <span className="block text-xs font-normal text-muted-foreground">Brochure · Precios</span>
+                  </a>
                 ) : (
-                  <span className="text-muted-foreground/40">—</span>
+                  <span className="text-muted-foreground/40 text-xs">Sin recursos</span>
                 )}
               </td>
 
@@ -119,7 +99,7 @@ export function ProjectTableDesktop({ projects, onDelete }: ProjectTableDesktopP
 
           {projects.length === 0 && (
             <tr>
-              <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground text-sm">
+              <td colSpan={4} className="px-4 py-10 text-center text-muted-foreground text-sm">
                 No se encontraron proyectos.
               </td>
             </tr>

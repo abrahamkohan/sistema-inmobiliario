@@ -74,7 +74,7 @@ export function ProjectCardMobile({ project, agencyPhone }: ProjectCardMobilePro
           type="button"
           onClick={handleWhatsApp}
           className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white"
-          style={{ backgroundColor: '#25D366' }}
+          style={{ backgroundColor: '#397746' }}
         >
           <MessageCircle className="w-4 h-4" />
           Consultar por WhatsApp

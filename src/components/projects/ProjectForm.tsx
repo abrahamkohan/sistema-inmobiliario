@@ -18,7 +18,7 @@ const LINK_PRESETS: { type: string; name: string; icon: React.ElementType; color
   { type: 'maps',     name: 'Google Maps', icon: MapPin,        color: '#EA4335' },
   { type: 'web',      name: 'Web',         icon: Globe,         color: '#1a56db' },
   { type: 'drive',    name: 'Drive',       icon: FolderOpen,    color: '#0F9D58' },
-  { type: 'whatsapp', name: 'WhatsApp',    icon: MessageCircle, color: '#25D366' },
+  { type: 'whatsapp', name: 'WhatsApp',    icon: MessageCircle, color: '#397746' },
   { type: 'brochure', name: 'Brochure',    icon: FileText,      color: '#6366f1' },
   { type: 'vista360', name: 'Vista 360',   icon: Eye,           color: '#f59e0b' },
 ]

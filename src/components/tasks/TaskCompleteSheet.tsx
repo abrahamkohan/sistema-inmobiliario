@@ -177,7 +177,7 @@ export function TaskCompleteSheet({
               disabled={!canConfirm}
               onClick={() => handleConfirm(true)}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ backgroundColor: canConfirm ? '#25D366' : '#25D366' }}
+              style={{ backgroundColor: canConfirm ? '#397746' : '#397746' }}
             >
               <MessageCircle className="w-4 h-4" />
               Confirmar + WhatsApp

@@ -41,7 +41,7 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 const TYPE_COLOR: Record<string, string> = {
-  whatsapp: '#25D366',
+  whatsapp: '#397746',
   call:     '#3b82f6',
   visit:    '#f97316',
   email:    '#6366f1',
@@ -180,7 +180,7 @@ export function TaskItem({
             <button
               onClick={handleWhatsApp}
               className="flex items-center gap-1 h-7 px-3 rounded-lg text-xs font-bold text-white flex-shrink-0"
-              style={{ backgroundColor: '#25D366' }}
+              style={{ backgroundColor: '#397746' }}
             >
               <MessageCircle className="w-3.5 h-3.5" />
               WhatsApp

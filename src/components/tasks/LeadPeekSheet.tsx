@@ -81,7 +81,7 @@ export function LeadPeekSheet({ isOpen, leadId, onClose }: LeadPeekSheetProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold text-white transition-colors"
-                  style={{ backgroundColor: '#25D366' }}
+                  style={{ backgroundColor: '#397746' }}
                 >
                   <MessageCircle className="w-4 h-4" />
                   WhatsApp

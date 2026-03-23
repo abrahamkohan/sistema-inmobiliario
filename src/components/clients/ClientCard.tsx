@@ -68,7 +68,7 @@ export function ClientCard({ client, onEdit, onDelete, onConvert, onChangeEstado
 
   return (
     <>
-      <div className="w-full max-w-[380px] rounded-2xl border bg-card shadow-[0_2px_10px_rgba(0,0,0,0.06)] flex flex-col overflow-hidden">
+      <div className="w-full rounded-2xl border bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex flex-col overflow-hidden hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-shadow">
 
         {/* ── Cuerpo ── */}
         <div className="p-4 flex flex-col gap-2">
@@ -148,7 +148,7 @@ export function ClientCard({ client, onEdit, onDelete, onConvert, onChangeEstado
             {waUrl && (
               <a href={waUrl} target="_blank" rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: '#397746' }}
+                style={{ backgroundColor: '#25D366' }}
               >
                 <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
               </a>

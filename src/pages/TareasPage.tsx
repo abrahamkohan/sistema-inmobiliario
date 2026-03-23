@@ -2,7 +2,7 @@
 // Vista completa del módulo de tareas con tabs + filtros colapsables.
 
 import { useState, useMemo } from 'react'
-import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Loader2, Search } from 'lucide-react'
 import { useTasks, useUpdateTask, useCreateTask } from '@/hooks/useTasks'
 import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/context/AuthContext'
@@ -73,6 +73,7 @@ export function TareasPage() {
 
   // ── State ──────────────────────────────────────────────────────────────
   const [tab,         setTab]         = useState<TaskTab>('today')
+  const [search,      setSearch]      = useState('')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [ctxFilter,   setCtxFilter]   = useState<Context | 'all'>('all')
   const [typeFilter,  setTypeFilter]  = useState<TaskType | 'all'>('all')
@@ -90,11 +91,20 @@ export function TareasPage() {
     }
   }, [allTasks, tab])
 
-  // ── Aplicar filtros opcionales ─────────────────────────────────────────
-  const filtered = useMemo(() => byTab
-    .filter(t => ctxFilter  === 'all' || t.context === ctxFilter)
-    .filter(t => typeFilter === 'all' || t.type    === typeFilter),
-  [byTab, ctxFilter, typeFilter])
+  // ── Aplicar filtros opcionales + búsqueda de texto ────────────────────
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return byTab
+      .filter(t => ctxFilter  === 'all' || t.context === ctxFilter)
+      .filter(t => typeFilter === 'all' || t.type    === typeFilter)
+      .filter(t => {
+        if (!q) return true
+        if (t.title.toLowerCase().includes(q)) return true
+        const lead = t.lead_id ? leads[t.lead_id] : undefined
+        if (lead?.full_name.toLowerCase().includes(q)) return true
+        return false
+      })
+  }, [byTab, ctxFilter, typeFilter, search, leads])
 
   // Contadores para badges de tabs
   const overdueCount = useMemo(
@@ -141,6 +151,18 @@ export function TareasPage() {
       {/* Header */}
       <div className="px-4 pt-5 pb-0 flex flex-col gap-4">
         <h1 className="text-2xl font-semibold">Tareas</h1>
+
+        {/* Buscador */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Buscar por título o lead..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+        </div>
 
         {/* Tabs */}
         <div className="flex border-b border-white/8 overflow-x-auto">
@@ -226,6 +248,17 @@ export function TareasPage() {
           </div>
         )}
       </div>
+
+      {/* Resultado de búsqueda */}
+      {search.trim() && (
+        <div className="px-4 pt-2">
+          <p className="text-xs text-muted-foreground">
+            {filtered.length === 0
+              ? 'Sin resultados para esta búsqueda.'
+              : `${filtered.length} tarea${filtered.length !== 1 ? 's' : ''} encontrada${filtered.length !== 1 ? 's' : ''}`}
+          </p>
+        </div>
+      )}
 
       {/* Lista */}
       <div className="flex-1 overflow-y-auto px-4 pt-3">

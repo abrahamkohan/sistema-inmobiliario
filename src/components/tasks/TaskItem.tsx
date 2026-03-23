@@ -164,51 +164,79 @@ export function TaskItem({
           <span>{CONTEXT_LABEL[task.context]} · {PRIORITY_LABEL[task.priority]}</span>
         </div>
 
-        {/* Acciones */}
-        <div className="flex items-center gap-1.5 flex-wrap mt-1">
-          {hasPhone && !isClosed && (
+        {/* CTA principal + acción secundaria */}
+        <div className="flex items-center gap-1.5 mt-1">
+          {/* CTA principal: depende del tipo de tarea */}
+          {task.type === 'whatsapp' && hasPhone && !isClosed && (
             <button
               onClick={handleWhatsApp}
-              className="h-6 px-2.5 rounded-md text-[11px] font-semibold text-white"
+              className="flex items-center gap-1 h-7 px-3 rounded-lg text-xs font-bold text-white flex-shrink-0"
               style={{ backgroundColor: '#25D366' }}
             >
+              <MessageCircle className="w-3.5 h-3.5" />
               WhatsApp
             </button>
           )}
-          {hasPhone && !isClosed && (
+          {task.type === 'call' && hasPhone && !isClosed && (
             <a
               href={`tel:${lead!.phone!.replace(/\s/g, '')}`}
-              className="h-6 px-2.5 flex items-center rounded-md text-[11px] font-semibold bg-gray-100 text-gray-700"
+              className="flex items-center gap-1 h-7 px-3 rounded-lg text-xs font-bold bg-gray-900 text-white flex-shrink-0"
             >
+              <Phone className="w-3.5 h-3.5" />
               Llamar
             </a>
           )}
-          {hasMeet && !isClosed && (
+          {task.type === 'meeting' && hasMeet && !isClosed && (
             <a
               href={task.meet_link!}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-6 px-2.5 flex items-center rounded-md text-[11px] font-semibold bg-blue-100 text-blue-600"
+              className="flex items-center gap-1 h-7 px-3 rounded-lg text-xs font-bold bg-blue-500 text-white flex-shrink-0"
             >
-              Meet
+              <Video className="w-3.5 h-3.5" />
+              Reunión
             </a>
           )}
+          {/* Para WhatsApp: Llamar como secundario */}
+          {task.type === 'whatsapp' && hasPhone && !isClosed && (
+            <a
+              href={`tel:${lead!.phone!.replace(/\s/g, '')}`}
+              className="flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600 flex-shrink-0"
+            >
+              <Phone className="w-3 h-3" />
+              Llamar
+            </a>
+          )}
+          {/* ✓ Hecho siempre al final */}
           <button
             onClick={() => onComplete(task)}
             disabled={isClosed}
             className={cn(
-              'h-6 px-2.5 rounded-md text-[11px] font-semibold transition',
-              isClosed ? 'bg-gray-100 text-gray-400' : 'bg-gray-900 text-white'
+              'h-7 px-2.5 rounded-lg text-xs font-semibold transition flex-shrink-0',
+              isClosed ? 'bg-gray-100 text-gray-400' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             )}
           >
             {isClosed ? 'Cerrado' : '✓ Hecho'}
           </button>
         </div>
+
+        {/* Meet link al pie — accesible para tareas tipo reunión sin meet abierta */}
+        {task.meet_link && task.type !== 'meeting' && !isClosed && (
+          <a
+            href={task.meet_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-blue-500 hover:underline"
+          >
+            <Video className="w-3 h-3 flex-shrink-0" />
+            🎥 Link de reunión
+          </a>
+        )}
       </div>
 
       {/* FECHA — mobile: formato corto, desktop: protagonista */}
       {/* Mobile (< md): badge ancho con fecha corta + hora */}
-      <div className="block md:hidden flex-shrink-0 rounded-xl px-2.5 py-1.5 flex flex-col items-center justify-center bg-gradient-to-br from-[#FFB86B] to-[#FF7A7A] text-white shadow-[0_4px_10px_rgba(255,120,100,0.4)]">
+      <div className="flex md:hidden flex-shrink-0 rounded-xl px-2.5 py-1.5 flex-col items-center justify-center bg-gradient-to-br from-[#FFB86B] to-[#FF7A7A] text-white shadow-[0_4px_10px_rgba(255,120,100,0.4)]">
         <span className="text-[11px] font-bold leading-none whitespace-nowrap">{shortDate}</span>
       </div>
 

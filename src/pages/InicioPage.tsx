@@ -8,10 +8,9 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
 import { BarChart as BarChartIcon } from 'lucide-react'
-import { Card, Heading, Text, Badge, Flex, Grid, Box, Button as RxButton, Tabs } from '@radix-ui/themes'
+import { Card, Heading, Text, Badge, Flex, Grid, Box, Tabs } from '@radix-ui/themes'
 import {
   Users, Building2, Calculator, FileText, Plus, ExternalLink,
-  Settings2, LayoutDashboard,
   TrendingUp, TrendingDown, Minus, Activity, Home,
   Globe, Newspaper, Database, Wrench,
   GripVertical,
@@ -705,7 +704,6 @@ const WIDGET_LABELS: Record<string, string> = {
 
 export function InicioPage() {
   const [view, setView]             = useState<'dashboard' | 'tareas'>('tareas')
-  const [editMode, setEditMode]     = useState(false)
   const [layouts, setLayouts]       = useState<Layouts>(loadLayouts)
   const [breakpoint, setBreakpoint] = useState<'lg' | 'md' | 'sm'>('lg')
   const [containerWidth, setContainerWidth] = useState(0)
@@ -748,11 +746,6 @@ export function InicioPage() {
 
   function handleBreakpointChange(bp: string) {
     setBreakpoint(bp as 'lg' | 'md' | 'sm')
-  }
-
-  function resetLayout() {
-    setLayouts(DEFAULT_LAYOUTS)
-    localStorage.removeItem(LS_LAYOUTS)
   }
 
   function renderWidget(id: string) {

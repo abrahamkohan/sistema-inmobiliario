@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ProjectList } from '@/components/projects/ProjectList'
 import { type FilterState } from '@/components/projects/ProyectoFilters'
 import { toast } from 'sonner'
-import { useProjects, useUpdateProject, useDeleteProject } from '@/hooks/useProjects'
+import { useProjects, useDeleteProject } from '@/hooks/useProjects'
 import type { Database } from '@/types/database'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
@@ -17,38 +17,23 @@ const EMPTY_FILTERS: FilterState = { status: '', location: '', developer: '' }
 export function ProyectosPage() {
   const navigate = useNavigate()
   const { data: projects = [], isLoading } = useProjects()
-  const updateProject = useUpdateProject()
   const deleteProject = useDeleteProject()
 
   const [search,  setSearch]  = useState('')
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS)
 
-  // ── Filtrado (lógica en la página, no en componentes hijos) ──────────────
   const filteredProjects = (projects as ProjectRow[]).filter(p => {
     const q = search.toLowerCase()
     const matchSearch    = !q || p.name.toLowerCase().includes(q) || (p.location ?? '').toLowerCase().includes(q)
-    const matchStatus    = !filters.status    || p.status          === filters.status
-    const matchLocation  = !filters.location  || p.location        === filters.location
-    const matchDeveloper = !filters.developer || p.developer_name  === filters.developer
+    const matchStatus    = !filters.status    || p.status         === filters.status
+    const matchLocation  = !filters.location  || p.location       === filters.location
+    const matchDeveloper = !filters.developer || p.developer_name === filters.developer
     return matchSearch && matchStatus && matchLocation && matchDeveloper
   })
 
-  // ── Handlers de mutaciones ────────────────────────────────────────────────
   function handleDelete(id: string) {
     deleteProject.mutate(id, {
       onError: (err) => toast.error(`Error al eliminar: ${err instanceof Error ? err.message : String(err)}`),
-    })
-  }
-
-  function handleTogglePublicado(id: string, value: boolean) {
-    updateProject.mutate({ id, input: { publicado_en_web: value } }, {
-      onError: (err) => toast.error(`Error: ${err instanceof Error ? err.message : String(err)}`),
-    })
-  }
-
-  function handleChangeBadge(id: string, value: 'oportunidad' | 'estable' | 'a_evaluar' | null) {
-    updateProject.mutate({ id, input: { badge_analisis: value } }, {
-      onError: (err) => toast.error(`Error: ${err instanceof Error ? err.message : String(err)}`),
     })
   }
 
@@ -81,8 +66,6 @@ export function ProyectosPage() {
           onSearchChange={setSearch}
           onFilterChange={setFilters}
           onDelete={handleDelete}
-          onTogglePublicado={handleTogglePublicado}
-          onChangeBadge={handleChangeBadge}
         />
       )}
     </div>

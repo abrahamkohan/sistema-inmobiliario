@@ -1,23 +1,19 @@
 // src/components/projects/ProjectList.tsx
-import { ProjectCard }         from './ProjectCard'
 import { ProjectCardMobile }   from './ProjectCardMobile'
 import { ProjectTableDesktop } from './ProjectTableDesktop'
 import { ProyectoFilters, type FilterState } from './ProyectoFilters'
 import type { Database } from '@/types/database'
 
-type ProjectRow    = Database['public']['Tables']['projects']['Row']
-type BadgeAnalisis = 'oportunidad' | 'estable' | 'a_evaluar'
+type ProjectRow = Database['public']['Tables']['projects']['Row']
 
 interface ProjectListProps {
-  projects:          ProjectRow[]
-  search:            string
-  filters:           FilterState
-  onSearchChange:    (value: string) => void
-  onFilterChange:    (filters: FilterState) => void
-  onDelete:          (id: string) => void
-  onTogglePublicado?: (id: string, value: boolean) => void
-  onChangeBadge?:    (id: string, value: BadgeAnalisis | null) => void
-  agencyPhone?:      string
+  projects:       ProjectRow[]
+  search:         string
+  filters:        FilterState
+  onSearchChange: (value: string) => void
+  onFilterChange: (filters: FilterState) => void
+  onDelete:       (id: string) => void
+  agencyPhone?:   string
 }
 
 export function ProjectList({
@@ -27,8 +23,6 @@ export function ProjectList({
   onSearchChange,
   onFilterChange,
   onDelete,
-  onTogglePublicado,
-  onChangeBadge,
   agencyPhone,
 }: ProjectListProps) {
 
@@ -48,7 +42,7 @@ export function ProjectList({
         developers={developers}
       />
 
-      {/* ── Mobile: cards compactas con WhatsApp CTA ── */}
+      {/* Mobile: cards compactas */}
       <div className="block md:hidden space-y-3">
         {projects.map(project => (
           <ProjectCardMobile
@@ -62,20 +56,9 @@ export function ProjectList({
         )}
       </div>
 
-      {/* ── Desktop: tabla resumen + cards admin completas ── */}
-      <div className="hidden md:flex flex-col gap-6">
+      {/* Desktop: solo tabla */}
+      <div className="hidden md:block">
         <ProjectTableDesktop projects={projects} onDelete={onDelete} />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map(project => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onDelete={onDelete}
-              onTogglePublicado={onTogglePublicado}
-              onChangeBadge={onChangeBadge}
-            />
-          ))}
-        </div>
       </div>
 
     </div>

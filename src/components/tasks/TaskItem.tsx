@@ -234,11 +234,15 @@ export function TaskItem({
         )}
       </div>
 
-      {/* Badge de fecha — cuadrado fijo, más grande */}
-      <div className="w-[72px] h-[72px] flex-shrink-0 rounded-2xl flex flex-col items-center justify-center leading-none bg-gradient-to-br from-[#FFB86B] to-[#FF7A7A] text-white shadow-[0_4px_10px_rgba(255,120,100,0.4)]">
-        <span className="text-[11px] font-semibold opacity-90 tracking-wide">{month}</span>
-        <span className="text-3xl font-black leading-none">{day}</span>
-        <span className="text-[10px] font-semibold opacity-80 mt-1">{time}</span>
+      {/* Badge estilo calendario — banda superior + número grande */}
+      <div className="w-[72px] flex-shrink-0 rounded-2xl overflow-hidden shadow-[0_3px_10px_rgba(0,0,0,0.12)] border border-gray-100">
+        <div className="bg-[#D4AF37] flex items-center justify-center py-1.5">
+          <span className="text-[11px] font-bold text-white tracking-[0.15em]">{month}</span>
+        </div>
+        <div className="bg-white flex flex-col items-center justify-center py-2 leading-none">
+          <span className="text-[34px] font-black text-gray-900 leading-none">{day}</span>
+          <span className="text-[9px] font-medium text-gray-400 mt-1">{time}</span>
+        </div>
       </div>
     </div>
   )

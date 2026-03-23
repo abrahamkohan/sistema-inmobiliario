@@ -57,9 +57,9 @@ export function ProjectTableDesktop({ projects, onDelete }: ProjectTableDesktopP
 
               {/* Recursos de Venta */}
               <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                {project.brochure_url ? (
+                {project.drive_folder_url ? (
                   <a
-                    href={project.brochure_url}
+                    href={project.drive_folder_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#D4AF37] hover:underline"

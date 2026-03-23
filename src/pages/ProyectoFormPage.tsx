@@ -31,7 +31,7 @@ interface FormState {
   name: string; status: Status; badge_analisis: BadgeAnalisis | null; publicado_en_web: boolean
   developer_name: string; tipo_proyecto: TipoProyecto | null
   delivery_date: string; precio_desde: string
-  maps_url: string; tour_360_url: string; brochure_url: string
+  maps_url: string; tour_360_url: string; brochure_url: string; drive_folder_url: string
   lat: number | null; lng: number | null
   ciudad: string; barrio: string; zona: string; direccion: string
   unitDrafts: UnitDraft[]
@@ -46,7 +46,7 @@ interface FormState {
 const EMPTY: FormState = {
   name: '', status: 'en_pozo', badge_analisis: null, publicado_en_web: false,
   developer_name: '', tipo_proyecto: null, delivery_date: '', precio_desde: '',
-  maps_url: '', tour_360_url: '', brochure_url: '',
+  maps_url: '', tour_360_url: '', brochure_url: '', drive_folder_url: '',
   lat: null, lng: null, ciudad: '', barrio: '', zona: '', direccion: '',
   unitDrafts: [], caracteristicas: '', fotos: [], urlPhotos: [], resumen: '', amenityDrafts: [],
   hero_file: null, hero_previewUrl: null, hero_url: '', hero_image_url: null,
@@ -187,6 +187,7 @@ export function ProyectoFormPage() {
           maps_url:        proj.maps_url        ?? '',
           tour_360_url:    proj.tour_360_url    ?? '',
           brochure_url:    proj.brochure_url    ?? '',
+          drive_folder_url: proj.drive_folder_url ?? '',
           ciudad:          proj.ciudad          ?? '',
           barrio:          proj.barrio          ?? '',
           zona:            proj.zona    ?? proj.location ?? '',
@@ -437,6 +438,7 @@ export function ProyectoFormPage() {
         maps_url:        s.maps_url || null,
         tour_360_url:    s.tour_360_url || null,
         brochure_url:    s.brochure_url || null,
+        drive_folder_url: s.drive_folder_url || null,
         caracteristicas: s.caracteristicas || null,
         hero_image_url:  heroImageUrl,
       }
@@ -561,6 +563,12 @@ export function ProyectoFormPage() {
           <div className="mb-4">
             <FieldLabel>Nombre del proyecto</FieldLabel>
             <TextInput value={s.name} onChange={e => update({ name: e.target.value })} placeholder="Ej: Urban Cumbres Torre B" />
+          </div>
+
+          {/* Carpeta Comercial (Drive) */}
+          <div className="mb-4">
+            <FieldLabel>Carpeta Comercial (DRIVE)</FieldLabel>
+            <TextInput value={s.drive_folder_url} onChange={e => update({ drive_folder_url: e.target.value })} placeholder="https://" />
           </div>
 
           {/* Estado + Entrega */}

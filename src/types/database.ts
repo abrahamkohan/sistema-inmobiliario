@@ -16,6 +16,7 @@ export interface Database {
           developer_name: string | null
           brochure_path: string | null
           brochure_url: string | null
+          drive_folder_url: string | null
           maps_url: string | null
           tour_360_url: string | null
           highlights: string | null
@@ -44,6 +45,7 @@ export interface Database {
           developer_name?: string | null
           brochure_path?: string | null
           brochure_url?: string | null
+          drive_folder_url?: string | null
           maps_url?: string | null
           tour_360_url?: string | null
           highlights?: string | null
@@ -69,6 +71,7 @@ export interface Database {
           developer_name?: string | null
           brochure_path?: string | null
           brochure_url?: string | null
+          drive_folder_url?: string | null
           maps_url?: string | null
           tour_360_url?: string | null
           highlights?: string | null

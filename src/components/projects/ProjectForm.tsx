@@ -31,15 +31,16 @@ export function linkColor(type: string): string {
 }
 
 const projectSchema = z.object({
-  name:            z.string().min(1, 'El nombre es requerido'),
-  location:        z.string().optional(),
-  status:          z.enum(['en_pozo', 'en_construccion', 'entregado']),
-  delivery_date:   z.string().optional(),
-  developer_name:  z.string().optional(),
-  usd_to_pyg_rate: z.number().positive().nullable().optional(),
-  tipo_proyecto:   z.enum(['residencial', 'comercial', 'mixto']).nullable().optional(),
-  caracteristicas: z.string().optional(),
-  description:     z.string().optional(),
+  name:              z.string().min(1, 'El nombre es requerido'),
+  drive_folder_url:  z.string().optional(),
+  location:          z.string().optional(),
+  status:            z.enum(['en_pozo', 'en_construccion', 'entregado']),
+  delivery_date:     z.string().optional(),
+  developer_name:    z.string().optional(),
+  usd_to_pyg_rate:   z.number().positive().nullable().optional(),
+  tipo_proyecto:     z.enum(['residencial', 'comercial', 'mixto']).nullable().optional(),
+  caracteristicas:   z.string().optional(),
+  description:       z.string().optional(),
 })
 
 export type ProjectFormValues = z.infer<typeof projectSchema> & { links: ProjectLink[] }
@@ -59,15 +60,16 @@ export function ProjectForm({ defaultValues, onSubmit, onCancel, isSubmitting, s
   const form = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      name:            defaultValues?.name            ?? '',
-      location:        defaultValues?.location         ?? '',
-      status:          defaultValues?.status           ?? 'en_pozo',
-      delivery_date:   defaultValues?.delivery_date    ?? '',
-      developer_name:  defaultValues?.developer_name   ?? '',
-      usd_to_pyg_rate: defaultValues?.usd_to_pyg_rate  ?? null,
-      tipo_proyecto:   (defaultValues?.tipo_proyecto   ?? null) as 'residencial' | 'comercial' | 'mixto' | null,
-      caracteristicas: defaultValues?.caracteristicas  ?? '',
-      description:     defaultValues?.description      ?? '',
+      name:              defaultValues?.name              ?? '',
+      drive_folder_url:  defaultValues?.drive_folder_url  ?? '',
+      location:          defaultValues?.location           ?? '',
+      status:            defaultValues?.status             ?? 'en_pozo',
+      delivery_date:     defaultValues?.delivery_date      ?? '',
+      developer_name:    defaultValues?.developer_name     ?? '',
+      usd_to_pyg_rate:   defaultValues?.usd_to_pyg_rate    ?? null,
+      tipo_proyecto:     (defaultValues?.tipo_proyecto     ?? null) as 'residencial' | 'comercial' | 'mixto' | null,
+      caracteristicas:   defaultValues?.caracteristicas    ?? '',
+      description:       defaultValues?.description        ?? '',
     },
   })
 
@@ -102,6 +104,12 @@ export function ProjectForm({ defaultValues, onSubmit, onCancel, isSubmitting, s
         {form.formState.errors.name && (
           <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
         )}
+      </div>
+
+      {/* Carpeta Comercial (Drive) */}
+      <div className="grid gap-1.5">
+        <Label htmlFor="drive_folder_url">Carpeta Comercial (DRIVE)</Label>
+        <Input id="drive_folder_url" {...form.register('drive_folder_url')} placeholder="https://" />
       </div>
 
       {/* Desarrolladora */}

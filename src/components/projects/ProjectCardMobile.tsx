@@ -53,9 +53,9 @@ export function ProjectCardMobile({ project, agencyPhone }: ProjectCardMobilePro
         )}
 
         {/* Carpeta de Venta */}
-        {project.brochure_url && (
+        {project.drive_folder_url && (
           <a
-            href={project.brochure_url}
+            href={project.drive_folder_url}
             target="_blank"
             rel="noopener noreferrer"
             onClick={e => e.stopPropagation()}

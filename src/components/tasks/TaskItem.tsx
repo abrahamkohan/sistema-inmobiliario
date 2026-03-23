@@ -40,6 +40,14 @@ const TYPE_LABEL: Record<string, string> = {
   meeting: 'Reunión',
 }
 
+const TYPE_COLOR: Record<string, string> = {
+  whatsapp: '#25D366',
+  call:     '#3b82f6',
+  visit:    '#f97316',
+  email:    '#6366f1',
+  meeting:  '#8b5cf6',
+}
+
 const CONTEXT_LABEL: Record<string, string> = {
   lead: 'lead',
   property: 'propiedad',
@@ -75,7 +83,8 @@ export function TaskItem({
   const hasPhone = isLead && !!lead?.phone
   const hasMeet = task.type === 'meeting' && !!task.meet_link
 
-  const TypeIcon = TYPE_ICON[task.type] ?? MessageCircle
+  const TypeIcon  = TYPE_ICON[task.type]  ?? MessageCircle
+  const typeColor = TYPE_COLOR[task.type] ?? '#9ca3af'
 
   const touchStartX = useRef<number | null>(null)
   const [swipeHint, setSwipeHint] = useState<'complete' | 'reschedule' | null>(null)
@@ -135,7 +144,7 @@ export function TaskItem({
       <div className="flex flex-col gap-0.5 flex-1 min-w-0">
 
         {/* Tipo */}
-        <div className="flex items-center gap-1 text-[11px] text-gray-400 font-medium">
+        <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: typeColor }}>
           <TypeIcon className="w-3 h-3 flex-shrink-0" />
           <span>{TYPE_LABEL[task.type]}</span>
         </div>
@@ -159,7 +168,7 @@ export function TaskItem({
         </p>
 
         {/* Meta */}
-        <div className="flex items-center gap-1 text-[11px] text-gray-600 mt-0.5 font-medium">
+        <div className="flex items-center gap-1 text-[11px] text-gray-600 mt-2 font-medium">
           <span>{PRIORITY_DOT[task.priority]}</span>
           <span>{CONTEXT_LABEL[task.context]} · {PRIORITY_LABEL[task.priority]}</span>
         </div>

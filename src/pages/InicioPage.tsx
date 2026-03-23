@@ -789,7 +789,7 @@ export function InicioPage() {
       <Flex align="start" justify="between" mb="2" wrap="wrap" gap="2">
         <Box>
           <Text size="1" color="gray">
-            {now.toLocaleDateString('es-PY', { weekday: 'short', day: 'numeric', month: 'short' })}
+            {now.toLocaleDateString('es-PY', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/^\w+/, w => w.toUpperCase())}
           </Text>
           <Heading size="5" weight="bold" mt="1">
             Hola{firstName ? `, ${firstName}` : ''} 👋
@@ -810,25 +810,6 @@ export function InicioPage() {
             ))}
           </Flex>
         </Box>
-        {/* Personalizar — oculto */}
-        <Flex gap="2" className="hidden">
-          {editMode && (
-            <RxButton variant="ghost" color="gray" size="2" onClick={resetLayout}>
-              Resetear layout
-            </RxButton>
-          )}
-          <RxButton
-            variant={editMode ? 'solid' : 'outline'}
-            color="indigo"
-            size="2"
-            onClick={() => setEditMode((v) => !v)}
-          >
-            {editMode
-              ? <><LayoutDashboard size={13} /> Listo</>
-              : <><Settings2 size={13} /> Personalizar</>
-            }
-          </RxButton>
-        </Flex>
       </Flex>
 
       {view === 'tareas' ? <DayView /> : (<>

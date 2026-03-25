@@ -50,18 +50,18 @@ function NumInput({
 
 function HeroCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className={`rounded-lg border-l-4 bg-gray-50 px-4 py-3`} style={{ borderLeftColor: color }}>
-      <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-      <p className="text-xl font-bold text-gray-900">{value}</p>
+    <div className="rounded-xl bg-gray-900 p-5 flex flex-col gap-2 shadow-md">
+      <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color }}>{label}</p>
+      <p className="text-[34px] font-black text-white leading-none tracking-tight tabular-nums">{value}</p>
     </div>
   )
 }
 
 function Row({ label, value, muted = false }: { label: string; value: string; muted?: boolean }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-      <span className={`text-sm ${muted ? 'text-gray-400' : 'text-gray-600'}`}>{label}</span>
-      <span className={`text-sm font-medium ${muted ? 'text-gray-400' : 'text-gray-800'}`}>{value}</span>
+    <div className="flex items-center justify-between py-2 border-b last:border-0 border-gray-100">
+      <span className={`text-sm ${muted ? 'text-gray-400' : 'text-gray-500'}`}>{label}</span>
+      <span className={`text-sm font-semibold tabular-nums ${muted ? 'text-gray-400' : 'text-gray-800'}`}>{value}</span>
     </div>
   )
 }
@@ -142,17 +142,17 @@ export function ScenarioAirbnb() {
           <HeroCard
             label="Ganancia neta / mes"
             value={formatUsd(result.ganancia_neta_mensual)}
-            color="#0369a1"
+            color="#38bdf8"
           />
           <HeroCard
             label="Rentabilidad anual"
             value={`${result.rentabilidad_percent.toFixed(1)}%`}
-            color="#0369a1"
+            color="#38bdf8"
           />
         </div>
 
         {/* Breakdown */}
-        <div className="rounded-lg border bg-gray-50 px-4 py-3">
+        <div className="rounded-xl border border-gray-100 bg-white px-4 py-2 shadow-sm">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Ingresos</p>
           <Row label="Ingresos brutos / mes" value={formatUsd(result.ingresos_brutos_mensuales)} />
           <Row label="Ingresos brutos / año" value={formatUsd(result.ingresos_brutos_anuales)} />

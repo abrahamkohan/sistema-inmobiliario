@@ -140,7 +140,10 @@ export function SimuladorPage() {
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Simulador</h1>
+        <div>
+          <h1 className="text-2xl font-semibold">Simulador</h1>
+          <p className="text-sm text-muted-foreground">Calculá el retorno de tu inversión</p>
+        </div>
         <div className="flex gap-2">
           {Object.keys(overrides).length > 0 && (
             <Button variant="outline" size="sm" onClick={resetOverrides}>

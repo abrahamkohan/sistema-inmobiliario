@@ -29,18 +29,18 @@ function NumInput({
 
 function HeroCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="rounded-lg border-l-4 bg-gray-50 px-4 py-3" style={{ borderLeftColor: color }}>
-      <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-      <p className="text-xl font-bold text-gray-900">{value}</p>
+    <div className="rounded-xl bg-gray-900 p-5 flex flex-col gap-2 shadow-md">
+      <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color }}>{label}</p>
+      <p className="text-[34px] font-black text-white leading-none tracking-tight tabular-nums">{value}</p>
     </div>
   )
 }
 
 function Row({ label, value, muted = false }: { label: string; value: string; muted?: boolean }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-      <span className={`text-sm ${muted ? 'text-gray-400' : 'text-gray-600'}`}>{label}</span>
-      <span className={`text-sm font-medium ${muted ? 'text-gray-400' : 'text-gray-800'}`}>{value}</span>
+    <div className="flex items-center justify-between py-2 border-b last:border-0 border-gray-100">
+      <span className={`text-sm ${muted ? 'text-gray-400' : 'text-gray-500'}`}>{label}</span>
+      <span className={`text-sm font-semibold tabular-nums ${muted ? 'text-gray-400' : 'text-gray-800'}`}>{value}</span>
     </div>
   )
 }
@@ -94,11 +94,11 @@ export function ScenarioPlusvalia() {
       {/* ── Results ── */}
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
-          <HeroCard label="Plusvalía" value={formatUsd(result.plusvalia)} color="#7c3aed" />
-          <HeroCard label="ROI anualizado" value={`${result.roi_anualizado_percent.toFixed(1)}%`} color="#7c3aed" />
+          <HeroCard label="Plusvalía" value={formatUsd(result.plusvalia)} color="#a78bfa" />
+          <HeroCard label="ROI Anualizado" value={`${result.roi_anualizado_percent.toFixed(1)}%`} color="#a78bfa" />
         </div>
 
-        <div className="rounded-lg border bg-gray-50 px-4 py-3">
+        <div className="rounded-xl border border-gray-100 bg-white px-4 py-2 shadow-sm">
           <Row label="Precio de compra" value={formatUsd(result.inversion_total)} />
           <Row label="Precio estimado de venta" value={formatUsd(inputs.precio_estimado_venta_usd)} />
           <Row label="Plusvalía total" value={formatUsd(result.plusvalia)} />

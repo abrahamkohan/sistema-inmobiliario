@@ -1,12 +1,17 @@
 // src/components/tasks/TaskFAB.tsx
-// Botón flotante "+" fixed bottom-right. Abre TaskModal en modo crear.
+// Speed-dial FAB: Nueva tarea + Nueva nota
 
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, X, ClipboardList, NotebookPen } from 'lucide-react'
 import { TaskModal } from './TaskModal'
+import { NoteEditor } from '@/components/notes/NoteEditor'
+import { useCreateNote } from '@/hooks/useNotes'
+import { useClients } from '@/hooks/useClients'
+import { useProjects } from '@/hooks/useProjects'
 import type { Database } from '@/types/database'
 
 type Context = Database['public']['Tables']['tasks']['Row']['context']
+type NoteRow = Database['public']['Tables']['notes']['Row']
 
 interface TaskFABProps {
   defaultContext?: Context
@@ -15,20 +20,92 @@ interface TaskFABProps {
 }
 
 export function TaskFAB({ defaultContext, defaultLeadId, defaultPropertyId }: TaskFABProps) {
-  const [open, setOpen] = useState(false)
+  const [open,        setOpen]        = useState(false)    // task modal
+  const [expanded,    setExpanded]    = useState(false)    // speed-dial
+  const [editingNote, setEditingNote] = useState<NoteRow | null>(null)
+
+  const createNote = useCreateNote()
+  const { data: clients  = [] } = useClients()
+  const { data: projects = [] } = useProjects()
+
+  async function handleNewNote() {
+    setExpanded(false)
+    const note = await createNote.mutateAsync({ content: '', location: 'inbox' })
+    setEditingNote(note)
+  }
+
+  function handleNewTask() {
+    setExpanded(false)
+    setOpen(true)
+  }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Nueva tarea"
-        className="fixed bottom-6 right-5 z-40 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-transform active:scale-95 hover:scale-105"
-        style={{ backgroundColor: '#D4AF37' }}
-      >
-        <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
-      </button>
+      {/* Backdrop semitransparente al expandir */}
+      {expanded && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => setExpanded(false)}
+        />
+      )}
 
+      {/* Speed-dial container */}
+      <div className="fixed bottom-6 right-5 z-40 flex flex-col items-end gap-3">
+
+        {/* Opciones — visibles cuando expanded */}
+        <div
+          className="flex flex-col items-end gap-2.5 transition-all duration-200"
+          style={{
+            opacity: expanded ? 1 : 0,
+            transform: expanded ? 'translateY(0)' : 'translateY(12px)',
+            pointerEvents: expanded ? 'auto' : 'none',
+          }}
+        >
+          {/* Nueva nota */}
+          <button
+            onClick={handleNewNote}
+            disabled={createNote.isPending}
+            className="flex items-center gap-2.5 pl-3 pr-4 py-2 rounded-full shadow-lg text-white text-sm font-semibold transition-transform active:scale-95 hover:scale-105"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}
+          >
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
+              <NotebookPen className="w-3.5 h-3.5" />
+            </span>
+            Nueva nota
+          </button>
+
+          {/* Nueva tarea */}
+          <button
+            onClick={handleNewTask}
+            className="flex items-center gap-2.5 pl-3 pr-4 py-2 rounded-full shadow-lg text-black text-sm font-semibold transition-transform active:scale-95 hover:scale-105"
+            style={{ background: 'linear-gradient(135deg, #D4AF37, #f0c93a)' }}
+          >
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-black/10">
+              <ClipboardList className="w-3.5 h-3.5" />
+            </span>
+            Nueva tarea
+          </button>
+        </div>
+
+        {/* Botón principal */}
+        <button
+          type="button"
+          onClick={() => setExpanded(v => !v)}
+          aria-label={expanded ? 'Cerrar' : 'Nueva acción'}
+          className="flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all active:scale-95 hover:scale-105"
+          style={{
+            backgroundColor: expanded ? '#1e293b' : '#D4AF37',
+            transition: 'background-color 0.2s, transform 0.15s',
+          }}
+        >
+          {expanded
+            ? <X    className="w-6 h-6 text-white" strokeWidth={2.5} />
+            : <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
+          }
+        </button>
+      </div>
+
+      {/* Modales */}
       <TaskModal
         isOpen={open}
         onClose={() => setOpen(false)}
@@ -38,6 +115,15 @@ export function TaskFAB({ defaultContext, defaultLeadId, defaultPropertyId }: Ta
           property_id: defaultPropertyId,
         }}
       />
+
+      {editingNote && (
+        <NoteEditor
+          note={editingNote}
+          clients={clients}
+          projects={projects}
+          onClose={() => setEditingNote(null)}
+        />
+      )}
     </>
   )
 }

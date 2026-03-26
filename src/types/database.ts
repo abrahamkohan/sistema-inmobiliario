@@ -607,6 +607,39 @@ export interface Database {
         }
         Relationships: []
       }
+      notes: {
+        Row: {
+          id: string
+          content: string
+          location: string
+          is_flagged: boolean
+          tags: string[]
+          reminder_date: string | null
+          client_id: string | null
+          project_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          location?: string
+          is_flagged?: boolean
+          tags?: string[]
+          reminder_date?: string | null
+          client_id?: string | null
+          project_id?: string | null
+        }
+        Update: {
+          content?: string
+          location?: string
+          is_flagged?: boolean
+          tags?: string[]
+          reminder_date?: string | null
+          client_id?: string | null
+          project_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

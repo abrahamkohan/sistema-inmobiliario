@@ -1,16 +1,18 @@
 // src/components/layout/Sidebar.tsx
 import { NavLink } from 'react-router'
-import { Home, Building2, Users, Calculator, FileText, Settings, BookMarked, LogOut, X, Receipt, MapPin, ClipboardList } from 'lucide-react'
+import { Home, Building2, Users, Calculator, FileText, Settings, BookMarked, LogOut, X, Receipt, MapPin, ClipboardList, NotebookPen } from 'lucide-react'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { supabase } from '@/lib/supabase'
 import { useTasks } from '@/hooks/useTasks'
 import { getUrgency } from '@/lib/tasks'
+import { useNotes } from '@/hooks/useNotes'
 
 const NAV_MAIN = [
   { to: '/inicio',    label: 'Inicio',    icon: Home },
   { to: '/tareas',    label: 'Tareas',    icon: ClipboardList },
   { to: '/proyectos', label: 'Proyectos', icon: Building2 },
   { to: '/clientes',  label: 'Clientes',  icon: Users },
+  { to: '/notas',     label: 'Notas',     icon: NotebookPen },
   { to: '/simulador', label: 'Simulador', icon: Calculator },
   { to: '/informes',  label: 'Informes',  icon: FileText },
 ] as const
@@ -61,7 +63,9 @@ interface SidebarProps {
 export function Sidebar({ onClose }: SidebarProps) {
   const { data: consultora } = useConsultoraConfig()
   const { data: tasks = [] } = useTasks()
+  const { data: notes = [] } = useNotes()
   const overdueCount = tasks.filter(t => getUrgency(t) === 'overdue').length
+  const inboxCount = notes.filter(n => n.location === 'inbox').length
   const nombre  = consultora?.nombre  ?? 'Consultora Inmobiliaria'
   const logoUrl = consultora?.logo_url ?? null
 
@@ -102,7 +106,7 @@ export function Sidebar({ onClose }: SidebarProps) {
         <div className="flex flex-col gap-2">
           {NAV_MAIN.map(({ to, label, icon }) => (
             <NavItem key={to} to={to} label={label} icon={icon} onClick={onClose}
-              badge={to === '/tareas' ? overdueCount : undefined} />
+              badge={to === '/tareas' ? overdueCount : to === '/notas' ? inboxCount : undefined} />
           ))}
         </div>
 

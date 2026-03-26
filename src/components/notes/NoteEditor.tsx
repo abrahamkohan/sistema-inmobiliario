@@ -100,6 +100,14 @@ export function NoteEditor({ note, clients, projects, onClose }: NoteEditorProps
     )
   }
 
+  function handleClose() {
+    if (!content.trim()) {
+      deleteNote.mutate(note.id, { onSuccess: onClose })
+    } else {
+      onClose()
+    }
+  }
+
   function handleDelete() {
     if (!confirm('¿Eliminar esta nota? No se puede deshacer.')) return
     deleteNote.mutate(note.id, { onSuccess: onClose })
@@ -124,7 +132,7 @@ export function NoteEditor({ note, clients, projects, onClose }: NoteEditorProps
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6"
       style={{ background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(8px)' }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="bg-white w-full max-w-2xl flex flex-col"
@@ -158,7 +166,7 @@ export function NoteEditor({ note, clients, projects, onClose }: NoteEditorProps
               Guardar
             </button>
             {/* Cerrar */}
-            <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+            <button onClick={handleClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>

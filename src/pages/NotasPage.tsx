@@ -1,5 +1,5 @@
 // src/pages/NotasPage.tsx
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -55,6 +55,12 @@ export function NotasPage() {
     const note = await createNote.mutateAsync({ content: '', location: 'inbox' })
     setEditing(note)
   }
+
+  // Al entrar a la página, abrir editor inmediatamente (filosofía Drafts)
+  useEffect(() => {
+    handleNew()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function handleArchive(id: string) {
     const note = notes.find(n => n.id === id)

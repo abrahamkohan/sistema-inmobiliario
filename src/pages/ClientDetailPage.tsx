@@ -647,21 +647,27 @@ export function ClientDetailPage() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <h1 className="text-lg font-bold text-gray-900 leading-tight truncate">
-                  {client.full_name}
-                  {client.apodo && <span className="text-sm font-normal text-gray-400 ml-2">"{client.apodo}"</span>}
-                </h1>
+              {/* Nombre + Edit */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h1 className="text-lg font-bold text-gray-900 leading-tight">
+                    {client.full_name}
+                  </h1>
+                  {client.apodo && (
+                    <p className="text-xs text-gray-400 italic">"{client.apodo}"</p>
+                  )}
+                </div>
                 <button
                   onClick={() => setEditOpen(true)}
-                  className="flex-shrink-0 p-1.5 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-medium text-gray-600 transition-colors"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <Edit2 className="w-3.5 h-3.5" />
+                  Editar
                 </button>
               </div>
 
-              {/* Badges */}
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {/* Badges tipo + estado */}
+              <div className="flex flex-wrap gap-1.5 mt-2">
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   client.tipo === 'cliente' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-600'
                 }`}>
@@ -669,20 +675,51 @@ export function ClientDetailPage() {
                 </span>
                 {client.estado && (
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoCls}`}>
-                    {client.estado}
+                    {client.estado.replace('_', ' ')}
                   </span>
-                )}
-                {client.fuente && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{client.fuente}</span>
-                )}
-                {client.nationality && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{client.nationality}</span>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Contact + quick actions */}
+          {/* Info básica en grid */}
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
+            {client.phone && (
+              <a href={`tel:${client.phone}`}
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                <Phone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                <span className="truncate">{client.phone}</span>
+              </a>
+            )}
+            {client.nationality && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <User className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                <span className="truncate">{client.nationality}</span>
+              </div>
+            )}
+            {client.email && (
+              <a href={`mailto:${client.email}`}
+                className="col-span-2 flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                <span className="truncate">{client.email}</span>
+              </a>
+            )}
+            {client.fuente && (
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Star className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                <span className="truncate text-xs">{client.fuente}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Observaciones */}
+          {client.notes && (
+            <div className="mt-3 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl">
+              <p className="text-xs text-amber-800 line-clamp-3">{client.notes}</p>
+            </div>
+          )}
+
+          {/* Quick actions */}
           <div className="flex items-center gap-2 mt-3 flex-wrap">
             {client.phone && (
               <a
@@ -699,14 +736,14 @@ export function ClientDetailPage() {
               <a href={`tel:${client.phone}`}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
                 <Phone className="w-3.5 h-3.5" />
-                {client.phone}
+                Llamar
               </a>
             )}
             {client.email && (
               <a href={`mailto:${client.email}`}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
                 <Mail className="w-3.5 h-3.5" />
-                {client.email}
+                Email
               </a>
             )}
           </div>

@@ -8,7 +8,7 @@ import { MobileFormScreen } from '@/components/ui/MobileFormScreen'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { useCreateTask, useUpdateTask, useTask } from '@/hooks/useTasks'
-import { useClient } from '@/hooks/useClients'
+import { useClient, useClients } from '@/hooks/useClients'
 import { useWhatsApp } from '@/hooks/useWhatsApp'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/lib/utils'
@@ -131,16 +131,21 @@ export function TaskModal({
 
   const isEdit = !!taskId
   const { data: existingTask, isLoading: loadingTask } = useTask(taskId ?? '')
-  const { data: lead } = useClient(defaultValues?.lead_id ?? existingTask?.lead_id ?? '')
 
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
   const { openWhatsApp, getTemplate } = useWhatsApp()
 
-  const [form,     setForm]     = useState<FormState>(() => initialForm(defaultValues))
-  const [moreOpen, setMoreOpen] = useState(false)
+  const [form,          setForm]          = useState<FormState>(() => initialForm(defaultValues))
+  const [moreOpen,      setMoreOpen]      = useState(false)
+  const [leadSearch,    setLeadSearch]    = useState('')
+  const [selectedLead,  setSelectedLead]  = useState<string>(defaultValues?.lead_id ?? '')
   const isSaving = createTask.isPending || updateTask.isPending
   const dateInputRef = useRef<HTMLInputElement>(null)
+
+  const { data: allClients = [] } = useClients()
+  const effectiveLeadId = selectedLead || defaultValues?.lead_id || existingTask?.lead_id || ''
+  const { data: lead } = useClient(effectiveLeadId)
 
   // Fix iOS Safari: bloquear scroll del body solo para este modal
   useEffect(() => {
@@ -173,6 +178,8 @@ export function TaskModal({
     } else if (isOpen && !isEdit) {
       setForm(initialForm(defaultValues))
       setMoreOpen(false)
+      setSelectedLead(defaultValues?.lead_id ?? '')
+      setLeadSearch('')
     }
   }, [isOpen, isEdit, existingTask, defaultValues])
 
@@ -194,7 +201,7 @@ export function TaskModal({
       notes:       form.notes.trim() || null,
       recurrence:  form.recurrence,
       meet_link:   form.meet_link.trim() || null,
-      lead_id:     defaultValues?.lead_id ?? existingTask?.lead_id ?? null,
+      lead_id:     selectedLead || defaultValues?.lead_id || existingTask?.lead_id || null,
       property_id: defaultValues?.property_id ?? existingTask?.property_id ?? null,
     }
 
@@ -227,6 +234,15 @@ export function TaskModal({
   const lockedLeadId     = defaultValues?.lead_id     ?? (isEdit ? existingTask?.lead_id     : null)
   const lockedPropertyId = defaultValues?.property_id ?? (isEdit ? existingTask?.property_id : null)
   const hasLeadPhone     = form.context === 'lead' && !!lead?.phone
+
+  // Filtro de búsqueda para el selector de cliente
+  const filteredClients = leadSearch.trim()
+    ? allClients.filter(c =>
+        c.full_name.toLowerCase().includes(leadSearch.toLowerCase()) ||
+        c.phone?.includes(leadSearch) ||
+        c.apodo?.toLowerCase().includes(leadSearch.toLowerCase())
+      ).slice(0, 6)
+    : []
   const canSave          = form.title.trim().length > 0 && form.due_date.length > 0
   const title            = isEdit ? 'Editar tarea' : 'Nueva tarea'
 
@@ -286,13 +302,70 @@ export function TaskModal({
         </div>
       </div>
 
-      {/* Lead readonly (si viene fijo) */}
+      {/* Lead readonly (si viene fijo desde contexto externo) */}
       {lockedLeadId && lead && (
         <div className="flex flex-col gap-1.5">
           <label className={LABEL_CLS}>LEAD</label>
           <div className={INPUT_CLS + ' flex items-center text-gray-500'}>
             {lead.full_name}
           </div>
+        </div>
+      )}
+
+      {/* Selector de cliente/lead (cuando no viene fijo y contexto = lead) */}
+      {!lockedLeadId && form.context === 'lead' && (
+        <div className="flex flex-col gap-1.5">
+          <label className={LABEL_CLS}>CLIENTE / LEAD</label>
+          {selectedLead && lead ? (
+            <div className="flex items-center gap-2">
+              <div className={INPUT_CLS + ' flex items-center text-gray-800 flex-1'}>
+                {lead.full_name}
+                {lead.phone && <span className="ml-2 text-gray-400 text-sm">{lead.phone}</span>}
+              </div>
+              <button
+                type="button"
+                onClick={() => { setSelectedLead(''); setLeadSearch('') }}
+                className="px-3 py-2 text-xs text-gray-400 hover:text-red-500 transition-colors"
+              >
+                Cambiar
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Buscar por nombre, teléfono..."
+                value={leadSearch}
+                onChange={e => setLeadSearch(e.target.value)}
+                className={INPUT_CLS}
+              />
+              {filteredClients.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                  {filteredClients.map(c => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => { setSelectedLead(c.id); setLeadSearch('') }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                    >
+                      <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0">
+                        {c.full_name[0].toUpperCase()}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium text-gray-800 truncate">{c.full_name}</span>
+                        {c.phone && <span className="text-xs text-gray-400">{c.phone}</span>}
+                      </div>
+                      <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                        c.tipo === 'cliente' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-600'
+                      }`}>
+                        {c.tipo === 'cliente' ? 'Cliente' : 'Lead'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

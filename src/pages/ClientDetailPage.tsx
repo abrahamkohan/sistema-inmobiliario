@@ -619,7 +619,7 @@ export function ClientDetailPage() {
 
   // ── Layout: fixed header + scrollable timeline + fixed chat input ──────────
   return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+    <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <div className="flex-shrink-0 bg-white border-b border-gray-100">

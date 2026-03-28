@@ -18,6 +18,7 @@ interface TaskListProps {
   onComplete:    (task: TaskRow) => void
   onReschedule:  (task: TaskRow) => void
   onOpenPeek?:   (leadId: string) => void
+  onDelete?:     (id: string) => void
 }
 
 // ── Empty states por tab ──────────────────────────────────────────────────
@@ -39,6 +40,7 @@ export function TaskList({
   onComplete,
   onReschedule,
   onOpenPeek,
+  onDelete,
 }: TaskListProps) {
   if (tasks.length === 0) {
     const empty = EMPTY[tab]
@@ -62,6 +64,7 @@ export function TaskList({
           onComplete={onComplete}
           onReschedule={onReschedule}
           onOpenPeek={onOpenPeek}
+          onDelete={onDelete}
         />
       ))}
     </div>

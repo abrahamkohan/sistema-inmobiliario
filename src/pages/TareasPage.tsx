@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react'
 import { ChevronDown, ChevronUp, Loader2, Search } from 'lucide-react'
-import { useTasks, useUpdateTask, useCreateTask } from '@/hooks/useTasks'
+import { useTasks, useUpdateTask, useCreateTask, useDeleteTask } from '@/hooks/useTasks'
 import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/context/AuthContext'
 import { getUrgency } from '@/lib/tasks'
@@ -61,6 +61,7 @@ export function TareasPage() {
 
   const updateTask = useUpdateTask()
   const createTask = useCreateTask()
+  const deleteTask = useDeleteTask()
 
   // Mapa lead_id → TaskLead
   const leads = useMemo<Record<string, TaskLead>>(() => {
@@ -274,6 +275,7 @@ export function TareasPage() {
             onComplete={handleComplete}
             onReschedule={handleReschedule}
             onOpenPeek={setPeekLeadId}
+            onDelete={id => deleteTask.mutate(id)}
           />
         )}
       </div>

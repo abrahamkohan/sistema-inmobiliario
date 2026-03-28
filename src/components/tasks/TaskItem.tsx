@@ -1,7 +1,7 @@
 // src/components/tasks/TaskItem.tsx
 
 import { useRef, useState } from 'react'
-import { MessageCircle, Phone, MapPin, Mail, Video } from 'lucide-react'
+import { MessageCircle, Phone, MapPin, Mail, Video, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useWhatsApp } from '@/hooks/useWhatsApp'
 import { getUrgency } from '@/lib/tasks'
@@ -22,6 +22,7 @@ interface TaskItemProps {
   onComplete: (task: TaskRow) => void
   onReschedule: (task: TaskRow) => void
   onOpenPeek?: (leadId: string) => void
+  onDelete?: (id: string) => void
 }
 
 const TYPE_ICON: Record<string, React.ElementType> = {
@@ -74,6 +75,7 @@ export function TaskItem({
   onComplete,
   onReschedule,
   onOpenPeek,
+  onDelete,
 }: TaskItemProps) {
   const { openWhatsApp, getTemplate } = useWhatsApp()
 
@@ -129,7 +131,7 @@ export function TaskItem({
   return (
     <div
       className={cn(
-        'relative rounded-2xl bg-white px-3 py-2.5 flex items-center gap-3 transition-all duration-150',
+        'group relative rounded-2xl bg-white px-3 py-2.5 flex items-center gap-3 transition-all duration-150',
         'shadow-[0_4px_14px_rgba(0,0,0,0.07)]',
         'active:scale-[0.98]',
         isClosed && 'opacity-50',
@@ -242,6 +244,17 @@ export function TaskItem({
           </a>
         )}
       </div>
+
+      {/* Botón eliminar — solo hover */}
+      {onDelete && (
+        <button
+          onClick={e => { e.stopPropagation(); if (confirm(`¿Eliminar "${task.title}"?`)) onDelete(task.id) }}
+          className="absolute top-2 right-[84px] opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+          title="Eliminar tarea"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
 
       {/* Badge estilo calendario — cuadrado fijo 72×72 */}
       <div className="w-[72px] h-[72px] flex-shrink-0 rounded-2xl overflow-hidden shadow-[0_3px_10px_rgba(0,0,0,0.12)] border border-gray-100 flex flex-col">

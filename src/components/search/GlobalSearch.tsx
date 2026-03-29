@@ -114,12 +114,12 @@ export function GlobalSearch() {
 
       {/* Modal */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center md:pt-16 md:px-4">
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
 
           {/* Panel */}
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="relative w-full md:max-w-lg bg-white rounded-b-2xl md:rounded-2xl shadow-2xl overflow-hidden">
 
             {/* Input */}
             <div className="flex items-center gap-3 px-4 py-3 border-b">

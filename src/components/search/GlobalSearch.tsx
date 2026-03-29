@@ -24,8 +24,8 @@ async function search(q: string): Promise<Result[]> {
     supabase.from('tasks').select('id, title, due_date, lead_id')
       .ilike('title', term)
       .limit(5),
-    supabase.from('properties').select('id, title, address, ciudad')
-      .or(`title.ilike.${term},address.ilike.${term}`)
+    supabase.from('properties').select('id, titulo, direccion, ciudad')
+      .or(`titulo.ilike.${term},direccion.ilike.${term}`)
       .limit(5),
   ])
 
@@ -49,8 +49,8 @@ async function search(q: string): Promise<Result[]> {
   properties.data?.forEach(p => results.push({
     kind: 'property',
     id: p.id,
-    label: p.title,
-    sub: [p.ciudad, p.address].filter(Boolean).join(' · '),
+    label: p.titulo ?? 'Sin título',
+    sub: [p.ciudad, p.direccion].filter(Boolean).join(' · '),
   }))
 
   return results

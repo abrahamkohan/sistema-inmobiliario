@@ -5,7 +5,6 @@ import { Menu, Search } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { useRealtimeTasks } from '@/hooks/useRealtimeTasks'
-import { GlobalSearch } from '@/components/search/GlobalSearch'
 
 export function AppShell() {
   useRealtimeTasks()

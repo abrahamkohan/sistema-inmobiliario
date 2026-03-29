@@ -19,7 +19,7 @@ function Row({ c, onView, onEdit, onDelete }: { c: CommissionFull } & Omit<Props
     : '—'
 
   function handleDelete() {
-    if (!confirm(`¿Eliminar comisión "${c.proyecto_vendido}"?`)) return
+    if (!confirm(`¿Eliminar venta "${c.proyecto_vendido}"?`)) return
     onDelete(c.id)
   }
 

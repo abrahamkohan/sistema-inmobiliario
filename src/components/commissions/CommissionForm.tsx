@@ -71,7 +71,7 @@ export function CommissionForm({ defaultValues, onSubmit, onCancel, isSubmitting
       </button>
       <button type="submit" disabled={!canSubmit || isSubmitting}
         className="flex-[2] h-12 rounded-xl bg-gray-900 text-white text-sm font-semibold disabled:opacity-40 transition-opacity">
-        {isSubmitting ? 'Guardando...' : defaultValues?.id ? 'Guardar cambios' : 'Crear comisión'}
+        {isSubmitting ? 'Guardando...' : defaultValues?.id ? 'Guardar cambios' : 'Registrar venta'}
       </button>
     </div>
   )

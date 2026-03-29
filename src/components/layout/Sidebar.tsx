@@ -117,7 +117,7 @@ export function Sidebar({ onClose }: SidebarProps) {
             <NavItem key={to} to={to} label={label} icon={icon} onClick={onClose} />
           ))}
           {isAdmin && (
-            <NavItem to="/comisiones" label="Comisiones" icon={HandCoins} onClick={onClose} />
+            <NavItem to="/comisiones" label="Ventas" icon={HandCoins} onClick={onClose} />
           )}
         </div>
 

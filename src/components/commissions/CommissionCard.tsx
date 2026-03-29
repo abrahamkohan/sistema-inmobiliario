@@ -20,7 +20,7 @@ export function CommissionCard({ commission: c, onView, onEdit, onDelete }: Prop
 
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!confirm(`¿Eliminar comisión "${c.proyecto_vendido}"?`)) return
+    if (!confirm(`¿Eliminar venta "${c.proyecto_vendido}"?`)) return
     onDelete(c.id)
   }
 

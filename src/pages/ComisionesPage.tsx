@@ -56,13 +56,13 @@ export function ComisionesPage() {
     try {
       if (editing) {
         await updateCommission.mutateAsync({ id: editing.id, data: payload })
-        toast.success('Comisión actualizada')
+        toast.success('Venta actualizada')
       } else {
         await createCommission.mutateAsync({
           commissionData: payload,
           agentes: agentes.filter(a => a.activo),
         })
-        toast.success('Comisión creada con splits automáticos')
+        toast.success('Venta registrada')
       }
       setFormOpen(false)
       setEditing(null)
@@ -73,7 +73,7 @@ export function ComisionesPage() {
 
   function handleDelete(id: string) {
     deleteCommission.mutate(id, {
-      onSuccess: () => toast.success('Comisión eliminada'),
+      onSuccess: () => toast.success('Venta eliminada'),
       onError:   () => toast.error('Error al eliminar'),
     })
   }
@@ -99,7 +99,7 @@ export function ComisionesPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Comisiones</h1>
+        <h1 className="text-2xl font-semibold">Ventas</h1>
         <button
           onClick={openCreate}
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors"
@@ -131,9 +131,9 @@ export function ComisionesPage() {
       {!isLoading && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <p className="text-muted-foreground">
-            {tab === 'todas'         ? 'No hay comisiones todavía.' :
+            {tab === 'todas'         ? 'No hay ventas todavía.' :
              tab === 'sin_facturar'  ? 'Todos los splits están facturados.' :
-             'No hay comisiones con saldo pendiente.'}
+             'No hay ventas con saldo pendiente.'}
           </p>
           {tab === 'todas' && (
             <button onClick={openCreate}
@@ -162,7 +162,7 @@ export function ComisionesPage() {
 
       {/* Form — Mobile fullscreen */}
       <MobileFormScreen open={formOpen} onClose={() => setFormOpen(false)}
-        title={editing ? 'Editar comisión' : 'Nueva comisión'}>
+        title={editing ? 'Editar venta' : 'Nueva venta'}>
         <CommissionForm
           key={editing?.id ?? 'new'}
           defaultValues={editing ?? undefined}
@@ -176,7 +176,7 @@ export function ComisionesPage() {
       {/* Form — Desktop modal */}
       <div className="hidden md:block">
         <Modal open={formOpen} onClose={() => setFormOpen(false)}
-          title={editing ? 'Editar comisión' : 'Nueva comisión'}>
+          title={editing ? 'Editar venta' : 'Nueva venta'}>
           <CommissionForm
             key={editing?.id ?? 'new'}
             defaultValues={editing ?? undefined}

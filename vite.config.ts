@@ -2,9 +2,41 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['pwa-icon.svg', 'apple-touch-icon.png'],
+      manifest: {
+        name: 'Kohan & Campos — CRM',
+        short_name: 'K&C CRM',
+        description: 'Sistema de gestión inmobiliaria Kohan & Campos',
+        theme_color: '#14223A',
+        background_color: '#14223A',
+        display: 'standalone',
+        orientation: 'portrait',
+        scope: '/',
+        start_url: '/inicio',
+        icons: [
+          {
+            src: 'pwa-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

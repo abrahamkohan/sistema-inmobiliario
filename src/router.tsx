@@ -25,6 +25,7 @@ import { TareasPage } from '@/pages/TareasPage'
 import { NotasPage }  from '@/pages/NotasPage'
 import { ClientDetailPage } from '@/pages/ClientDetailPage'
 import { ComisionesPage } from '@/pages/ComisionesPage'
+import { VentaFormPage } from '@/pages/VentaFormPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 
 export const router = createBrowserRouter([
@@ -53,7 +54,9 @@ export const router = createBrowserRouter([
       { path: 'propiedades/:id/editar', element: <PropiedadEditarPage /> },
       { path: 'tareas',        element: <TareasPage /> },
       { path: 'notas',         element: <NotasPage /> },
-      { path: 'comisiones',    element: <ComisionesPage /> },
+      { path: 'comisiones',            element: <ComisionesPage /> },
+      { path: 'comisiones/nueva',      element: <VentaFormPage /> },
+      { path: 'comisiones/:id/editar', element: <VentaFormPage /> },
       { path: 'configuracion', element: <ConfiguracionPage /> },
     ],
   },

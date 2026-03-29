@@ -1,35 +1,26 @@
 // src/pages/ComisionesPage.tsx
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
-import { Modal } from '@/components/ui/modal'
-import { MobileFormScreen } from '@/components/ui/MobileFormScreen'
-import { CommissionForm, type CommissionFormValues } from '@/components/commissions/CommissionForm'
 import { CommissionTable } from '@/components/commissions/CommissionTable'
 import { CommissionCard } from '@/components/commissions/CommissionCard'
 import { CommissionDetailSheet } from '@/components/commissions/CommissionDetailSheet'
 import {
   useCommissions,
-  useCreateCommissionWithSplits,
-  useUpdateCommission,
   useDeleteCommission,
 } from '@/hooks/useCommissions'
-import { useAgentes } from '@/hooks/useAgentes'
 import { calcTotals } from '@/lib/commissions'
 import type { CommissionFull } from '@/lib/commissions'
 
 type Tab = 'todas' | 'sin_facturar' | 'pendientes'
 
 export function ComisionesPage() {
+  const navigate = useNavigate()
   const { data: commissions = [], isLoading } = useCommissions()
-  const { data: agentes = [] } = useAgentes()
-  const createCommission = useCreateCommissionWithSplits()
-  const updateCommission = useUpdateCommission()
   const deleteCommission = useDeleteCommission()
 
   const [tab,        setTab]        = useState<Tab>('todas')
-  const [formOpen,   setFormOpen]   = useState(false)
-  const [editing,    setEditing]    = useState<CommissionFull | null>(null)
   const [detailItem, setDetailItem] = useState<CommissionFull | null>(null)
 
   // ── Filtros ──────────────────────────────────────────────────────────────────
@@ -40,36 +31,7 @@ export function ComisionesPage() {
   }, [commissions, tab])
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
-  function openCreate() { setEditing(null); setFormOpen(true) }
-  function openEdit(c: CommissionFull) { setEditing(c); setFormOpen(true) }
   function openDetail(c: CommissionFull) { setDetailItem(c) }
-
-  async function handleSubmit(values: CommissionFormValues) {
-    const payload = {
-      proyecto_vendido:    values.proyecto_vendido.trim(),
-      project_id:          values.project_id || null,
-      valor_venta:         values.valor_venta ? parseFloat(values.valor_venta) : null,
-      porcentaje_comision: values.porcentaje_comision ? parseFloat(values.porcentaje_comision) : null,
-      importe_comision:    parseFloat(values.importe_comision),
-      fecha_cierre:        values.fecha_cierre || null,
-    }
-    try {
-      if (editing) {
-        await updateCommission.mutateAsync({ id: editing.id, data: payload })
-        toast.success('Venta actualizada')
-      } else {
-        await createCommission.mutateAsync({
-          commissionData: payload,
-          agentes: agentes.filter(a => a.activo),
-        })
-        toast.success('Venta registrada')
-      }
-      setFormOpen(false)
-      setEditing(null)
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error al guardar')
-    }
-  }
 
   function handleDelete(id: string) {
     deleteCommission.mutate(id, {
@@ -81,8 +43,6 @@ export function ComisionesPage() {
   const liveDetail = detailItem
     ? (commissions.find(c => c.id === detailItem.id) ?? detailItem)
     : null
-
-  const isPending = createCommission.isPending || updateCommission.isPending
 
   // ── Tab pills ────────────────────────────────────────────────────────────────
   const TAB_CLS = (active: boolean) =>
@@ -101,7 +61,7 @@ export function ComisionesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Ventas</h1>
         <button
-          onClick={openCreate}
+          onClick={() => navigate('/comisiones/nueva')}
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
@@ -136,8 +96,10 @@ export function ComisionesPage() {
              'No hay ventas con saldo pendiente.'}
           </p>
           {tab === 'todas' && (
-            <button onClick={openCreate}
-              className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            <button
+              onClick={() => navigate('/comisiones/nueva')}
+              className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            >
               Crear la primera
             </button>
           )}
@@ -149,43 +111,27 @@ export function ComisionesPage() {
         <>
           {/* Desktop: tabla */}
           <div className="hidden md:block">
-            <CommissionTable commissions={filtered} onView={openDetail} onEdit={openEdit} onDelete={handleDelete} />
+            <CommissionTable
+              commissions={filtered}
+              onView={openDetail}
+              onEdit={c => navigate(`/comisiones/${c.id}/editar`)}
+              onDelete={handleDelete}
+            />
           </div>
           {/* Mobile: cards */}
           <div className="flex flex-col gap-3 md:hidden">
             {filtered.map(c => (
-              <CommissionCard key={c.id} commission={c} onView={openDetail} onEdit={openEdit} onDelete={handleDelete} />
+              <CommissionCard
+                key={c.id}
+                commission={c}
+                onView={openDetail}
+                onEdit={c => navigate(`/comisiones/${c.id}/editar`)}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         </>
       )}
-
-      {/* Form — Mobile fullscreen */}
-      <MobileFormScreen open={formOpen} onClose={() => setFormOpen(false)}
-        title={editing ? 'Editar venta' : 'Nueva venta'}>
-        <CommissionForm
-          key={editing?.id ?? 'new'}
-          defaultValues={editing ?? undefined}
-          onSubmit={handleSubmit}
-          onCancel={() => setFormOpen(false)}
-          isSubmitting={isPending}
-          stickyButtons
-        />
-      </MobileFormScreen>
-
-      {/* Form — Desktop modal */}
-      <div className="hidden md:block">
-        <Modal open={formOpen} onClose={() => setFormOpen(false)}
-          title={editing ? 'Editar venta' : 'Nueva venta'}>
-          <CommissionForm
-            key={editing?.id ?? 'new'}
-            defaultValues={editing ?? undefined}
-            onSubmit={handleSubmit}
-            onCancel={() => setFormOpen(false)}
-            isSubmitting={isPending}
-          />
-        </Modal>
-      </div>
 
       {/* Detail sheet */}
       {liveDetail && (

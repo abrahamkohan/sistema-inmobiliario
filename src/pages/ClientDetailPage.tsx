@@ -406,43 +406,46 @@ function ChatInput({
 
   return (
     <div
-      className="flex-shrink-0 bg-white border-t border-gray-100 px-3 py-3"
+      className="flex-shrink-0 bg-white border-t border-gray-100 px-3 pt-2 pb-3"
       style={{
-        paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)',
-        boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)',
+        boxShadow: '0 -8px 24px rgba(0,0,0,0.05)',
       }}
     >
       {/* Quick action menu */}
       {menuOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-          <div className="absolute bottom-full left-4 mb-2 z-20 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden w-52">
+          <div className="absolute bottom-full left-4 mb-2 z-20 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden w-56">
+            <div className="px-3 pt-2.5 pb-1">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Acciones rápidas</p>
+            </div>
             <button
               onClick={() => { setMenuOpen(false); onNewTask() }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
                 <ClipboardList className="w-4 h-4 text-blue-600" />
               </div>
-              Nueva tarea
+              <span>Nueva tarea</span>
             </button>
             <a
-              href="/presupuestos"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              href="/presupuestos/nuevo"
+              className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
                 <FileText className="w-4 h-4 text-emerald-600" />
               </div>
-              Nuevo presupuesto
+              <span>Nuevo presupuesto</span>
             </a>
             <a
               href="/simulador"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-3 px-4 pb-3 pt-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
                 <BarChart2 className="w-4 h-4 text-amber-500" />
               </div>
-              Nueva simulación
+              <span>Nueva simulación</span>
             </a>
           </div>
         </>
@@ -452,17 +455,17 @@ function ChatInput({
         {/* + button */}
         <button
           onClick={() => setMenuOpen(v => !v)}
-          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+          className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all ${
             menuOpen
-              ? 'bg-gray-900 text-white rotate-45'
+              ? 'bg-gray-900 text-white'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
           }`}
         >
-          <Plus className="w-5 h-5" style={{ transform: menuOpen ? 'rotate(45deg)' : undefined, transition: 'transform 0.2s' }} />
+          <Plus className="w-4 h-4" style={{ transform: menuOpen ? 'rotate(45deg)' : undefined, transition: 'transform 0.2s' }} />
         </button>
 
         {/* Textarea */}
-        <div className="flex-1 flex items-end bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2.5 focus-within:border-gray-400 focus-within:bg-white transition-colors">
+        <div className="flex-1 flex items-end bg-gray-50 border border-gray-200 rounded-2xl px-3.5 py-2.5 focus-within:border-gray-400 focus-within:bg-white focus-within:shadow-sm transition-all">
           <textarea
             ref={textareaRef}
             value={text}
@@ -478,11 +481,11 @@ function ChatInput({
         <button
           onClick={handleSend}
           disabled={!text.trim() || isSending}
-          className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex-shrink-0 w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-700"
         >
           {isSending
-            ? <Loader2 className="w-4 h-4 animate-spin" />
-            : <Send className="w-4 h-4" />
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            : <Send className="w-3.5 h-3.5" />
           }
         </button>
       </div>
@@ -603,138 +606,135 @@ export function ClientDetailPage() {
       <div className="flex-shrink-0 bg-white border-b border-gray-100">
 
         {/* Nav bar */}
-        <div className="flex items-center gap-3 px-4 h-14">
+        <div className="flex items-center justify-between px-4 h-12 border-b border-gray-50">
           <button
             onClick={() => navigate('/clientes')}
-            className="flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors"
+            className="flex items-center gap-1 text-gray-400 hover:text-gray-900 transition-colors text-sm font-medium"
           >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="text-[15px]">Clientes</span>
+            <ChevronLeft className="w-4 h-4" />
+            Clientes
+          </button>
+          <button
+            onClick={() => navigate(`/clientes/${id}/editar`)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-gray-600 transition-colors"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+            Editar
           </button>
         </div>
 
-        {/* Client info */}
-        <div className="px-5 pb-4">
-          <div className="flex items-start gap-3">
+        {/* Client info — mobile: stack, desktop: 2 cols */}
+        <div className="px-5 py-4 md:grid md:grid-cols-[1fr,auto] md:gap-6 md:items-start">
+
+          {/* Left: avatar + name + info */}
+          <div className="flex items-start gap-4">
             {/* Avatar */}
             <div
-              className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-base"
+              className="flex-shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl md:text-2xl shadow-sm"
               style={{ background: 'linear-gradient(135deg, #1e293b, #334155)' }}
             >
               {initials}
             </div>
 
             <div className="flex-1 min-w-0">
-              {/* Nombre + Edit */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h1 className="text-lg font-bold text-gray-900 leading-tight">
-                    {client.full_name}
-                  </h1>
-                  {client.apodo && (
-                    <p className="text-xs text-gray-400 italic">"{client.apodo}"</p>
-                  )}
-                </div>
-                <button
-                  onClick={() => navigate(`/clientes/${id}/editar`)}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-medium text-gray-600 transition-colors"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                  Editar
-                </button>
-              </div>
+              <h1 className="text-xl font-bold text-gray-900 leading-tight">
+                {client.full_name}
+              </h1>
+              {client.apodo && (
+                <p className="text-xs text-gray-400 italic mt-0.5">"{client.apodo}"</p>
+              )}
 
-              {/* Badges tipo + estado */}
+              {/* Badges */}
               <div className="flex flex-wrap gap-1.5 mt-2">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  client.tipo === 'cliente' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-600'
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                  client.tipo === 'cliente' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                 }`}>
                   {client.tipo === 'cliente' ? 'Cliente' : 'Lead'}
                 </span>
                 {client.estado && (
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${estadoCls}`}>
+                  <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${estadoCls}`}>
                     {client.estado.replace('_', ' ')}
                   </span>
+                )}
+              </div>
+
+              {/* Info grid */}
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                {client.phone && (
+                  <a href={`tel:${client.phone}`}
+                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    <Phone className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                    <span className="truncate font-medium">{client.phone}</span>
+                  </a>
+                )}
+                {client.nationality && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <User className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                    <span className="truncate">{client.nationality}</span>
+                  </div>
+                )}
+                {client.email && (
+                  <a href={`mailto:${client.email}`}
+                    className="sm:col-span-2 flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    <Mail className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                    <span className="truncate">{client.email}</span>
+                  </a>
+                )}
+                {client.fuente && (
+                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <Star className="w-3.5 h-3.5 text-gray-200 flex-shrink-0" />
+                    <span className="truncate text-xs">{client.fuente}</span>
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Info básica en grid */}
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
-            {client.phone && (
-              <a href={`tel:${client.phone}`}
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                <Phone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                <span className="truncate">{client.phone}</span>
-              </a>
-            )}
-            {client.nationality && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <User className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                <span className="truncate">{client.nationality}</span>
-              </div>
-            )}
-            {client.email && (
-              <a href={`mailto:${client.email}`}
-                className="col-span-2 flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                <span className="truncate">{client.email}</span>
-              </a>
-            )}
-            {client.fuente && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Star className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
-                <span className="truncate text-xs">{client.fuente}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Observaciones */}
-          {client.notes && (
-            <div className="mt-3 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl">
-              <p className="text-xs text-amber-800 line-clamp-3">{client.notes}</p>
-            </div>
-          )}
-
-          {/* Quick actions */}
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
+          {/* Right: quick actions */}
+          <div className="flex items-center gap-2 mt-4 md:mt-0 md:flex-col md:items-stretch md:gap-2 md:min-w-[140px]">
             {client.phone && (
               <a
                 href={`https://wa.me/${client.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${client.full_name}`)}`}
                 target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white transition-colors"
-                style={{ backgroundColor: '#397746' }}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: '#25D366' }}
               >
-                <MessageCircle className="w-3.5 h-3.5" />
-                WhatsApp
+                <MessageCircle className="w-4 h-4" />
+                <span className="hidden sm:inline md:inline">WhatsApp</span>
               </a>
             )}
             {client.phone && (
               <a href={`tel:${client.phone}`}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
-                <Phone className="w-3.5 h-3.5" />
-                Llamar
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-blue-500 text-white shadow-sm hover:opacity-90 transition-opacity">
+                <Phone className="w-4 h-4" />
+                <span className="hidden sm:inline md:inline">Llamar</span>
               </a>
             )}
             {client.email && (
               <a href={`mailto:${client.email}`}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
-                <Mail className="w-3.5 h-3.5" />
-                Email
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                <Mail className="w-4 h-4" />
+                <span className="hidden sm:inline md:inline">Email</span>
               </a>
             )}
           </div>
         </div>
 
+        {/* Observaciones */}
+        {client.notes && (
+          <div className="mx-5 mb-3 px-3 py-2.5 bg-amber-50 border border-amber-100 rounded-xl">
+            <p className="text-xs text-amber-800 line-clamp-2">{client.notes}</p>
+          </div>
+        )}
+
         {/* Status bar */}
         <StatusBar activity={allActivity.filter(i => i.type !== 'system')} tasks={tasks} />
 
         {/* Tabs */}
-        <div className="flex gap-0 overflow-x-auto px-4 border-t border-gray-50">
+        <div className="flex gap-0 overflow-x-auto px-4">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium whitespace-nowrap border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-3 text-[12px] font-semibold whitespace-nowrap border-b-2 transition-colors ${
                 tab === t.key
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-400 hover:text-gray-600'
@@ -742,7 +742,7 @@ export function ClientDetailPage() {
             >
               {t.label}
               {t.count > 0 && (
-                <span className={`text-[10px] min-w-[16px] text-center px-1 py-0.5 rounded-full font-bold ${
+                <span className={`text-[10px] min-w-[18px] text-center px-1 py-0.5 rounded-full font-bold ${
                   tab === t.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
                 }`}>
                   {t.count}

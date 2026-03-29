@@ -27,6 +27,7 @@ import { ClientDetailPage } from '@/pages/ClientDetailPage'
 import { ComisionesPage } from '@/pages/ComisionesPage'
 import { VentaFormPage } from '@/pages/VentaFormPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
+import { RequireRole } from '@/components/auth/RequireRole'
 
 export const router = createBrowserRouter([
   {
@@ -54,9 +55,9 @@ export const router = createBrowserRouter([
       { path: 'propiedades/:id/editar', element: <PropiedadEditarPage /> },
       { path: 'tareas',        element: <TareasPage /> },
       { path: 'notas',         element: <NotasPage /> },
-      { path: 'comisiones',            element: <ComisionesPage /> },
-      { path: 'comisiones/nueva',      element: <VentaFormPage /> },
-      { path: 'comisiones/:id/editar', element: <VentaFormPage /> },
+      { path: 'comisiones',            element: <RequireRole role="admin"><ComisionesPage /></RequireRole> },
+      { path: 'comisiones/nueva',      element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
+      { path: 'comisiones/:id/editar', element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
       { path: 'configuracion', element: <ConfiguracionPage /> },
     ],
   },

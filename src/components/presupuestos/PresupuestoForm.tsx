@@ -1,6 +1,6 @@
 // src/components/presupuestos/PresupuestoForm.tsx
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { Plus, X as XIcon, UploadCloud, Loader2 } from 'lucide-react'
+import { X as XIcon, UploadCloud, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { uploadPresupuestoFloorPlan, getPublicUrl } from '@/lib/storage'
@@ -213,7 +213,7 @@ function FloorPlanField({ value, onChange, uploading, onFile }: {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function PresupuestoForm({ initial, onSubmit, isPending }: PresupuestoFormProps) {
+export function PresupuestoForm({ initial, onSubmit }: PresupuestoFormProps) {
   // ── Suggestions data ────────────────────────────────────────────────────────
   const { data: clients = [] } = useClients()
   const { data: properties = [] } = useProperties()

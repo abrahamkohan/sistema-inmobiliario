@@ -304,6 +304,7 @@ export interface Database {
           instagram: string | null
           sitio_web: string | null
           market_data: Record<string, unknown> | null
+          simulador_publico: boolean
           updated_at: string
         }
         Insert: {
@@ -316,6 +317,7 @@ export interface Database {
           instagram?: string | null
           sitio_web?: string | null
           market_data?: Record<string, unknown> | null
+          simulador_publico?: boolean
         }
         Update: {
           nombre?: string
@@ -326,6 +328,7 @@ export interface Database {
           instagram?: string | null
           sitio_web?: string | null
           market_data?: Record<string, unknown> | null
+          simulador_publico?: boolean
         }
         Relationships: []
       }

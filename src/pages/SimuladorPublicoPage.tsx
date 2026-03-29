@@ -1,7 +1,7 @@
 // src/pages/SimuladorPublicoPage.tsx
 import { useState, useEffect, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getPublicProjects, getPublicTypologies } from '@/lib/publicData'
+import { getPublicProjects, getPublicTypologies, getConsultoraPublic } from '@/lib/publicData'
 import { calcAirbnb, calcAlquiler, calcPlusvalia } from '@/simulator/engine'
 import { formatUsd } from '@/utils/money'
 import { MARKET_DEFAULTS } from '@/simulator/store'
@@ -30,9 +30,15 @@ function ScenarioCard({ title, color, children }: { title: string; color: string
 }
 
 export function SimuladorPublicoPage() {
+  const { data: consultora, isLoading: loadingConfig } = useQuery({
+    queryKey: ['consultora-public'],
+    queryFn: getConsultoraPublic,
+  })
+
   const { data: projects = [], isLoading: loadingProjects } = useQuery({
     queryKey: ['public-projects'],
     queryFn: getPublicProjects,
+    enabled: consultora?.simulador_publico === true,
   })
 
   const [projectId, setProjectId]   = useState<string>('')
@@ -53,6 +59,24 @@ export function SimuladorPublicoPage() {
   // Reset typology when project changes
   useEffect(() => { setTypologyId(''); setPriceInput('') }, [projectId])
   useEffect(() => { setPriceInput('') }, [typologyId])
+
+  // Gate — simulador desactivado
+  if (loadingConfig) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f7f4' }}>
+        <p style={{ color: '#9ca3af', fontSize: 14 }}>Cargando...</p>
+      </div>
+    )
+  }
+
+  if (!consultora?.simulador_publico) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8f7f4', gap: 12 }}>
+        <p style={{ fontWeight: 700, fontSize: 18, color: '#14223A', margin: 0 }}>Kohan &amp; Campos</p>
+        <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>El simulador no está disponible en este momento.</p>
+      </div>
+    )
+  }
 
   const price = useMemo(() => {
     const override = parseFloat(priceInput)

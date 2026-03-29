@@ -3,8 +3,19 @@
 import { supabase } from './supabase'
 import type { Database } from '@/types/database'
 
-type ProjectRow   = Database['public']['Tables']['projects']['Row']
-type TypologyRow  = Database['public']['Tables']['typologies']['Row']
+type ProjectRow      = Database['public']['Tables']['projects']['Row']
+type TypologyRow     = Database['public']['Tables']['typologies']['Row']
+type ConsultoraRow   = Database['public']['Tables']['consultora_config']['Row']
+
+export async function getConsultoraPublic(): Promise<ConsultoraRow | null> {
+  const { data, error } = await supabase
+    .from('consultora_config')
+    .select('simulador_publico, nombre, logo_url')
+    .limit(1)
+    .single()
+  if (error) return null
+  return data as unknown as ConsultoraRow
+}
 
 export async function getPublicProjects(): Promise<ProjectRow[]> {
   const { data, error } = await supabase

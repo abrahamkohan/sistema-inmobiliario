@@ -47,10 +47,12 @@ interface FormState {
   whatsapp: string
   instagram: string
   sitio_web: string
+  simulador_publico: boolean
 }
 
 const EMPTY_FORM: FormState = {
   nombre: '', logo_url: '', telefono: '', email: '', whatsapp: '', instagram: '', sitio_web: '',
+  simulador_publico: false,
 }
 
 // ─── Field helper ─────────────────────────────────────────────────────────────
@@ -157,13 +159,14 @@ export function ConfiguracionPage() {
   useEffect(() => {
     if (!config) return
     setForm({
-      nombre:    config.nombre    ?? '',
-      logo_url:  config.logo_url  ?? '',
-      telefono:  config.telefono  ?? '',
-      email:     config.email     ?? '',
-      whatsapp:  config.whatsapp  ?? '',
-      instagram: config.instagram ?? '',
-      sitio_web: config.sitio_web ?? '',
+      nombre:            config.nombre            ?? '',
+      logo_url:          config.logo_url          ?? '',
+      telefono:          config.telefono          ?? '',
+      email:             config.email             ?? '',
+      whatsapp:          config.whatsapp          ?? '',
+      instagram:         config.instagram         ?? '',
+      sitio_web:         config.sitio_web         ?? '',
+      simulador_publico: config.simulador_publico ?? false,
     })
   }, [config])
 
@@ -179,7 +182,8 @@ export function ConfiguracionPage() {
         email:       form.email     || null,
         whatsapp:    form.whatsapp  || null,
         instagram:   form.instagram || null,
-        sitio_web:   form.sitio_web || null,
+        sitio_web:         form.sitio_web || null,
+        simulador_publico: form.simulador_publico,
         // Preserve resources — never overwrite them from this page
         market_data: config?.market_data ?? {},
       },
@@ -248,6 +252,24 @@ export function ConfiguracionPage() {
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Redes y web</p>
           <Field label="Instagram (@usuario)" icon={Instagram} value={form.instagram} onChange={setF('instagram')} placeholder="@kohaninmobiliaria" />
           <Field label="Sitio web" icon={Globe} value={form.sitio_web} onChange={setF('sitio_web')} placeholder="https://consultora.com.py" />
+
+          <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Simulador público</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Permite acceso sin login a <code className="text-xs">/simulador</code></p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm(p => ({ ...p, simulador_publico: !p.simulador_publico }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                form.simulador_publico ? 'bg-emerald-500' : 'bg-gray-200'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                form.simulador_publico ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
         </div>
 
       </div>

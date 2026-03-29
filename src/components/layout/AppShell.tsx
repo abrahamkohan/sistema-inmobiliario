@@ -4,8 +4,10 @@ import { Outlet, useLocation, useNavigate } from 'react-router'
 import { Menu } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
+import { useRealtimeTasks } from '@/hooks/useRealtimeTasks'
 
 export function AppShell() {
+  useRealtimeTasks()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { data: consultora } = useConsultoraConfig()
   const navigate = useNavigate()

@@ -4,17 +4,20 @@ import { useNavigate } from 'react-router'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Modal } from '@/components/ui/modal'
+import { MobileFormScreen } from '@/components/ui/MobileFormScreen'
 import { toast } from 'sonner'
 import { ClientTableDesktop } from '@/components/clients/ClientTableDesktop'
 import { ClientCardMobile }   from '@/components/clients/ClientCardMobile'
+import { ClientForm, type ClientFormValues } from '@/components/clients/ClientForm'
 import {
   useClients,
+  useCreateClient,
+  useUpdateClient,
   useDeleteClient,
   useConvertToCliente,
   useChangeEstado,
 } from '@/hooks/useClients'
-import { useIsAdmin } from '@/hooks/useUserRole'
-import { useAuth } from '@/context/AuthContext'
 import type { Database } from '@/types/database'
 
 type ClientRow = Database['public']['Tables']['clients']['Row']
@@ -23,30 +26,24 @@ type Tab = 'leads' | 'clientes' | 'todos'
 export function ClientesPage() {
   const navigate = useNavigate()
   const { data: clients = [], isLoading } = useClients()
+  const createClient  = useCreateClient()
+  const updateClient  = useUpdateClient()
   const deleteClient  = useDeleteClient()
   const convertLead   = useConvertToCliente()
   const changeEstado  = useChangeEstado()
-  const isAdmin = useIsAdmin()
-  const { session } = useAuth()
 
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [editing, setEditing]     = useState<ClientRow | null>(null)
   const [search, setSearch]       = useState('')
   const [tab, setTab]             = useState<Tab>('leads')
-  const [showMine, setShowMine]   = useState(false)
 
   // ─── Derived ──────────────────────────────────────────────────────────────
 
-  const visibleClients = useMemo(() =>
-    isAdmin && showMine
-      ? clients.filter(c => c.assigned_to === session?.user?.id)
-      : clients,
-    [clients, isAdmin, showMine, session]
-  )
-
-  const leads    = useMemo(() => visibleClients.filter(c => (c.tipo ?? 'lead') === 'lead'),  [visibleClients])
-  const clientes = useMemo(() => visibleClients.filter(c => c.tipo === 'cliente'),            [visibleClients])
+  const leads   = useMemo(() => clients.filter(c => (c.tipo ?? 'lead') === 'lead'),    [clients])
+  const clientes = useMemo(() => clients.filter(c => c.tipo === 'cliente'),             [clients])
 
   const filtered = useMemo(() => {
-    const base = tab === 'leads' ? leads : tab === 'clientes' ? clientes : visibleClients
+    const base = tab === 'leads' ? leads : tab === 'clientes' ? clientes : clients
     const q = search.toLowerCase().trim()
     if (!q) return base
     return base.filter(c =>
@@ -60,8 +57,8 @@ export function ClientesPage() {
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
-  function openCreate() { navigate('/clientes/nuevo') }
-  function openEdit(c: ClientRow) { navigate(`/clientes/${c.id}/editar`) }
+  function openCreate() { setEditing(null); setSheetOpen(true) }
+  function openEdit(c: ClientRow) { setEditing(c); setSheetOpen(true) }
 
   function handleDelete(id: string) { deleteClient.mutate(id) }
 
@@ -77,9 +74,36 @@ export function ClientesPage() {
     changeEstado.mutate({ id, estado })
   }
 
-  // Form submission now handled in separate pages (ClienteFormPage)
+  async function handleSubmit(values: ClientFormValues) {
+    try {
+      const payload = {
+        full_name:        values.full_name,
+        email:            values.email || null,
+        phone:            values.phone || null,
+        nationality:      values.nationality || null,
+        notes:            values.notes || null,
+        tipo:             values.tipo,
+        fuente:           values.fuente || null,
+        dni:              values.dni || null,
+        fecha_nacimiento: values.fecha_nacimiento || null,
+        campos_extra:     Object.keys(values.campos_extra).length > 0 ? values.campos_extra : null,
+        apodo:            values.apodo || null,
+      }
+      if (editing) {
+        await updateClient.mutateAsync({ id: editing.id, input: payload })
+        toast.success('Guardado')
+      } else {
+        await createClient.mutateAsync(payload)
+        toast.success(values.tipo === 'lead' ? 'Lead creado' : 'Cliente creado')
+      }
+      setSheetOpen(false)
+      setEditing(null)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al guardar')
+    }
+  }
 
-  // isPending no longer needed here
+  const isPending = createClient.isPending || updateClient.isPending
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -94,28 +118,10 @@ export function ClientesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Clientes</h1>
-        <div className="flex items-center gap-2">
-          {isAdmin && (
-            <div className="flex bg-gray-100 rounded-lg p-0.5 text-xs font-medium">
-              <button
-                onClick={() => setShowMine(false)}
-                className={`px-3 py-1.5 rounded-md transition-all ${!showMine ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                Todos
-              </button>
-              <button
-                onClick={() => setShowMine(true)}
-                className={`px-3 py-1.5 rounded-md transition-all ${showMine ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                Míos
-              </button>
-            </div>
-          )}
-          <Button size="sm" onClick={openCreate}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
-            Nuevo
-          </Button>
-        </div>
+        <Button size="sm" onClick={openCreate}>
+          <Plus className="h-3.5 w-3.5 mr-1.5" />
+          Nuevo
+        </Button>
       </div>
 
       {/* Tabs */}
@@ -190,6 +196,23 @@ export function ClientesPage() {
         </>
       )}
 
+      {/* Mobile: full-screen */}
+      <MobileFormScreen open={sheetOpen} onClose={() => setSheetOpen(false)}
+        title={editing ? 'Editar' : 'Nuevo lead'}>
+        <ClientForm key={editing?.id ?? 'new'} defaultValues={editing ?? undefined}
+          onSubmit={handleSubmit} onCancel={() => setSheetOpen(false)}
+          isSubmitting={isPending} stickyButtons mode={editing ? 'full' : 'quick'} />
+      </MobileFormScreen>
+
+      {/* Desktop: modal */}
+      <div className="hidden md:block">
+        <Modal open={sheetOpen} onClose={() => setSheetOpen(false)}
+          title={editing ? 'Editar' : 'Nuevo lead'}>
+          <ClientForm key={editing?.id ?? 'new'} defaultValues={editing ?? undefined}
+            onSubmit={handleSubmit} onCancel={() => setSheetOpen(false)}
+            isSubmitting={isPending} mode={editing ? 'full' : 'quick'} />
+        </Modal>
+      </div>
     </div>
   )
 }

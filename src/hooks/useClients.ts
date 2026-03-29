@@ -27,7 +27,8 @@ export function useCreateClient() {
   const qc = useQueryClient()
   const { session } = useAuth()
   return useMutation({
-    mutationFn: (input: ClientInsert) => createClient(input),
+    mutationFn: (input: ClientInsert) =>
+      createClient({ ...input, assigned_to: session?.user?.id ?? null }),
     onSuccess: (newClient) => {
       qc.invalidateQueries({ queryKey: ['clients'] })
       if ((newClient.tipo ?? 'lead') === 'lead' && session?.user?.id) {

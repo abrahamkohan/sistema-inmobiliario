@@ -19,6 +19,8 @@ import { useDashboardStats, useExchangeRates, useWeather } from '@/hooks/useDash
 import { DayView } from '@/components/tasks/DayView'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { useAuth } from '@/context/AuthContext'
+import { useIsAdmin } from '@/hooks/useUserRole'
+import { AgenteDashboard } from '@/components/dashboard/AgenteDashboard'
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
 } from '@dnd-kit/core'
@@ -703,6 +705,13 @@ const WIDGET_LABELS: Record<string, string> = {
 }
 
 export function InicioPage() {
+  const isAdmin = useIsAdmin()
+  if (!isAdmin) return <AgenteDashboard />
+  return <AdminDashboard />
+}
+
+function AdminDashboard() {
+
   const [view, setView]             = useState<'dashboard' | 'tareas'>('tareas')
   const [layouts, setLayouts]       = useState<Layouts>(loadLayouts)
   const [breakpoint, setBreakpoint] = useState<'lg' | 'md' | 'sm'>('lg')

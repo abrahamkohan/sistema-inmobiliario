@@ -1,6 +1,7 @@
 // src/hooks/useCommissions.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as api from '@/lib/commissions'
+import { useAuth } from '@/context/AuthContext'
 import type { Database } from '@/types/database'
 
 type CommissionInsert = Database['public']['Tables']['commissions']['Insert']
@@ -23,6 +24,7 @@ export function useCommissionById(id: string) {
 
 export function useCreateCommissionWithSplits() {
   const qc = useQueryClient()
+  const { session } = useAuth()
   return useMutation({
     mutationFn: ({
       commissionData,
@@ -30,7 +32,10 @@ export function useCreateCommissionWithSplits() {
     }: {
       commissionData: CommissionInsert
       agentes: { id: string; nombre: string; porcentaje_comision: number }[]
-    }) => api.createCommissionWithSplits(commissionData, agentes),
+    }) => api.createCommissionWithSplits(
+      { ...commissionData, assigned_to: session?.user?.id ?? null },
+      agentes,
+    ),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }

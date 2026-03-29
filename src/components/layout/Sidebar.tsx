@@ -145,22 +145,26 @@ export function Sidebar({ onClose }: SidebarProps) {
 
       {/* ── Nav ── */}
       <nav className="flex-1 px-3 py-3 flex flex-col gap-4 overflow-y-auto">
-        {NAV_GRUPOS.map((grupo, gi) => (
-          <div key={gi} className="flex flex-col gap-0.5">
-            {grupo.label && (
-              <p className="text-[10px] font-semibold text-sidebar-foreground/40 uppercase tracking-wider px-3 mb-1">
-                {grupo.label}
-              </p>
-            )}
-            {grupo.items.map(({ to, label, icon }) => (
-              <NavItem key={to} to={to} label={label} icon={icon} onClick={onClose} badge={badge(to)} />
-            ))}
-            {/* Ventas: solo admin, al final de Inventario */}
-            {gi === 2 && isAdmin && (
-              <NavItem to="/comisiones" label="Ventas" icon={HandCoins} onClick={onClose} />
-            )}
-          </div>
-        ))}
+        {NAV_GRUPOS.map((grupo, gi) => {
+          // SISTEMA (último grupo): solo admin
+          if (gi === NAV_GRUPOS.length - 1 && !isAdmin) return null
+          return (
+            <div key={gi} className="flex flex-col gap-0.5">
+              {grupo.label && (
+                <p className="text-[10px] font-semibold text-sidebar-foreground/40 uppercase tracking-wider px-3 mb-1">
+                  {grupo.label}
+                </p>
+              )}
+              {grupo.items.map(({ to, label, icon }) => (
+                <NavItem key={to} to={to} label={label} icon={icon} onClick={onClose} badge={badge(to)} />
+              ))}
+              {/* Ventas: solo admin, al final de Inventario */}
+              {gi === 2 && isAdmin && (
+                <NavItem to="/comisiones" label="Ventas" icon={HandCoins} onClick={onClose} />
+              )}
+            </div>
+          )
+        })}
       </nav>
 
       {/* ── Cerrar sesión (separado del flujo) ── */}

@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router'
+import { SimuladorPublicoPage } from '@/pages/SimuladorPublicoPage'
 import { AppShell } from '@/components/layout/AppShell'
 import { InicioPage } from '@/pages/InicioPage'
 import { ProyectosPage } from '@/pages/ProyectosPage'
@@ -48,7 +49,7 @@ export const router = createBrowserRouter([
       { path: 'presupuestos',             element: <PresupuestosPage /> },
       { path: 'presupuestos/nuevo',       element: <PresupuestoFormPage /> },
       { path: 'presupuestos/:id/editar',  element: <PresupuestoFormPage /> },
-      { path: 'recursos',      element: <RecursosPage /> },
+      { path: 'recursos',      element: <RequireRole role="admin" fallback={<Navigate to="/inicio" replace />}><RecursosPage /></RequireRole> },
       { path: 'propiedades',        element: <PropiedadesPage /> },
       { path: 'propiedades/nueva',  element: <PropiedadNuevaPage /> },
       { path: 'propiedades/:id',         element: <PropiedadDetallePage /> },
@@ -58,10 +59,11 @@ export const router = createBrowserRouter([
       { path: 'comisiones',            element: <RequireRole role="admin"><ComisionesPage /></RequireRole> },
       { path: 'comisiones/nueva',      element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
       { path: 'comisiones/:id/editar', element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
-      { path: 'configuracion', element: <ConfiguracionPage /> },
+      { path: 'configuracion', element: <RequireRole role="admin" fallback={<Navigate to="/inicio" replace />}><ConfiguracionPage /></RequireRole> },
     ],
   },
   // Rutas públicas (sin auth)
+  { path: 'simulador', element: <SimuladorPublicoPage /> },
   { path: 'lead-quick', element: <LeadQuickPage /> },
   { path: 'l/:ref',     element: <LeadShortLinkPage /> },
   { path: 'informes/:id',      element: <ReporteHtmlPage /> },

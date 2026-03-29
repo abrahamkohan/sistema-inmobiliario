@@ -190,6 +190,7 @@ export interface Database {
           referido_por: string | null
           estado: string | null
           converted_at: string | null
+          assigned_to: string | null
           created_at: string
           updated_at: string
         }
@@ -208,6 +209,7 @@ export interface Database {
           referido_por?: string | null
           estado?: string | null
           converted_at?: string | null
+          assigned_to?: string | null
         }
         Update: {
           full_name?: string
@@ -224,6 +226,7 @@ export interface Database {
           referido_por?: string | null
           estado?: string | null
           converted_at?: string | null
+          assigned_to?: string | null
         }
         Relationships: []
       }
@@ -457,6 +460,7 @@ export interface Database {
           longitud: number | null
           amenities: string[]
           foto_portada: string | null
+          assigned_to: string | null
         }
         Insert: {
           operacion?: 'venta' | 'alquiler'
@@ -488,6 +492,7 @@ export interface Database {
           longitud?: number | null
           amenities?: string[]
           foto_portada?: string | null
+          assigned_to?: string | null
         }
         Update: {
           operacion?: 'venta' | 'alquiler'
@@ -519,6 +524,7 @@ export interface Database {
           longitud?: number | null
           amenities?: string[]
           foto_portada?: string | null
+          assigned_to?: string | null
         }
         Relationships: []
       }
@@ -714,6 +720,7 @@ export interface Database {
           co_broker: boolean
           co_broker_nombre: string | null
           propietario: string | null
+          assigned_to: string | null
           created_at: string
           updated_at: string
         }
@@ -728,6 +735,7 @@ export interface Database {
           co_broker?: boolean
           co_broker_nombre?: string | null
           propietario?: string | null
+          assigned_to?: string | null
         }
         Update: {
           proyecto_vendido?: string
@@ -740,6 +748,7 @@ export interface Database {
           co_broker?: boolean
           co_broker_nombre?: string | null
           propietario?: string | null
+          assigned_to?: string | null
         }
         Relationships: [
           { foreignKeyName: "commissions_project_id_fkey"; columns: ["project_id"]; referencedRelation: "projects"; referencedColumns: ["id"] }

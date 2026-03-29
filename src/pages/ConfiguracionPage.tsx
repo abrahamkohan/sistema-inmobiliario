@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useConsultoraConfig, useSaveConsultoraConfig } from '@/hooks/useConsultora'
 import { useAgentes, useCreateAgente, useDeleteAgente } from '@/hooks/useAgentes'
-import { useTeam, useSetRole, useInviteUser } from '@/hooks/useTeam'
+import { useTeam, useSetRole, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
 import { useIsAdmin } from '@/hooks/useUserRole'
 import { useAuth } from '@/context/AuthContext'
 
@@ -86,7 +86,8 @@ export function ConfiguracionPage() {
   const isAdmin   = useIsAdmin()
   const { session } = useAuth()
   const { data: team = [] } = useTeam()
-  const setRole   = useSetRole()
+  const setRole    = useSetRole()
+  const removeRole = useRemoveRole()
   const inviteUser = useInviteUser()
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole,  setInviteRole]  = useState<'admin' | 'agente'>('agente')
@@ -109,6 +110,16 @@ export function ConfiguracionPage() {
       toast.success('Rol actualizado')
     } catch {
       toast.error('Error al actualizar rol')
+    }
+  }
+
+  async function handleRemoveUser(userId: string, name: string) {
+    if (!confirm(`¿Quitarle el acceso al sistema a "${name}"?`)) return
+    try {
+      await removeRole.mutateAsync(userId)
+      toast.success('Acceso eliminado')
+    } catch {
+      toast.error('Error al eliminar acceso')
     }
   }
 
@@ -431,15 +442,24 @@ export function ConfiguracionPage() {
                   </div>
                 </div>
                 {member.id !== session?.user.id && (
-                  <select
-                    value={member.role ?? ''}
-                    onChange={e => handleSetRole(member.id, e.target.value as 'admin' | 'agente')}
-                    className="h-8 px-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 bg-white"
-                  >
-                    <option value="">Sin rol</option>
-                    <option value="admin">Admin</option>
-                    <option value="agente">Agente</option>
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={member.role ?? ''}
+                      onChange={e => handleSetRole(member.id, e.target.value as 'admin' | 'agente')}
+                      className="h-8 px-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 bg-white"
+                    >
+                      <option value="">Sin rol</option>
+                      <option value="admin">Admin</option>
+                      <option value="agente">Agente</option>
+                    </select>
+                    <button
+                      onClick={() => handleRemoveUser(member.id, member.full_name ?? member.id)}
+                      className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Quitar acceso"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

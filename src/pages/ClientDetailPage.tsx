@@ -294,12 +294,13 @@ function SystemItemBubble({ item }: { item: ActivityItem & { type: 'system' } })
 // ─── Timeline ─────────────────────────────────────────────────────────────────
 
 function Timeline({
-  items, clientName, onOpenNote, onDeleteNote,
+  items, clientName, onOpenNote, onDeleteNote, onEditTask,
 }: {
   items: ActivityItem[]
   clientName: string
   onOpenNote:   (n: NoteRow) => void
   onDeleteNote: (id: string) => void
+  onEditTask:   (id: string) => void
 }) {
   if (items.length === 0) return (
     <div className="flex flex-col items-center justify-center py-20 gap-3">
@@ -347,7 +348,7 @@ function Timeline({
                 />
               )
             if (item.type === 'task')
-              return <TaskItemBubble key={`t-${item.data.id}`} item={item as ActivityItem & { type: 'task' }} onEdit={setEditTaskId} />
+              return <TaskItemBubble key={`t-${item.data.id}`} item={item as ActivityItem & { type: 'task' }} onEdit={onEditTask} />
             if (item.type === 'simulation')
               return (
                 <SimItemBubble
@@ -764,6 +765,7 @@ export function ClientDetailPage() {
           clientName={client.full_name}
           onOpenNote={setEditNote}
           onDeleteNote={id => deleteNote.mutate(id)}
+          onEditTask={setEditTaskId}
         />
       </div>
 

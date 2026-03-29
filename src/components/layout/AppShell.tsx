@@ -1,10 +1,11 @@
 // src/components/layout/AppShell.tsx
 import { useState, useRef, useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router'
-import { Menu } from 'lucide-react'
+import { Menu, Search } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { useRealtimeTasks } from '@/hooks/useRealtimeTasks'
+import { GlobalSearch } from '@/components/search/GlobalSearch'
 
 export function AppShell() {
   useRealtimeTasks()
@@ -74,8 +75,13 @@ export function AppShell() {
             )}
           </button>
 
-          {/* Spacer para centrar la marca visualmente */}
-          <div className="w-9 flex-shrink-0" />
+          {/* Search mobile */}
+          <button
+            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            className="p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent transition-colors flex-shrink-0"
+          >
+            <Search className="h-5 w-5" />
+          </button>
         </header>
 
         <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden">

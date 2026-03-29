@@ -11,6 +11,7 @@ import { useTasks } from '@/hooks/useTasks'
 import { getUrgency } from '@/lib/tasks'
 import { useNotes } from '@/hooks/useNotes'
 import { useIsAdmin } from '@/hooks/useUserRole'
+import { GlobalSearch } from '@/components/search/GlobalSearch'
 
 // ── Estructura de menú ────────────────────────────────────────────────────────
 
@@ -141,6 +142,11 @@ export function Sidebar({ onClose }: SidebarProps) {
             <X className="h-4 w-4" />
           </button>
         )}
+      </div>
+
+      {/* ── Search ── */}
+      <div className="px-3 py-2 border-b border-sidebar-border">
+        <GlobalSearch />
       </div>
 
       {/* ── Nav ── */}

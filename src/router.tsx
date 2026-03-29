@@ -10,6 +10,7 @@ import { ConfiguracionPage } from '@/pages/ConfiguracionPage'
 import { RecursosPage } from '@/pages/RecursosPage'
 import { PresupuestosPage } from '@/pages/PresupuestosPage'
 import { PresupuestoPdfPage } from '@/pages/PresupuestoPdfPage'
+import { PresupuestoFormPage } from '@/pages/PresupuestoFormPage'
 import { PropiedadesPage } from '@/pages/PropiedadesPage'
 import { PropiedadDetallePage } from '@/pages/PropiedadDetallePage'
 import { PropiedadNuevaPage } from '@/pages/PropiedadNuevaPage'
@@ -42,7 +43,9 @@ export const router = createBrowserRouter([
       { path: 'clientes/:id/editar', element: <ClienteFormPage /> },
       { path: 'simulador', element: <SimuladorPage /> },
       { path: 'informes', element: <InformesPage /> },
-      { path: 'presupuestos', element: <PresupuestosPage /> },
+      { path: 'presupuestos',             element: <PresupuestosPage /> },
+      { path: 'presupuestos/nuevo',       element: <PresupuestoFormPage /> },
+      { path: 'presupuestos/:id/editar',  element: <PresupuestoFormPage /> },
       { path: 'recursos',      element: <RecursosPage /> },
       { path: 'propiedades',        element: <PropiedadesPage /> },
       { path: 'propiedades/nueva',  element: <PropiedadNuevaPage /> },

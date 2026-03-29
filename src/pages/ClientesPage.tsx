@@ -9,8 +9,6 @@ import { ClientTableDesktop } from '@/components/clients/ClientTableDesktop'
 import { ClientCardMobile }   from '@/components/clients/ClientCardMobile'
 import {
   useClients,
-  useCreateClient,
-  useUpdateClient,
   useDeleteClient,
   useConvertToCliente,
   useChangeEstado,
@@ -23,8 +21,7 @@ type Tab = 'leads' | 'clientes' | 'todos'
 export function ClientesPage() {
   const navigate = useNavigate()
   const { data: clients = [], isLoading } = useClients()
-  const createClient  = useCreateClient()
-  const updateClient  = useUpdateClient()
+  // createClient and updateClient no longer used - forms moved to separate pages
   const deleteClient  = useDeleteClient()
   const convertLead   = useConvertToCliente()
   const changeEstado  = useChangeEstado()

@@ -20,7 +20,7 @@ import { TaskModal } from '@/components/tasks/TaskModal'
 import { extractTitle } from '@/lib/notes'
 import { getUrgency } from '@/lib/tasks'
 import { getReportUrl } from '@/lib/pdfService'
-import { toast } from 'sonner'
+
 import type { Database } from '@/types/database'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -542,7 +542,7 @@ export function ClientDetailPage() {
   // ── Mutations ─────────────────────────────────────────────────────────────
   const createNote  = useCreateNote()
   const deleteNote  = useDeleteNote()
-  const updateClient = useUpdateClient()
+  // updateClient no longer used - editing moved to separate page
 
   // ── All activity, sorted DESC ──────────────────────────────────────────────
   const allActivity = useMemo<ActivityItem[]>(() => {

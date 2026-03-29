@@ -1,7 +1,6 @@
 // src/components/clients/ClientFormNew.tsx
 import { useState, useRef, useEffect } from 'react'
-import { Plus, X, ChevronDown, MessageCircle, User, Briefcase, Mail, Phone, Calendar, MapPin, Globe, Hash, FileText, Building, DollarSign, Heart, Star } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Plus, X, User, Briefcase, Mail, MapPin, Globe, FileText, Building, DollarSign, Heart, Star } from 'lucide-react'
 import { CountryPicker, COUNTRIES } from '@/components/ui/CountryPicker'
 import type { Country } from '@/components/ui/CountryPicker'
 import { cleanDigits, formatPhone, isValidPhone, getMaxDigits, buildWhatsAppUrl } from '@/lib/phone'
@@ -57,7 +56,7 @@ interface FormState {
 interface ClientFormNewProps {
   defaultValues?: Partial<ClientRow>
   onSubmit: (values: ClientFormValues) => Promise<void>
-  onCancel: () => void
+  onCancel?: () => void
   isSubmitting?: boolean
 }
 
@@ -85,7 +84,7 @@ function parseNationality(stored: string | null): Country | null {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ClientFormNew({ defaultValues, onSubmit, onCancel, isSubmitting }: ClientFormNewProps) {
+export function ClientFormNew({ defaultValues, onSubmit, onCancel: _onCancel, isSubmitting: _isSubmitting }: ClientFormNewProps) {
   const { fuente: df, fuente_otro: dfo }            = parseFuente(defaultValues?.fuente ?? null)
   const defaultCamposExtra                           = (defaultValues?.campos_extra ?? {}) as Record<string, string>
   const { dialCountry: defDial, phoneNum: defPhone } = parsePhone(defaultValues?.phone ?? null)

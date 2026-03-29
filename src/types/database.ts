@@ -551,6 +551,7 @@ export interface Database {
           notes:          string | null
           escalated_to:   string | null
           meet_link:      string | null
+          overdue_notified: boolean
           created_at:     string
           updated_at:     string
         }
@@ -693,6 +694,7 @@ export interface Database {
           full_name: string | null
           phone: string | null
           avatar_url: string | null
+          telegram_chat_id: string | null
           created_at: string
         }
         Insert: {
@@ -700,11 +702,13 @@ export interface Database {
           full_name?: string | null
           phone?: string | null
           avatar_url?: string | null
+          telegram_chat_id?: string | null
         }
         Update: {
           full_name?: string | null
           phone?: string | null
           avatar_url?: string | null
+          telegram_chat_id?: string | null
         }
         Relationships: [
           { foreignKeyName: "profiles_id_fkey"; columns: ["id"]; referencedRelation: "users"; referencedColumns: ["id"] }

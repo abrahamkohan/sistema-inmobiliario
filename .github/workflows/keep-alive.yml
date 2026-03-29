@@ -1,11 +1,11 @@
-name: Supabase Keep Alive + Daily Digest
+name: Supabase Keep Alive + Notifications
 
 on:
   schedule:
     # Digest diario: 7am Paraguay (UTC-4) = 11am UTC
     - cron: '0 11 * * *'
-    # Keep-alive extra los días que no corre el digest (nunca pausa)
-    # el digest ya hace ping implícito, así que solo necesitamos el diario
+    # Alertas tareas vencidas: cada hora
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -20,9 +20,26 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
           echo "Ping status: $STATUS"
 
+  notify-overdue:
+    runs-on: ubuntu-latest
+    needs: ping
+    steps:
+      - name: Notify overdue tasks
+        run: |
+          STATUS=$(curl -s -o /tmp/overdue_response.json -w "%{http_code}" \
+            -X POST \
+            "https://vencfssognoggperdxua.supabase.co/functions/v1/notify-overdue-tasks" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "x-digest-token: ${{ secrets.DIGEST_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "Overdue status: $STATUS"
+          cat /tmp/overdue_response.json
+
   daily-digest:
     runs-on: ubuntu-latest
     needs: ping
+    if: github.event.schedule == '0 11 * * *' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Send daily digest
         run: |

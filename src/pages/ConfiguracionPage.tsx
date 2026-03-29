@@ -88,14 +88,15 @@ export function ConfiguracionPage() {
   const { data: team = [] } = useTeam()
   const setRole   = useSetRole()
   const inviteUser = useInviteUser()
-  const [inviteEmail, setInviteEmail]     = useState('')
-  const [showInvite,  setShowInvite]      = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole,  setInviteRole]  = useState<'admin' | 'agente'>('agente')
+  const [showInvite,  setShowInvite]  = useState(false)
 
   async function handleInvite() {
     if (!inviteEmail.trim()) return
     try {
       await inviteUser.mutateAsync(inviteEmail.trim())
-      toast.success(`Invitación enviada a ${inviteEmail}`)
+      toast.success(`Invitación enviada a ${inviteEmail} — asignale el rol "${inviteRole}" cuando acepte`)
       setInviteEmail(''); setShowInvite(false)
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Error al invitar')
@@ -378,22 +379,36 @@ export function ConfiguracionPage() {
 
           {/* Formulario de invitación */}
           {showInvite && (
-            <div className="flex gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
-              <input
-                type="email"
-                placeholder="email@ejemplo.com"
-                value={inviteEmail}
-                onChange={e => setInviteEmail(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleInvite()}
-                className="flex-1 h-9 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 bg-white"
-              />
-              <button
-                onClick={handleInvite}
-                disabled={inviteUser.isPending || !inviteEmail.trim()}
-                className="h-9 px-3 rounded-lg bg-gray-900 text-white text-xs font-semibold disabled:opacity-40"
-              >
-                {inviteUser.isPending ? 'Enviando...' : 'Enviar'}
-              </button>
+            <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="email@ejemplo.com"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleInvite()}
+                  className="flex-1 h-9 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 bg-white"
+                  autoFocus
+                />
+                <select
+                  value={inviteRole}
+                  onChange={e => setInviteRole(e.target.value as 'admin' | 'agente')}
+                  className="h-9 px-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 bg-white"
+                >
+                  <option value="agente">Agente</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button
+                  onClick={handleInvite}
+                  disabled={inviteUser.isPending || !inviteEmail.trim()}
+                  className="h-9 px-3 rounded-lg bg-gray-900 text-white text-xs font-semibold disabled:opacity-40"
+                >
+                  {inviteUser.isPending ? 'Enviando...' : 'Enviar'}
+                </button>
+              </div>
+              <p className="text-[11px] text-gray-400">
+                Le llegará un magic link por email. Asignale el rol "{inviteRole}" cuando aparezca en la lista.
+              </p>
             </div>
           )}
 

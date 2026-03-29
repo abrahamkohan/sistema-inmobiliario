@@ -11,6 +11,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['pwa-icon.svg', 'apple-touch-icon.png'],
+      injectRegister: null,    // no inyectamos el <link rel="manifest"> — lo ponemos en index.html
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
       },

@@ -305,6 +305,7 @@ export interface Database {
           sitio_web: string | null
           market_data: Record<string, unknown> | null
           simulador_publico: boolean
+          pwa_icon_url: string | null
           updated_at: string
         }
         Insert: {
@@ -318,6 +319,7 @@ export interface Database {
           sitio_web?: string | null
           market_data?: Record<string, unknown> | null
           simulador_publico?: boolean
+          pwa_icon_url?: string | null
         }
         Update: {
           nombre?: string
@@ -329,6 +331,7 @@ export interface Database {
           sitio_web?: string | null
           market_data?: Record<string, unknown> | null
           simulador_publico?: boolean
+          pwa_icon_url?: string | null
         }
         Relationships: []
       }

@@ -48,11 +48,12 @@ interface FormState {
   instagram: string
   sitio_web: string
   simulador_publico: boolean
+  pwa_icon_url: string
 }
 
 const EMPTY_FORM: FormState = {
   nombre: '', logo_url: '', telefono: '', email: '', whatsapp: '', instagram: '', sitio_web: '',
-  simulador_publico: false,
+  simulador_publico: false, pwa_icon_url: '',
 }
 
 // ─── Field helper ─────────────────────────────────────────────────────────────
@@ -167,6 +168,7 @@ export function ConfiguracionPage() {
       instagram:         config.instagram         ?? '',
       sitio_web:         config.sitio_web         ?? '',
       simulador_publico: config.simulador_publico ?? false,
+      pwa_icon_url:      config.pwa_icon_url      ?? '',
     })
   }, [config])
 
@@ -184,6 +186,7 @@ export function ConfiguracionPage() {
         instagram:   form.instagram || null,
         sitio_web:         form.sitio_web || null,
         simulador_publico: form.simulador_publico,
+        pwa_icon_url:      form.pwa_icon_url || null,
         // Preserve resources — never overwrite them from this page
         market_data: config?.market_data ?? {},
       },
@@ -269,6 +272,20 @@ export function ConfiguracionPage() {
                 form.simulador_publico ? 'translate-x-6' : 'translate-x-1'
               }`} />
             </button>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-1 border-t border-gray-100">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Ícono de app (PWA)</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Cuadrado · mínimo 512×512px · PNG recomendado</p>
+            </div>
+            <Field label="URL del ícono" icon={Image} value={form.pwa_icon_url} onChange={setF('pwa_icon_url')} placeholder="https://..." />
+            {form.pwa_icon_url && (
+              <div className="flex items-center gap-3 p-2 border rounded-md bg-muted">
+                <img src={form.pwa_icon_url} alt="PWA icon preview" className="w-12 h-12 object-cover rounded-lg" />
+                <p className="text-xs text-muted-foreground">Vista previa del ícono de app</p>
+              </div>
+            )}
           </div>
         </div>
 

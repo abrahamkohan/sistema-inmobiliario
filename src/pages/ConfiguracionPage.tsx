@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react'
 import {
   Building2, Phone, Mail, MessageCircle, Instagram, Globe, Image,
-  Loader2, Check, Copy, Users,
+  Loader2, Check, Copy, Users, Trash2, Plus,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useConsultoraConfig, useSaveConsultoraConfig } from '@/hooks/useConsultora'
+import { useAgentes, useCreateAgente, useDeleteAgente } from '@/hooks/useAgentes'
 
 // ─── Referidos helpers ────────────────────────────────────────────────────────
 
@@ -77,6 +78,37 @@ export function ConfiguracionPage() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [refName, setRefName]     = useState('')
   const [refLink, setRefLink]     = useState('')
+
+  // Agentes
+  const { data: agentes = [] } = useAgentes()
+  const createAgente = useCreateAgente()
+  const deleteAgente = useDeleteAgente()
+  const [showAddAgente, setShowAddAgente] = useState(false)
+  const [nuevoNombre, setNuevoNombre]     = useState('')
+  const [nuevoPct, setNuevoPct]           = useState('')
+
+  const totalPct = agentes.filter(a => a.activo).reduce((s, a) => s + a.porcentaje_comision, 0)
+
+  async function handleAddAgente() {
+    if (!nuevoNombre.trim() || !nuevoPct) return
+    try {
+      await createAgente.mutateAsync({ nombre: nuevoNombre.trim(), porcentaje_comision: parseFloat(nuevoPct) })
+      toast.success('Agente agregado')
+      setNuevoNombre(''); setNuevoPct(''); setShowAddAgente(false)
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Error al guardar')
+    }
+  }
+
+  async function handleDeleteAgente(id: string, nombre: string) {
+    if (!confirm(`¿Eliminar a "${nombre}"?`)) return
+    try {
+      await deleteAgente.mutateAsync(id)
+      toast.success('Agente eliminado')
+    } catch {
+      toast.error('Error al eliminar')
+    }
+  }
 
   useEffect(() => {
     if (!config) return
@@ -233,6 +265,64 @@ export function ConfiguracionPage() {
                 </a>
               </div>
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Agentes / Socios */}
+      <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Agentes / Socios</p>
+            <p className="text-sm text-muted-foreground mt-1">Define quiénes reciben comisiones y en qué porcentaje. La suma debe ser 100%.</p>
+          </div>
+          <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${Math.abs(totalPct - 100) < 0.01 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+            {totalPct}%
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          {agentes.map(a => (
+            <div key={a.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  {a.nombre[0].toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{a.nombre}</p>
+                  <p className="text-xs text-gray-500">{a.porcentaje_comision}% de cada comisión</p>
+                </div>
+              </div>
+              <button onClick={() => handleDeleteAgente(a.id, a.nombre)}
+                className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+
+          {showAddAgente ? (
+            <div className="p-3 border border-gray-200 rounded-xl flex flex-col gap-3 bg-gray-50">
+              <input type="text" placeholder="Nombre del agente" value={nuevoNombre}
+                onChange={e => setNuevoNombre(e.target.value)}
+                className="w-full h-10 px-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-900 bg-white" />
+              <div className="flex gap-2 items-center">
+                <input type="number" placeholder="% comisión (ej: 50)" value={nuevoPct}
+                  onChange={e => setNuevoPct(e.target.value)} min="0" max="100" step="0.01"
+                  className="flex-1 h-10 px-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-900 bg-white" />
+                <button onClick={handleAddAgente} disabled={createAgente.isPending}
+                  className="h-10 px-4 rounded-xl bg-gray-900 text-white text-sm font-semibold disabled:opacity-40">
+                  Agregar
+                </button>
+                <button onClick={() => setShowAddAgente(false)} className="h-10 px-3 text-sm text-gray-500 hover:text-gray-700">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setShowAddAgente(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors">
+              <Plus className="w-4 h-4" />Agregar agente
+            </button>
           )}
         </div>
       </div>

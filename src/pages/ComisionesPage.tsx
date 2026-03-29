@@ -10,18 +10,20 @@ import { CommissionCard } from '@/components/commissions/CommissionCard'
 import { CommissionDetailSheet } from '@/components/commissions/CommissionDetailSheet'
 import {
   useCommissions,
-  useCreateCommission,
+  useCreateCommissionWithSplits,
   useUpdateCommission,
   useDeleteCommission,
 } from '@/hooks/useCommissions'
+import { useAgentes } from '@/hooks/useAgentes'
 import { calcTotals } from '@/lib/commissions'
 import type { CommissionFull } from '@/lib/commissions'
 
-type Tab = 'todas' | 'no_facturadas' | 'pendientes'
+type Tab = 'todas' | 'sin_facturar' | 'pendientes'
 
 export function ComisionesPage() {
   const { data: commissions = [], isLoading } = useCommissions()
-  const createCommission = useCreateCommission()
+  const { data: agentes = [] } = useAgentes()
+  const createCommission = useCreateCommissionWithSplits()
   const updateCommission = useUpdateCommission()
   const deleteCommission = useDeleteCommission()
 
@@ -32,8 +34,8 @@ export function ComisionesPage() {
 
   // ── Filtros ──────────────────────────────────────────────────────────────────
   const filtered = useMemo<CommissionFull[]>(() => {
-    if (tab === 'no_facturadas') return commissions.filter(c => !c.facturada)
-    if (tab === 'pendientes')    return commissions.filter(c => calcTotals(c).saldoPendiente > 0)
+    if (tab === 'sin_facturar') return commissions.filter(c => c.commission_splits.some(s => !s.facturada))
+    if (tab === 'pendientes')   return commissions.filter(c => calcTotals(c).saldoPendiente > 0)
     return commissions
   }, [commissions, tab])
 
@@ -44,19 +46,23 @@ export function ComisionesPage() {
 
   async function handleSubmit(values: CommissionFormValues) {
     const payload = {
-      proyecto_vendido: values.proyecto_vendido.trim(),
-      fecha_cierre:     values.fecha_cierre || null,
-      importe_comision: parseFloat(values.importe_comision),
-      facturada:        values.facturada,
-      numero_factura:   values.numero_factura.trim() || null,
+      proyecto_vendido:    values.proyecto_vendido.trim(),
+      project_id:          values.project_id || null,
+      valor_venta:         values.valor_venta ? parseFloat(values.valor_venta) : null,
+      porcentaje_comision: values.porcentaje_comision ? parseFloat(values.porcentaje_comision) : null,
+      importe_comision:    parseFloat(values.importe_comision),
+      fecha_cierre:        values.fecha_cierre || null,
     }
     try {
       if (editing) {
         await updateCommission.mutateAsync({ id: editing.id, data: payload })
         toast.success('Comisión actualizada')
       } else {
-        await createCommission.mutateAsync(payload)
-        toast.success('Comisión creada')
+        await createCommission.mutateAsync({
+          commissionData: payload,
+          agentes: agentes.filter(a => a.activo),
+        })
+        toast.success('Comisión creada con splits automáticos')
       }
       setFormOpen(false)
       setEditing(null)
@@ -72,7 +78,6 @@ export function ComisionesPage() {
     })
   }
 
-  // Si el detailItem está abierto, sincronizarlo con los datos frescos
   const liveDetail = detailItem
     ? (commissions.find(c => c.id === detailItem.id) ?? detailItem)
     : null
@@ -85,8 +90,8 @@ export function ComisionesPage() {
       active ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'
     }`
 
-  const noFactCount  = commissions.filter(c => !c.facturada).length
-  const pendCount    = commissions.filter(c => calcTotals(c).saldoPendiente > 0).length
+  const sinFacturarCount = commissions.filter(c => c.commission_splits.some(s => !s.facturada)).length
+  const pendCount        = commissions.filter(c => calcTotals(c).saldoPendiente > 0).length
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -109,8 +114,8 @@ export function ComisionesPage() {
         <button className={TAB_CLS(tab === 'todas')} onClick={() => setTab('todas')}>
           Todas
         </button>
-        <button className={TAB_CLS(tab === 'no_facturadas')} onClick={() => setTab('no_facturadas')}>
-          Sin factura {noFactCount > 0 && <span className="ml-1 text-xs text-amber-600 font-bold">({noFactCount})</span>}
+        <button className={TAB_CLS(tab === 'sin_facturar')} onClick={() => setTab('sin_facturar')}>
+          Sin facturar {sinFacturarCount > 0 && <span className="ml-1 text-xs text-amber-600 font-bold">({sinFacturarCount})</span>}
         </button>
         <button className={TAB_CLS(tab === 'pendientes')} onClick={() => setTab('pendientes')}>
           Pendientes {pendCount > 0 && <span className="ml-1 text-xs text-red-500 font-bold">({pendCount})</span>}
@@ -126,15 +131,13 @@ export function ComisionesPage() {
       {!isLoading && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <p className="text-muted-foreground">
-            {tab === 'todas' ? 'No hay comisiones todavía.' :
-             tab === 'no_facturadas' ? 'Todas las comisiones están facturadas.' :
+            {tab === 'todas'         ? 'No hay comisiones todavía.' :
+             tab === 'sin_facturar'  ? 'Todos los splits están facturados.' :
              'No hay comisiones con saldo pendiente.'}
           </p>
           {tab === 'todas' && (
-            <button
-              onClick={openCreate}
-              className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-            >
+            <button onClick={openCreate}
+              className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
               Crear la primera
             </button>
           )}
@@ -146,34 +149,20 @@ export function ComisionesPage() {
         <>
           {/* Desktop: tabla */}
           <div className="hidden md:block">
-            <CommissionTable
-              commissions={filtered}
-              onView={openDetail}
-              onEdit={openEdit}
-              onDelete={handleDelete}
-            />
+            <CommissionTable commissions={filtered} onView={openDetail} onEdit={openEdit} onDelete={handleDelete} />
           </div>
           {/* Mobile: cards */}
           <div className="flex flex-col gap-3 md:hidden">
             {filtered.map(c => (
-              <CommissionCard
-                key={c.id}
-                commission={c}
-                onView={openDetail}
-                onEdit={openEdit}
-                onDelete={handleDelete}
-              />
+              <CommissionCard key={c.id} commission={c} onView={openDetail} onEdit={openEdit} onDelete={handleDelete} />
             ))}
           </div>
         </>
       )}
 
       {/* Form — Mobile fullscreen */}
-      <MobileFormScreen
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        title={editing ? 'Editar comisión' : 'Nueva comisión'}
-      >
+      <MobileFormScreen open={formOpen} onClose={() => setFormOpen(false)}
+        title={editing ? 'Editar comisión' : 'Nueva comisión'}>
         <CommissionForm
           key={editing?.id ?? 'new'}
           defaultValues={editing ?? undefined}
@@ -186,11 +175,8 @@ export function ComisionesPage() {
 
       {/* Form — Desktop modal */}
       <div className="hidden md:block">
-        <Modal
-          open={formOpen}
-          onClose={() => setFormOpen(false)}
-          title={editing ? 'Editar comisión' : 'Nueva comisión'}
-        >
+        <Modal open={formOpen} onClose={() => setFormOpen(false)}
+          title={editing ? 'Editar comisión' : 'Nueva comisión'}>
           <CommissionForm
             key={editing?.id ?? 'new'}
             defaultValues={editing ?? undefined}

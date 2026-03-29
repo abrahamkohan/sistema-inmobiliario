@@ -640,32 +640,108 @@ export interface Database {
         }
         Relationships: []
       }
+      agentes: {
+        Row: {
+          id: string
+          nombre: string
+          porcentaje_comision: number
+          activo: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          nombre: string
+          porcentaje_comision: number
+          activo?: boolean
+        }
+        Update: {
+          nombre?: string
+          porcentaje_comision?: number
+          activo?: boolean
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          user_id: string
+          role: 'admin' | 'agente'
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          role: 'admin' | 'agente'
+        }
+        Update: {
+          role?: 'admin' | 'agente'
+        }
+        Relationships: [
+          { foreignKeyName: "user_roles_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }
+        ]
+      }
       commissions: {
         Row: {
           id: string
           proyecto_vendido: string
-          fecha_cierre: string | null
+          project_id: string | null
+          valor_venta: number | null
+          porcentaje_comision: number | null
           importe_comision: number
-          facturada: boolean
-          numero_factura: string | null
+          fecha_cierre: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           proyecto_vendido: string
           importe_comision: number
+          project_id?: string | null
+          valor_venta?: number | null
+          porcentaje_comision?: number | null
           fecha_cierre?: string | null
-          facturada?: boolean
-          numero_factura?: string | null
         }
         Update: {
           proyecto_vendido?: string
-          fecha_cierre?: string | null
+          project_id?: string | null
+          valor_venta?: number | null
+          porcentaje_comision?: number | null
           importe_comision?: number
+          fecha_cierre?: string | null
+        }
+        Relationships: [
+          { foreignKeyName: "commissions_project_id_fkey"; columns: ["project_id"]; referencedRelation: "projects"; referencedColumns: ["id"] }
+        ]
+      }
+      commission_splits: {
+        Row: {
+          id: string
+          commission_id: string
+          agente_id: string
+          agente_nombre: string
+          porcentaje: number
+          monto: number
+          facturada: boolean
+          numero_factura: string | null
+          fecha_factura: string | null
+          created_at: string
+        }
+        Insert: {
+          commission_id: string
+          agente_id: string
+          agente_nombre: string
+          porcentaje: number
+          monto: number
           facturada?: boolean
           numero_factura?: string | null
+          fecha_factura?: string | null
         }
-        Relationships: []
+        Update: {
+          facturada?: boolean
+          numero_factura?: string | null
+          fecha_factura?: string | null
+        }
+        Relationships: [
+          { foreignKeyName: "commission_splits_commission_id_fkey"; columns: ["commission_id"]; referencedRelation: "commissions"; referencedColumns: ["id"] },
+          { foreignKeyName: "commission_splits_agente_id_fkey"; columns: ["agente_id"]; referencedRelation: "agentes"; referencedColumns: ["id"] }
+        ]
       }
       commission_clients: {
         Row: {

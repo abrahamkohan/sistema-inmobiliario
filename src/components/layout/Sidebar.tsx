@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useTasks } from '@/hooks/useTasks'
 import { getUrgency } from '@/lib/tasks'
 import { useNotes } from '@/hooks/useNotes'
+import { useIsAdmin } from '@/hooks/useUserRole'
 
 const NAV_MAIN = [
   { to: '/inicio',    label: 'Inicio',    icon: Home },
@@ -17,9 +18,8 @@ const NAV_MAIN = [
   { to: '/informes',  label: 'Informes',  icon: FileText },
 ] as const
 
-const NAV_RECURSOS = [
+const NAV_RECURSOS_BASE = [
   { to: '/presupuestos', label: 'Presupuestos', icon: Receipt },
-  { to: '/comisiones',   label: 'Comisiones',   icon: HandCoins },
   { to: '/recursos',     label: 'Recursos',     icon: BookMarked },
   { to: '/propiedades',  label: 'Propiedades',  icon: MapPin },
 ] as const
@@ -65,6 +65,7 @@ export function Sidebar({ onClose }: SidebarProps) {
   const { data: consultora } = useConsultoraConfig()
   const { data: tasks = [] } = useTasks()
   const { data: notes = [] } = useNotes()
+  const isAdmin = useIsAdmin()
   const overdueCount = tasks.filter(t => getUrgency(t) === 'overdue').length
   const inboxCount = notes.filter(n => n.location === 'inbox').length
   const nombre  = consultora?.nombre  ?? 'Consultora Inmobiliaria'
@@ -112,9 +113,12 @@ export function Sidebar({ onClose }: SidebarProps) {
         </div>
 
         <div className="flex flex-col gap-2 border-t border-white/10 pt-2">
-          {NAV_RECURSOS.map(({ to, label, icon }) => (
+          {NAV_RECURSOS_BASE.map(({ to, label, icon }) => (
             <NavItem key={to} to={to} label={label} icon={icon} onClick={onClose} />
           ))}
+          {isAdmin && (
+            <NavItem to="/comisiones" label="Comisiones" icon={HandCoins} onClick={onClose} />
+          )}
         </div>
 
         <div className="flex flex-col gap-2 border-t border-white/10 pt-2">

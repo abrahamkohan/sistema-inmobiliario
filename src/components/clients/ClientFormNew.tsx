@@ -424,23 +424,6 @@ export function ClientFormNew({ defaultValues, onSubmit, onCancel: _onCancel, is
         </div>
       )}
 
-      {/* ── Notas (último campo) ── */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <FileText className="w-4 h-4" />
-          Notas
-        </h3>
-        <div className="flex flex-col gap-1.5">
-          <textarea 
-            value={s.notes} 
-            onChange={e => update({ notes: e.target.value })} 
-            rows={3}
-            placeholder="Observaciones, historial, preferencias..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-          />
-        </div>
-      </div>
-
       {/* ── Información adicional (solo para leads) ── */}
       {s.tipo === 'lead' && (
         <div className="space-y-4">
@@ -483,6 +466,23 @@ export function ClientFormNew({ defaultValues, onSubmit, onCancel: _onCancel, is
           </div>
         </div>
       )}
+
+      {/* ── Notas (último campo) ── */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+          <FileText className="w-4 h-4" />
+          Notas
+        </h3>
+        <div className="flex flex-col gap-1.5">
+          <textarea
+            value={s.notes}
+            onChange={e => update({ notes: e.target.value })}
+            rows={3}
+            placeholder="Observaciones, historial, preferencias..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+          />
+        </div>
+      </div>
 
       {/* Botones removidos - usando barra flotante en página */}
     </form>

@@ -1,6 +1,6 @@
 // src/components/commissions/CommissionCard.tsx
 import { Pencil, Trash2 } from 'lucide-react'
-import { calcTotals, fmtCurrency } from '@/lib/commissions'
+import { calcTotals, fmtCurrency, getFacturacionStatus } from '@/lib/commissions'
 import type { CommissionFull } from '@/lib/commissions'
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
 
 export function CommissionCard({ commission: c, onView, onEdit, onDelete }: Props) {
   const { totalCobrado, saldoPendiente, estado } = calcTotals(c)
+  const { status: facStatus } = getFacturacionStatus(c)
 
   const dateStr = c.fecha_cierre
     ? new Date(c.fecha_cierre + 'T00:00:00').toLocaleDateString('es-PY', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -71,10 +72,11 @@ export function CommissionCard({ commission: c, onView, onEdit, onDelete }: Prop
 
       {/* Fila 3: badges */}
       <div className="flex flex-wrap gap-1.5">
-        {c.facturada && (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
-            ✓ Facturada
-          </span>
+        {facStatus === 'completo' && (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">✓ Facturado</span>
+        )}
+        {facStatus === 'parcial' && (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">⚠ Parcial</span>
         )}
         {c.commission_clients.map(cc => (
           <span key={cc.id} className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${

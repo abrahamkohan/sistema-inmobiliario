@@ -1,41 +1,36 @@
 // src/hooks/useCommissions.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  getCommissions,
-  getCommissionById,
-  createCommission,
-  updateCommission,
-  deleteCommission,
-  addCommissionClient,
-  removeCommissionClient,
-  createIncome,
-  updateIncome,
-  deleteIncome,
-} from '@/lib/commissions'
+import * as api from '@/lib/commissions'
 import type { Database } from '@/types/database'
 
 type CommissionInsert = Database['public']['Tables']['commissions']['Insert']
 type CommissionUpdate = Database['public']['Tables']['commissions']['Update']
-type IncomeInsert = Database['public']['Tables']['commission_incomes']['Insert']
+type IncomeInsert     = Database['public']['Tables']['commission_incomes']['Insert']
 
 const QK = 'commissions'
 
 export function useCommissions() {
-  return useQuery({ queryKey: [QK], queryFn: getCommissions })
+  return useQuery({ queryKey: [QK], queryFn: api.getCommissions })
 }
 
 export function useCommissionById(id: string) {
   return useQuery({
     queryKey: [QK, id],
-    queryFn: () => getCommissionById(id),
+    queryFn: () => api.getCommissionById(id),
     enabled: !!id,
   })
 }
 
-export function useCreateCommission() {
+export function useCreateCommissionWithSplits() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (input: CommissionInsert) => createCommission(input),
+    mutationFn: ({
+      commissionData,
+      agentes,
+    }: {
+      commissionData: CommissionInsert
+      agentes: { id: string; nombre: string; porcentaje_comision: number }[]
+    }) => api.createCommissionWithSplits(commissionData, agentes),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }
@@ -44,7 +39,7 @@ export function useUpdateCommission() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: CommissionUpdate }) =>
-      updateCommission(id, data),
+      api.updateCommission(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }
@@ -52,7 +47,23 @@ export function useUpdateCommission() {
 export function useDeleteCommission() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => deleteCommission(id),
+    mutationFn: (id: string) => api.deleteCommission(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
+  })
+}
+
+export function useMarkSplitAsFacturado() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      splitId,
+      numeroFactura,
+      fechaFactura,
+    }: {
+      splitId: string
+      numeroFactura: string
+      fechaFactura: string
+    }) => api.markSplitAsFacturado(splitId, numeroFactura, fechaFactura),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }
@@ -60,11 +71,15 @@ export function useDeleteCommission() {
 export function useAddCommissionClient() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ commissionId, clientId, tipo }: {
+    mutationFn: ({
+      commissionId,
+      clientId,
+      tipo,
+    }: {
       commissionId: string
       clientId: string
       tipo: 'vendedor' | 'comprador'
-    }) => addCommissionClient(commissionId, clientId, tipo),
+    }) => api.addCommissionClient(commissionId, clientId, tipo),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }
@@ -73,7 +88,7 @@ export function useRemoveCommissionClient() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ commissionId, clientId }: { commissionId: string; clientId: string }) =>
-      removeCommissionClient(commissionId, clientId),
+      api.removeCommissionClient(commissionId, clientId),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }
@@ -81,7 +96,7 @@ export function useRemoveCommissionClient() {
 export function useCreateIncome() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (input: IncomeInsert) => createIncome(input),
+    mutationFn: (input: IncomeInsert) => api.createIncome(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }
@@ -90,7 +105,7 @@ export function useUpdateIncome() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<IncomeInsert> }) =>
-      updateIncome(id, data),
+      api.updateIncome(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }
@@ -98,7 +113,7 @@ export function useUpdateIncome() {
 export function useDeleteIncome() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => deleteIncome(id),
+    mutationFn: (id: string) => api.deleteIncome(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }

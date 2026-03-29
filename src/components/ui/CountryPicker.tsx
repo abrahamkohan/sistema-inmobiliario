@@ -169,7 +169,7 @@ export function CountryPicker({ value, onChange, mode = 'dial', className = '' }
               >
                 <span className="text-lg">{c.flag}</span>
                 <span className="flex-1 text-sm text-gray-900">{c.name}</span>
-                <span className="text-xs text-gray-400">{c.dial}</span>
+                {mode === 'dial' && <span className="text-xs text-gray-400">{c.dial}</span>}
               </button>
             ))}
             {filtered.length === 0 && (

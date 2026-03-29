@@ -1,18 +1,19 @@
 // src/components/commissions/CommissionForm.tsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useProjects } from '@/hooks/useProjects'
+import { useAgentes } from '@/hooks/useAgentes'
+import { INPUT_CLS, LABEL_CLS } from '@/styles/design-system'
 import type { Database } from '@/types/database'
 
 type CommissionRow = Database['public']['Tables']['commissions']['Row']
 
-const INPUT_CLS = 'w-full h-12 px-3 border border-gray-200 bg-gray-50 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-900 transition-colors'
-const LABEL_CLS = 'text-xs font-medium text-gray-500 mb-1.5 block'
-
 export interface CommissionFormValues {
-  proyecto_vendido: string
-  fecha_cierre: string
-  importe_comision: string
-  facturada: boolean
-  numero_factura: string
+  proyecto_vendido:    string
+  project_id:          string
+  valor_venta:         string
+  porcentaje_comision: string
+  importe_comision:    string
+  fecha_cierre:        string
 }
 
 interface Props {
@@ -24,17 +25,30 @@ interface Props {
 }
 
 export function CommissionForm({ defaultValues, onSubmit, onCancel, isSubmitting, stickyButtons }: Props) {
+  const { data: projects = [] } = useProjects()
+  const { data: agentes = [] }  = useAgentes()
+
   const [form, setForm] = useState<CommissionFormValues>({
-    proyecto_vendido: defaultValues?.proyecto_vendido ?? '',
-    fecha_cierre:     defaultValues?.fecha_cierre ?? '',
-    importe_comision: defaultValues?.importe_comision?.toString() ?? '',
-    facturada:        defaultValues?.facturada ?? false,
-    numero_factura:   defaultValues?.numero_factura ?? '',
+    proyecto_vendido:    defaultValues?.proyecto_vendido    ?? '',
+    project_id:          defaultValues?.project_id          ?? '',
+    valor_venta:         defaultValues?.valor_venta?.toString()         ?? '',
+    porcentaje_comision: defaultValues?.porcentaje_comision?.toString() ?? '',
+    importe_comision:    defaultValues?.importe_comision?.toString()    ?? '',
+    fecha_cierre:        defaultValues?.fecha_cierre ?? '',
   })
 
-  function set<K extends keyof CommissionFormValues>(key: K, value: CommissionFormValues[K]) {
-    setForm(prev => ({ ...prev, [key]: value }))
+  function set<K extends keyof CommissionFormValues>(key: K, val: CommissionFormValues[K]) {
+    setForm(prev => ({ ...prev, [key]: val }))
   }
+
+  // Auto-calcular importe cuando cambian valor o porcentaje
+  useEffect(() => {
+    const v = parseFloat(form.valor_venta)
+    const p = parseFloat(form.porcentaje_comision)
+    if (!isNaN(v) && !isNaN(p) && v > 0 && p > 0) {
+      set('importe_comision', ((v * p) / 100).toFixed(2))
+    }
+  }, [form.valor_venta, form.porcentaje_comision])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,23 +56,21 @@ export function CommissionForm({ defaultValues, onSubmit, onCancel, isSubmitting
     onSubmit(form)
   }
 
-  const canSubmit = form.proyecto_vendido.trim().length > 0 && form.importe_comision.trim().length > 0
+  const canSubmit = form.proyecto_vendido.trim().length > 0 && parseFloat(form.importe_comision) > 0
+
+  // Preview de splits
+  const importeNum    = parseFloat(form.importe_comision) || 0
+  const agentesActivos = agentes.filter(a => a.activo)
+  const totalPct      = agentesActivos.reduce((s, a) => s + a.porcentaje_comision, 0)
 
   const buttons = (
     <div className="flex gap-3">
-      <button
-        type="button"
-        onClick={onCancel}
-        disabled={isSubmitting}
-        className="flex-1 h-12 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-      >
+      <button type="button" onClick={onCancel} disabled={isSubmitting}
+        className="flex-1 h-12 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
         Cancelar
       </button>
-      <button
-        type="submit"
-        disabled={!canSubmit || isSubmitting}
-        className="flex-[2] h-12 rounded-xl bg-gray-900 text-white text-sm font-semibold disabled:opacity-40 transition-opacity"
-      >
+      <button type="submit" disabled={!canSubmit || isSubmitting}
+        className="flex-[2] h-12 rounded-xl bg-gray-900 text-white text-sm font-semibold disabled:opacity-40 transition-opacity">
         {isSubmitting ? 'Guardando...' : defaultValues?.id ? 'Guardar cambios' : 'Crear comisión'}
       </button>
     </div>
@@ -67,76 +79,103 @@ export function CommissionForm({ defaultValues, onSubmit, onCancel, isSubmitting
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-      {/* Proyecto — span completo */}
+      {/* Proyecto CRM (opcional) */}
       <div>
-        <label className={LABEL_CLS}>PROYECTO / PROPIEDAD VENDIDA *</label>
-        <input
-          type="text"
-          placeholder="Ej: Torre Soleil — Unidad 4B"
+        <label className={LABEL_CLS}>PROYECTO DEL CRM (OPCIONAL)</label>
+        <select
+          value={form.project_id}
+          onChange={e => {
+            const pid = e.target.value
+            set('project_id', pid)
+            if (pid && !form.proyecto_vendido.trim()) {
+              const p = projects.find(x => x.id === pid)
+              if (p) {
+                const label = p.developer_name ? `${p.developer_name} — ${p.name}` : p.name
+                set('proyecto_vendido', label)
+              }
+            }
+          }}
+          className={INPUT_CLS}
+        >
+          <option value="">— Sin vincular —</option>
+          {projects.map(p => (
+            <option key={p.id} value={p.id}>
+              {p.developer_name ? `${p.developer_name} — ${p.name}` : p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Descripción libre */}
+      <div>
+        <label className={LABEL_CLS}>PROPIEDAD / DESCRIPCIÓN *</label>
+        <input type="text" placeholder="Ej: Torre Soleil — Apto 4B"
           value={form.proyecto_vendido}
           onChange={e => set('proyecto_vendido', e.target.value)}
-          className={INPUT_CLS}
-          autoFocus
-        />
+          className={INPUT_CLS} autoFocus />
       </div>
 
-      {/* Fecha + Importe en grid */}
+      {/* Valor venta + % comisión */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className={LABEL_CLS}>FECHA DE CIERRE</label>
-          <input
-            type="date"
-            value={form.fecha_cierre}
-            onChange={e => set('fecha_cierre', e.target.value)}
-            className={INPUT_CLS}
-          />
+          <label className={LABEL_CLS}>VALOR DE VENTA (USD)</label>
+          <input type="number" placeholder="100000" min="0" step="0.01"
+            value={form.valor_venta}
+            onChange={e => set('valor_venta', e.target.value)}
+            className={INPUT_CLS} />
         </div>
         <div>
-          <label className={LABEL_CLS}>IMPORTE COMISIÓN (USD) *</label>
-          <input
-            type="number"
-            placeholder="0"
-            min="0"
-            step="0.01"
-            value={form.importe_comision}
-            onChange={e => set('importe_comision', e.target.value)}
-            className={INPUT_CLS}
-          />
+          <label className={LABEL_CLS}>% COMISIÓN</label>
+          <input type="number" placeholder="4" min="0" step="0.01" max="100"
+            value={form.porcentaje_comision}
+            onChange={e => set('porcentaje_comision', e.target.value)}
+            className={INPUT_CLS} />
         </div>
       </div>
 
-      {/* Facturada + Número en grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-        <div className="flex items-center justify-between px-3 py-3 bg-gray-50 rounded-xl border border-gray-200 h-12">
-          <span className="text-sm font-medium text-gray-700">Facturada</span>
-          <button
-            type="button"
-            onClick={() => set('facturada', !form.facturada)}
-            className={`relative w-11 h-6 rounded-full transition-colors ${form.facturada ? 'bg-gray-900' : 'bg-gray-300'}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.facturada ? 'translate-x-5' : 'translate-x-0'}`} />
-          </button>
+      {/* Importe comisión + Fecha */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className={LABEL_CLS}>IMPORTE TOTAL A REPARTIR (USD) *</label>
+          <input type="number" placeholder="0" min="0" step="0.01"
+            value={form.importe_comision}
+            onChange={e => set('importe_comision', e.target.value)}
+            className={INPUT_CLS} />
+          <p className="text-[11px] text-gray-400 mt-1">Se calcula automáticamente si llenás los campos anteriores</p>
         </div>
-        {form.facturada && (
-          <div>
-            <label className={LABEL_CLS}>NÚMERO DE FACTURA</label>
-            <input
-              type="text"
-              placeholder="Ej: 001-001-000123"
-              value={form.numero_factura}
-              onChange={e => set('numero_factura', e.target.value)}
-              className={INPUT_CLS}
-            />
-          </div>
-        )}
+        <div>
+          <label className={LABEL_CLS}>FECHA DE CIERRE</label>
+          <input type="date"
+            value={form.fecha_cierre}
+            onChange={e => set('fecha_cierre', e.target.value)}
+            className={INPUT_CLS} />
+        </div>
       </div>
+
+      {/* Preview de splits */}
+      {importeNum > 0 && agentesActivos.length > 0 && (
+        <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+          <p className="text-[11px] font-semibold text-blue-700 uppercase tracking-wider mb-2">
+            Reparto automático {Math.abs(totalPct - 100) > 0.01 && (
+              <span className="text-amber-600 ml-1">(⚠ suma {totalPct}% — configurá agentes)</span>
+            )}
+          </p>
+          <div className="flex flex-col gap-1">
+            {agentesActivos.map(a => (
+              <div key={a.id} className="flex items-center justify-between text-sm">
+                <span className="text-blue-800">{a.nombre} <span className="text-blue-400 text-xs">({a.porcentaje_comision}%)</span></span>
+                <span className="font-semibold text-blue-900">
+                  {new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(importeNum * a.porcentaje_comision / 100)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Botones */}
       {stickyButtons ? (
-        <div
-          className="sticky bottom-0 bg-white pt-3 pb-1 -mx-4 px-4 border-t border-gray-100"
-          style={{ marginTop: 'auto' }}
-        >
+        <div className="sticky bottom-0 bg-white pt-3 pb-1 -mx-4 px-4 border-t border-gray-100" style={{ marginTop: 'auto' }}>
           {buttons}
         </div>
       ) : (

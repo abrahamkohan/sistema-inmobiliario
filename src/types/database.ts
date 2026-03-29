@@ -678,6 +678,29 @@ export interface Database {
           { foreignKeyName: "user_roles_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }
         ]
       }
+      profiles: {
+        Row: {
+          id: string
+          full_name: string | null
+          phone: string | null
+          avatar_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id: string
+          full_name?: string | null
+          phone?: string | null
+          avatar_url?: string | null
+        }
+        Update: {
+          full_name?: string | null
+          phone?: string | null
+          avatar_url?: string | null
+        }
+        Relationships: [
+          { foreignKeyName: "profiles_id_fkey"; columns: ["id"]; referencedRelation: "users"; referencedColumns: ["id"] }
+        ]
+      }
       commissions: {
         Row: {
           id: string

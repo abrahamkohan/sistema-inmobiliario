@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useConsultoraConfig, useSaveConsultoraConfig } from '@/hooks/useConsultora'
 import { useAgentes, useCreateAgente, useDeleteAgente } from '@/hooks/useAgentes'
+import { useTeam, useSetRole, useInviteUser } from '@/hooks/useTeam'
+import { useIsAdmin } from '@/hooks/useUserRole'
+import { useAuth } from '@/context/AuthContext'
 
 // ─── Referidos helpers ────────────────────────────────────────────────────────
 
@@ -78,6 +81,35 @@ export function ConfiguracionPage() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [refName, setRefName]     = useState('')
   const [refLink, setRefLink]     = useState('')
+
+  // Equipo (solo admin)
+  const isAdmin   = useIsAdmin()
+  const { session } = useAuth()
+  const { data: team = [] } = useTeam()
+  const setRole   = useSetRole()
+  const inviteUser = useInviteUser()
+  const [inviteEmail, setInviteEmail]     = useState('')
+  const [showInvite,  setShowInvite]      = useState(false)
+
+  async function handleInvite() {
+    if (!inviteEmail.trim()) return
+    try {
+      await inviteUser.mutateAsync(inviteEmail.trim())
+      toast.success(`Invitación enviada a ${inviteEmail}`)
+      setInviteEmail(''); setShowInvite(false)
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Error al invitar')
+    }
+  }
+
+  async function handleSetRole(userId: string, role: 'admin' | 'agente') {
+    try {
+      await setRole.mutateAsync({ userId, role })
+      toast.success('Rol actualizado')
+    } catch {
+      toast.error('Error al actualizar rol')
+    }
+  }
 
   // Agentes
   const { data: agentes = [] } = useAgentes()
@@ -326,6 +358,82 @@ export function ConfiguracionPage() {
           )}
         </div>
       </div>
+
+      {/* ── Equipo (solo admin) ── */}
+      {isAdmin && (
+        <div className="flex flex-col gap-4 pt-6 border-t border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">Equipo</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Usuarios con acceso al sistema</p>
+            </div>
+            <button
+              onClick={() => setShowInvite(v => !v)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Invitar
+            </button>
+          </div>
+
+          {/* Formulario de invitación */}
+          {showInvite && (
+            <div className="flex gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
+              <input
+                type="email"
+                placeholder="email@ejemplo.com"
+                value={inviteEmail}
+                onChange={e => setInviteEmail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleInvite()}
+                className="flex-1 h-9 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 bg-white"
+              />
+              <button
+                onClick={handleInvite}
+                disabled={inviteUser.isPending || !inviteEmail.trim()}
+                className="h-9 px-3 rounded-lg bg-gray-900 text-white text-xs font-semibold disabled:opacity-40"
+              >
+                {inviteUser.isPending ? 'Enviando...' : 'Enviar'}
+              </button>
+            </div>
+          )}
+
+          {/* Lista de usuarios */}
+          <div className="flex flex-col gap-2">
+            {team.map(member => (
+              <div key={member.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    {(member.full_name ?? member.id)[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                      {member.full_name ?? '—'}
+                      {member.id === session?.user.id && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">Vos</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-gray-400">{member.role ?? 'Sin rol'}</p>
+                  </div>
+                </div>
+                {member.id !== session?.user.id && (
+                  <select
+                    value={member.role ?? ''}
+                    onChange={e => handleSetRole(member.id, e.target.value as 'admin' | 'agente')}
+                    className="h-8 px-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 bg-white"
+                  >
+                    <option value="">Sin rol</option>
+                    <option value="admin">Admin</option>
+                    <option value="agente">Agente</option>
+                  </select>
+                )}
+              </div>
+            ))}
+            {team.length === 0 && (
+              <p className="text-xs text-gray-400 text-center py-4">No hay usuarios todavía</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Barra sticky de guardado */}
       <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t py-3 flex items-center justify-between gap-4 -mx-6 px-6 z-10">

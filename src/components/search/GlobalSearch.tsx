@@ -123,22 +123,28 @@ export function GlobalSearch() {
           <div className="relative w-full md:max-w-lg bg-white rounded-b-2xl md:rounded-2xl shadow-2xl overflow-hidden">
 
             {/* Input */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b">
-              <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+              <Search className="w-5 h-5 flex-shrink-0" style={{ color: '#14223A' }} strokeWidth={2.5} />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Buscar clientes, tareas, propiedades..."
-                className="flex-1 text-sm outline-none text-gray-900 placeholder:text-gray-400"
+                className="flex-1 text-base outline-none text-gray-900 placeholder:text-gray-400 bg-transparent"
               />
               {loading
                 ? <Loader2 className="w-4 h-4 text-gray-400 animate-spin flex-shrink-0" />
-                : query && (
-                  <button onClick={() => setQuery('')}>
-                    <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                  </button>
-                )
+                : query
+                  ? (
+                    <button
+                      onClick={() => setQuery('')}
+                      className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
+                    >
+                      <X className="w-3.5 h-3.5 text-gray-500" />
+                    </button>
+                  ) : (
+                    <kbd className="hidden md:inline text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono flex-shrink-0">⌘K</kbd>
+                  )
               }
             </div>
 
@@ -175,8 +181,8 @@ export function GlobalSearch() {
             )}
 
             {!query && (
-              <div className="px-4 py-6 text-center text-sm text-gray-400">
-                Escribí al menos 2 caracteres para buscar
+              <div className="px-5 py-5 text-sm text-gray-400">
+                Clientes · Tareas · Propiedades
               </div>
             )}
           </div>

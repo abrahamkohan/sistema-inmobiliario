@@ -136,7 +136,7 @@ function NoteItemBubble({ item, onOpen, onDelete }: {
   )
 }
 
-function TaskItemBubble({ item }: { item: ActivityItem & { type: 'task' } }) {
+function TaskItemBubble({ item, onEdit }: { item: ActivityItem & { type: 'task' }; onEdit: (id: string) => void }) {
   const urgency = getUrgency(item.data)
   const isClosed = item.data.status === 'closed'
   const isOverdue = urgency === 'overdue' && !isClosed
@@ -157,9 +157,12 @@ function TaskItemBubble({ item }: { item: ActivityItem & { type: 'task' } }) {
         {statusIcon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`bg-white border rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm ${
-          isOverdue ? 'border-red-100' : 'border-gray-100'
-        }`}>
+        <button
+          onClick={() => onEdit(item.data.id)}
+          className={`w-full text-left bg-white border rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm hover:shadow-md hover:border-gray-200 transition-all ${
+            isOverdue ? 'border-red-100' : 'border-gray-100'
+          }`}
+        >
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className={`text-[10px] font-semibold uppercase tracking-wider ${
               isClosed ? 'text-emerald-500' : isOverdue ? 'text-red-400' : 'text-blue-500'
@@ -180,7 +183,7 @@ function TaskItemBubble({ item }: { item: ActivityItem & { type: 'task' } }) {
           <p className="text-[11px] text-gray-300 mt-1.5">
             {new Date(item.data.due_date).toLocaleDateString('es-PY', { day: 'numeric', month: 'short' })}
           </p>
-        </div>
+        </button>
         <p className="text-[11px] text-gray-400 mt-1 px-1">{timeAgo(item.date)}</p>
       </div>
     </div>
@@ -344,7 +347,7 @@ function Timeline({
                 />
               )
             if (item.type === 'task')
-              return <TaskItemBubble key={`t-${item.data.id}`} item={item as ActivityItem & { type: 'task' }} />
+              return <TaskItemBubble key={`t-${item.data.id}`} item={item as ActivityItem & { type: 'task' }} onEdit={setEditTaskId} />
             if (item.type === 'simulation')
               return (
                 <SimItemBubble
@@ -526,8 +529,9 @@ export function ClientDetailPage() {
 
   const [tab,      setTab]      = useState<Tab>('actividad')
   // editOpen no longer needed - using separate page for editing
-  const [taskOpen, setTaskOpen] = useState(false)
-  const [editNote, setEditNote] = useState<NoteRow | null>(null)
+  const [taskOpen,    setTaskOpen]    = useState(false)
+  const [editTaskId,  setEditTaskId]  = useState<string | null>(null)
+  const [editNote,    setEditNote]    = useState<NoteRow | null>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -772,9 +776,10 @@ export function ClientDetailPage() {
 
       {/* ── Modals ──────────────────────────────────────────────────────── */}
       <TaskModal
-        isOpen={taskOpen}
-        onClose={() => setTaskOpen(false)}
-        defaultValues={{ context: 'lead', lead_id: id }}
+        isOpen={taskOpen || !!editTaskId}
+        onClose={() => { setTaskOpen(false); setEditTaskId(null) }}
+        taskId={editTaskId ?? undefined}
+        defaultValues={editTaskId ? undefined : { context: 'lead', lead_id: id }}
       />
 
       {editNote && (

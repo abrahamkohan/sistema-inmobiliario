@@ -1,5 +1,6 @@
 // src/components/notes/NoteItem.tsx
 import { Star, Pencil, Archive, Trash2, Bell, Link } from 'lucide-react'
+import { useNavigate } from 'react-router'
 import { extractTitle, extractSnippet } from '@/lib/notes'
 import type { Database } from '@/types/database'
 
@@ -46,6 +47,7 @@ const REMINDER_LABEL: Record<string, string> = {
 interface NoteItemProps {
   note: NoteRow
   clientName?: string
+  clientId?: string
   projectName?: string
   onOpen:    (note: NoteRow) => void
   onArchive: (id: string)   => void
@@ -55,7 +57,8 @@ interface NoteItemProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function NoteItem({ note, clientName, projectName, onOpen, onArchive, onDelete, onFlag }: NoteItemProps) {
+export function NoteItem({ note, clientName, clientId, projectName, onOpen, onArchive, onDelete, onFlag }: NoteItemProps) {
+  const navigate = useNavigate()
   const title   = extractTitle(note.content)
   const snippet = extractSnippet(note.content)
   const hasReminder = !!note.reminder_date
@@ -117,10 +120,19 @@ export function NoteItem({ note, clientName, projectName, onOpen, onArchive, onD
                 {REMINDER_LABEL[urgency]}
               </span>
             )}
-            {hasLink && (
+            {hasLink && clientId && (
+              <button
+                onClick={e => { e.stopPropagation(); navigate(`/clientes/${clientId}`) }}
+                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 flex items-center gap-0.5 hover:bg-indigo-100 transition-colors"
+              >
+                <Link className="w-2.5 h-2.5" />
+                {clientName ? `→ ${clientName}` : '→ Cliente'}
+              </button>
+            )}
+            {hasLink && !clientId && (
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 flex items-center gap-0.5">
                 <Link className="w-2.5 h-2.5" />
-                {clientName ? `→ ${clientName}` : projectName ? `→ ${projectName}` : '→ Vínculo'}
+                {projectName ? `→ ${projectName}` : '→ Vínculo'}
               </span>
             )}
             {visibleTags.map(tag => (

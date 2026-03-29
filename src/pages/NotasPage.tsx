@@ -169,6 +169,7 @@ export function NotasPage() {
               key={note.id}
               note={note}
               clientName={note.client_id ? clientMap[note.client_id] : undefined}
+              clientId={note.client_id ?? undefined}
               projectName={note.project_id ? projectMap[note.project_id] : undefined}
               onOpen={setEditing}
               onArchive={handleArchive}

@@ -33,8 +33,10 @@ export function AppShell() {
   }
 
   async function handleSubscribe() {
-    const ok = await subscribe()
-    if (ok) setShowPushBanner(false)
+    await subscribe()
+    // Ocultamos el banner siempre — el permiso ya fue solicitado
+    sessionStorage.setItem(PUSH_DISMISSED_KEY, '1')
+    setShowPushBanner(false)
   }
 
   useEffect(() => {

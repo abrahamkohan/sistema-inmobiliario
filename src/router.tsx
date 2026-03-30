@@ -17,6 +17,7 @@ import { PropiedadDetallePage } from '@/pages/PropiedadDetallePage'
 import { PropiedadNuevaPage } from '@/pages/PropiedadNuevaPage'
 import { PropiedadEditarPage } from '@/pages/PropiedadEditarPage'
 import { ProyectoFormPage } from '@/pages/ProyectoFormPage'
+import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { ClienteFormPage } from '@/pages/ClienteFormPage'
 import { LeadQuickPage } from '@/pages/LeadQuickPage'
 import { LeadShortLinkPage } from '@/pages/LeadShortLinkPage'
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
       { path: 'inicio',     element: <InicioPage /> },
       { path: 'proyectos',              element: <ProyectosPage /> },
       { path: 'proyectos/nueva',        element: <ProyectoFormPage /> },
+      { path: 'proyectos/:id',          element: <ProjectDetailPage /> },
       { path: 'proyectos/:id/editar',   element: <ProyectoFormPage /> },
       { path: 'clientes', element: <ClientesPage /> },
       { path: 'clientes/nuevo', element: <ClienteFormPage /> },

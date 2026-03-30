@@ -38,7 +38,7 @@ export function ProjectTableDesktop({ projects, onDelete }: ProjectTableDesktopP
           {projects.map((project, i) => (
             <tr
               key={project.id}
-              onClick={() => navigate(`/proyectos/${project.id}/editar`)}
+              onClick={() => navigate(`/proyectos/${project.id}`)}
               className={`border-b border-border/40 cursor-pointer hover:bg-muted/30 transition-colors ${
                 i % 2 !== 0 ? 'bg-muted/10' : ''
               }`}

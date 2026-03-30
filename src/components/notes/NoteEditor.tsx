@@ -78,6 +78,19 @@ export function NoteEditor({ note, clients, projects, onClose }: NoteEditorProps
     } else { onClose() }
   }
 
+  function handleCancel() {
+    if (!content.trim()) { deleteNote.mutate(note.id, { onSuccess: onClose }); return }
+    onClose()
+  }
+
+  function handleSaveAndClose() {
+    if (!content.trim()) { onClose(); return }
+    updateNote.mutate(
+      { id: note.id, input: { content, tags, reminder_date: reminder || null, client_id: clientId || null, project_id: projectId || null } },
+      { onSuccess: onClose }
+    )
+  }
+
   function handleFlag()    { updateNote.mutate({ id: note.id, input: { is_flagged: !note.is_flagged } }) }
   function handleArchive() { save(); updateNote.mutate({ id: note.id, input: { location: note.location === 'inbox' ? 'archive' : 'inbox' } }, { onSuccess: onClose }) }
   function handleDelete()  { if (!confirm('¿Eliminar esta nota?')) return; deleteNote.mutate(note.id, { onSuccess: onClose }) }
@@ -268,6 +281,25 @@ export function NoteEditor({ note, clients, projects, onClose }: NoteEditorProps
               <Trash2 className="w-[22px] h-[22px]" />
             </button>
           </div>
+
+          {/* ── Footer guardar ── */}
+          <div className="flex items-center gap-2 px-4 pb-3">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="h-11 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-500 bg-white active:bg-gray-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveAndClose}
+              disabled={!content.trim() || updateNote.isPending}
+              className="flex-1 h-11 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-30 transition-opacity"
+            >
+              Guardar nota
+            </button>
+          </div>
         </div>
       </div>
 
@@ -376,6 +408,19 @@ export function NoteEditor({ note, clients, projects, onClose }: NoteEditorProps
                 className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all">
                 <Trash2 className="w-[16px] h-[16px]" />
                 <span>Eliminar</span>
+              </button>
+              <button
+                onClick={handleCancel}
+                className="h-9 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveAndClose}
+                disabled={!content.trim() || updateNote.isPending}
+                className="h-9 px-5 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-30 transition-opacity"
+              >
+                Guardar nota
               </button>
             </div>
           </div>

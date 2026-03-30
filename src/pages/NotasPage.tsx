@@ -1,5 +1,5 @@
 // src/pages/NotasPage.tsx
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Plus, Search, NotebookPen, Star, Archive, FileText, X } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { toast } from 'sonner'
@@ -70,11 +70,6 @@ export function NotasPage() {
     setEditing(note)
   }
 
-  // Al entrar a la página, abrir editor inmediatamente (filosofía Drafts)
-  useEffect(() => {
-    handleNew()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   function handleArchive(id: string) {
     const note = notes.find(n => n.id === id)

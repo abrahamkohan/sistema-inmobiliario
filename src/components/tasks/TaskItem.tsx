@@ -73,7 +73,7 @@ export function TaskItem({
   lead,
   agencyName = 'Kohan & Campos',
   onComplete,
-  onReschedule,
+  onReschedule: _onReschedule,
   onOpenPeek,
   onDelete,
 }: TaskItemProps) {

@@ -147,18 +147,12 @@ export function TaskModal({
   const effectiveLeadId = selectedLead || defaultValues?.lead_id || existingTask?.lead_id || ''
   const { data: lead } = useClient(effectiveLeadId)
 
-  // Fix iOS Safari: bloquear scroll del body solo para este modal
+  // Bloquear scroll del body en mobile cuando el modal está abierto
   useEffect(() => {
     if (!isOpen) return
-    const scrollY = window.scrollY
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${scrollY}px`
-    document.body.style.width = '100%'
+    document.body.style.overflow = 'hidden'
     return () => {
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      window.scrollTo(0, scrollY)
+      document.body.style.overflow = ''
     }
   }, [isOpen])
 

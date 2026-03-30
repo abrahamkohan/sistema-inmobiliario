@@ -20,8 +20,8 @@ export function MobileFormScreen({ open, onClose, title, children, footer }: Mob
   if (!open) return null
 
   return (
-    <div className="md:hidden fixed inset-0 z-50 flex flex-col bg-white"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <div className="md:hidden fixed z-50 flex flex-col bg-white"
+      style={{ top: 0, left: 0, width: '100%', height: '100dvh', paddingBottom: 'env(safe-area-inset-bottom)' }}>
 
       {/* ── HEADER ──────────────────────────────────────────────────────────── */}
       <div className="flex-shrink-0 relative flex items-center justify-between px-2 bg-white border-b border-gray-100"

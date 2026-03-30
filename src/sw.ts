@@ -29,16 +29,16 @@ self.addEventListener('notificationclick', (event) => {
   const url = event.notification.data?.url ?? '/inicio'
 
   event.waitUntil(
-    clients
+    self.clients
       .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
+      .then((clientList: readonly WindowClient[]) => {
         for (const client of clientList) {
           if ('focus' in client) {
             client.postMessage({ type: 'NAVIGATE', url })
             return client.focus()
           }
         }
-        return clients.openWindow(url)
+        return self.clients.openWindow(url)
       })
   )
 })

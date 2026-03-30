@@ -845,7 +845,6 @@ export interface Database {
           { foreignKeyName: "commission_incomes_commission_id_fkey"; columns: ["commission_id"]; referencedRelation: "commissions"; referencedColumns: ["id"] }
         ]
       }
-    }
       push_subscriptions: {
         Row: {
           id:         string

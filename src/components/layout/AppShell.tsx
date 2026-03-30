@@ -19,23 +19,23 @@ export function AppShell() {
   const mainRef  = useRef<HTMLDivElement>(null)
   const { supported, permission, subscribed, subscribe } = usePushNotifications()
 
-  // Mostrar banner si: soportado, no suscripto, no descartado antes
+  // Mostrar banner si: soportado, permiso no decidido todavía, no suscripto, no descartado
   useEffect(() => {
-    if (supported && permission === 'default' && !subscribed) {
-      const dismissed = sessionStorage.getItem(PUSH_DISMISSED_KEY)
-      if (!dismissed) setShowPushBanner(true)
-    }
-  }, [supported, permission, subscribed])
+    if (!supported) return
+    if (Notification.permission !== 'default') return  // ya decidió (granted o denied)
+    if (subscribed) return
+    const dismissed = localStorage.getItem(PUSH_DISMISSED_KEY)
+    if (!dismissed) setShowPushBanner(true)
+  }, [supported, subscribed])
 
   function dismissPushBanner() {
-    sessionStorage.setItem(PUSH_DISMISSED_KEY, '1')
+    localStorage.setItem(PUSH_DISMISSED_KEY, '1')
     setShowPushBanner(false)
   }
 
   async function handleSubscribe() {
     await subscribe()
-    // Ocultamos el banner siempre — el permiso ya fue solicitado
-    sessionStorage.setItem(PUSH_DISMISSED_KEY, '1')
+    localStorage.setItem(PUSH_DISMISSED_KEY, '1')
     setShowPushBanner(false)
   }
 

@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string
+// VAPID public key — pública por diseño, safe para commitear
+const VAPID_PUBLIC_KEY =
+  import.meta.env.VITE_VAPID_PUBLIC_KEY as string ||
+  'BIBPI7J_Pa1YjEPk351AmFB1A8-f7JQrLqz2604ZqpApIQo8oIXU-5g24SBjVZrwcenhVCEVgQkSuhgqiRKGPjw'
 
 function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4)

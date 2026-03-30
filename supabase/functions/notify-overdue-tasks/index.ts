@@ -84,6 +84,28 @@ serve(async (req) => {
         if (res.ok) {
           notifiedIds.push(...userTasks.map(t => t.id))
         }
+
+        // Web Push — en paralelo con Telegram
+        const pushBody = userTasks.length === 1
+          ? `"${userTasks[0].title}" venció el ${userTasks[0].due_date}`
+          : `Tenés ${userTasks.length} tareas vencidas`
+
+        await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-push`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              title:   '⚠️ Tareas vencidas',
+              body:    pushBody,
+              url:     '/tareas',
+            }),
+          }
+        ).catch(() => { /* push falla silenciosamente */ })
       })
     )
 

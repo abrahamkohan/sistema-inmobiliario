@@ -846,6 +846,31 @@ export interface Database {
         ]
       }
     }
+      push_subscriptions: {
+        Row: {
+          id:         string
+          user_id:    string
+          endpoint:   string
+          p256dh:     string
+          auth_key:   string
+          created_at: string
+        }
+        Insert: {
+          id?:        string
+          user_id:    string
+          endpoint:   string
+          p256dh:     string
+          auth_key:   string
+          created_at?: string
+        }
+        Update: {
+          endpoint?:  string
+          p256dh?:    string
+          auth_key?:  string
+        }
+        Relationships: []
+      }
+    }
     Views: Record<string, never>
     Functions: Record<string, never>
     Enums: Record<string, never>

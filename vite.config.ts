@@ -9,10 +9,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
       includeAssets: ['pwa-icon.svg', 'apple-touch-icon.png'],
       injectRegister: null,    // no inyectamos el <link rel="manifest"> — lo ponemos en index.html
-      workbox: {
+      injectManifest: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
       },
       manifest: {

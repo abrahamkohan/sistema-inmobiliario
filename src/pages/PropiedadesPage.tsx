@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Search, Plus, Building2 } from 'lucide-react'
 import { useProperties } from '@/hooks/useProperties'
-import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { PropertyCard } from '@/components/properties/PropertyCard'
 import { EmptyState } from '@/components/ui/EmptyState'
 import type { PropertyRow } from '@/lib/properties'
@@ -31,7 +30,6 @@ const FILTROS_TIPO = [
 export function PropiedadesPage() {
   const navigate = useNavigate()
   const { data: properties = [], isLoading } = useProperties()
-  const { data: consultora } = useConsultoraConfig()
   const [search, setSearch] = useState('')
   const [filterOp, setFilterOp] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
@@ -49,13 +47,14 @@ export function PropiedadesPage() {
     })
   }, [properties, search, filterOp, filterTipo])
 
-  function handleConsultar(property: PropertyRow) {
-    if (consultora?.whatsapp) {
-      const title = property.titulo || `${TIPO_LABEL[property.tipo] ?? property.tipo} en ${property.zona}`
-      const msg = encodeURIComponent(`Hola, me interesa la propiedad: ${title}`)
-      window.open(`https://wa.me/${consultora.whatsapp.replace(/\D/g, '')}?text=${msg}`, '_blank')
-    }
-  }
+  const groups = useMemo(() => {
+    const venta    = filtered.filter(p => p.operacion === 'venta')
+    const alquiler = filtered.filter(p => p.operacion === 'alquiler')
+    return [
+      { key: 'venta',    label: 'Venta',    items: venta },
+      { key: 'alquiler', label: 'Alquiler', items: alquiler },
+    ].filter(g => g.items.length > 0)
+  }, [filtered])
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-5">
@@ -137,11 +136,25 @@ export function PropiedadesPage() {
         />
       )}
 
-      {/* Grid */}
+      {/* Grid agrupado por operación */}
       {!isLoading && filtered.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map(p => (
-            <PropertyCard key={p.id} property={p} onConsultar={handleConsultar} />
+        <div className="flex flex-col gap-6">
+          {groups.map((group, gi) => (
+            <div key={group.key}>
+              {/* Header de grupo — solo si hay más de un grupo visible */}
+              {groups.length > 1 && (
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">{group.label}</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs text-gray-400">{group.items.length}</span>
+                </div>
+              )}
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {group.items.map(p => (
+                  <PropertyCard key={p.id} property={p} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}

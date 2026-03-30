@@ -20,30 +20,21 @@ const OP_LABEL: Record<string, string> = {
 
 interface Props {
   property: PropertyRow
-  onConsultar?: (property: PropertyRow) => void
 }
 
-export function PropertyCard({ property, onConsultar }: Props) {
+export function PropertyCard({ property }: Props) {
   const navigate = useNavigate()
   const updateProperty = useUpdateProperty()
   const deleteProperty = useDeleteProperty()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  const coverUrl = property.foto_portada
-    ? getPhotoUrl(property.foto_portada)
-    : null
+  const coverUrl = property.foto_portada ? getPhotoUrl(property.foto_portada) : null
+  const ubicacion = property.barrio ?? property.zona ?? property.ciudad ?? 'Sin ubicación'
+  const title = property.titulo || `${TIPO_LABEL[property.tipo] ?? property.tipo} en ${ubicacion}`
 
   function togglePublicado(e: React.MouseEvent) {
     e.stopPropagation()
-    updateProperty.mutate({
-      id: property.id,
-      input: { publicado_en_web: !property.publicado_en_web },
-    })
-  }
-
-  function handleConsultar(e: React.MouseEvent) {
-    e.stopPropagation()
-    onConsultar?.(property)
+    updateProperty.mutate({ id: property.id, input: { publicado_en_web: !property.publicado_en_web } })
   }
 
   function handleDeleteClick(e: React.MouseEvent) {
@@ -51,119 +42,89 @@ export function PropertyCard({ property, onConsultar }: Props) {
     setShowDeleteModal(true)
   }
 
-  function handleConfirmDelete() {
-    deleteProperty.mutate(property.id, {
-      onSuccess: () => setShowDeleteModal(false),
-    })
-  }
-
-  const ubicacion = property.barrio ?? property.zona ?? property.ciudad ?? 'Sin ubicación'
-  const title = property.titulo ||
-    `${TIPO_LABEL[property.tipo] ?? property.tipo} en ${ubicacion}`
-
   return (
     <>
     <div
       onClick={() => navigate(`/propiedades/${property.id}`)}
-      className="bg-white rounded-xl border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md transition-shadow flex flex-col"
+      className="bg-white rounded-2xl shadow-[0_4px_14px_rgba(0,0,0,0.07)] overflow-hidden active:scale-[0.99] transition-transform cursor-pointer flex flex-col"
     >
-      {/* Image */}
-      <div className="relative h-44 bg-gray-100 flex-shrink-0">
+      {/* Imagen */}
+      <div className="relative bg-gray-100 flex-shrink-0" style={{ height: 140 }}>
         {coverUrl ? (
           <img src={coverUrl} alt={title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300">
-            <Maximize2 className="w-10 h-10" />
+          <div className="w-full h-full flex items-center justify-center">
+            <Maximize2 className="w-8 h-8 text-gray-300" />
           </div>
         )}
+        {/* Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
         {/* Badges */}
         <div className="absolute top-2 left-2 flex gap-1">
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-black/60 text-white">
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-900/70 text-white backdrop-blur-sm">
             {OP_LABEL[property.operacion] ?? property.operacion}
           </span>
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-black/60 text-white">
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
             {TIPO_LABEL[property.tipo] ?? property.tipo}
           </span>
         </div>
-        {/* Trash button */}
-        <button
-          onClick={handleDeleteClick}
-          title="Eliminar propiedad"
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white/70 hover:bg-red-600 hover:text-white transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
-        {/* Estado inactivo */}
+        {/* Inactivo overlay */}
         {property.estado === 'inactivo' && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <span className="text-white font-medium text-sm bg-black/60 px-3 py-1 rounded-full">Inactivo</span>
+            <span className="text-white text-xs font-semibold bg-black/60 px-2.5 py-1 rounded-full">Inactivo</span>
           </div>
         )}
       </div>
 
       {/* Body */}
-      <div className="p-3 flex flex-col gap-2 flex-1">
-        <div>
-          <p className="text-sm font-medium text-gray-900 line-clamp-1">{title}</p>
-          {(property.barrio || property.zona || property.ciudad) && (
-            <p className="text-xs text-gray-400 flex items-center gap-0.5 mt-0.5">
-              <MapPin className="w-3 h-3" />
-              {[property.barrio, property.zona, property.ciudad].filter(Boolean).join(' · ')}
-            </p>
-          )}
-        </div>
+      <div className="px-3 pt-2.5 pb-2 flex flex-col gap-1.5 flex-1">
+        <p className="text-sm font-bold text-gray-900 line-clamp-1 leading-tight">{title}</p>
 
-        {/* Stats */}
-        <div className="flex items-center gap-3 text-xs text-gray-500">
-          {property.dormitorios != null && (
-            <span className="flex items-center gap-1">
-              <Bed className="w-3.5 h-3.5" />{property.dormitorios}
-            </span>
-          )}
-          {property.banos != null && (
-            <span className="flex items-center gap-1">
-              <Bath className="w-3.5 h-3.5" />{property.banos}
-            </span>
-          )}
-          {property.superficie_m2 != null && (
-            <span className="flex items-center gap-1">
-              <Maximize2 className="w-3.5 h-3.5" />{property.superficie_m2} m²
-            </span>
-          )}
-        </div>
-
-        {/* Price */}
-        {property.precio != null && (
-          <div className="flex flex-col gap-0.5">
-            <p className="text-sm font-semibold text-gray-800">
-              {formatPrice(property.precio, property.moneda)}
-            </p>
-            {property.financiacion && (
-              <p className="text-xs font-medium text-amber-700">Consultar financiación</p>
-            )}
-          </div>
+        {(property.barrio || property.zona || property.ciudad) && (
+          <p className="text-[11px] text-gray-400 flex items-center gap-0.5">
+            <MapPin className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{[property.barrio, property.zona, property.ciudad].filter(Boolean).join(' · ')}</span>
+          </p>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-2 mt-auto pt-1">
-          <button
-            onClick={handleConsultar}
-            className="flex-1 text-xs font-medium py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Consultar
-          </button>
+        {/* Stats */}
+        <div className="flex items-center gap-2.5 text-[11px] text-gray-500">
+          {property.dormitorios != null && (
+            <span className="flex items-center gap-0.5"><Bed className="w-3 h-3" />{property.dormitorios === 0 ? 'Mono' : property.dormitorios}</span>
+          )}
+          {property.banos != null && (
+            <span className="flex items-center gap-0.5"><Bath className="w-3 h-3" />{property.banos}</span>
+          )}
+          {property.superficie_m2 != null && (
+            <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" />{property.superficie_m2} m²</span>
+          )}
+        </div>
+
+        {/* Precio */}
+        {property.precio != null && (
+          <p className="text-sm font-bold text-gray-800">{formatPrice(property.precio, property.moneda)}</p>
+        )}
+
+        {/* Acciones CRM */}
+        <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-gray-50">
           <button
             onClick={togglePublicado}
-            title={property.publicado_en_web ? 'Publicado en web' : 'No publicado'}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+            className={`flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg transition-colors ${
               property.publicado_en_web
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                : 'border-gray-200 text-gray-400 hover:border-gray-300'
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-gray-100 text-gray-400'
             }`}
           >
             {property.publicado_en_web
-              ? <><Globe className="w-3.5 h-3.5" /> Web</>
-              : <><GlobeLock className="w-3.5 h-3.5" /> Web</>}
+              ? <><Globe className="w-3 h-3" /> Web</>
+              : <><GlobeLock className="w-3 h-3" /> Web</>
+            }
+          </button>
+          <button
+            onClick={handleDeleteClick}
+            className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 active:bg-red-50 active:text-red-500 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -174,7 +135,7 @@ export function PropertyCard({ property, onConsultar }: Props) {
       mode="keyword"
       entityName={title}
       isPending={deleteProperty.isPending}
-      onConfirm={handleConfirmDelete}
+      onConfirm={() => deleteProperty.mutate(property.id, { onSuccess: () => setShowDeleteModal(false) })}
       onCancel={() => setShowDeleteModal(false)}
     />
     </>

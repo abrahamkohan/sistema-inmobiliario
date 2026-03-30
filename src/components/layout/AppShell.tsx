@@ -17,7 +17,7 @@ export function AppShell() {
   const navigate = useNavigate()
   const location = useLocation()
   const mainRef  = useRef<HTMLDivElement>(null)
-  const { supported, permission, subscribed, subscribe } = usePushNotifications()
+  const { supported, subscribed, subscribe } = usePushNotifications()
 
   // Mostrar banner si: soportado, permiso no decidido todavía, no suscripto, no descartado
   useEffect(() => {

@@ -283,7 +283,7 @@ export function NoteEditor({ note, clients, projects, onClose }: NoteEditorProps
           </div>
 
           {/* ── Footer guardar ── */}
-          <div className="flex items-center gap-2 px-4 pb-3">
+          <div className="flex items-center gap-2 px-4 pt-2" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
             <button
               type="button"
               onClick={handleCancel}

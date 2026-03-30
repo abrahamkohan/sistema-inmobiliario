@@ -9,7 +9,6 @@ import { SimSelector } from '@/components/simulator/SimSelector'
 import { ScenarioAirbnb } from '@/components/simulator/ScenarioAirbnb'
 import { ScenarioAlquiler } from '@/components/simulator/ScenarioAlquiler'
 import { ScenarioPlusvalia } from '@/components/simulator/ScenarioPlusvalia'
-import { FlipCalculator } from '@/components/simulator/FlipCalculator'
 import { useSimStore, useAirbnbInputs, useAlquilerInputs, usePlusvaliaInputs } from '@/simulator/store'
 import { calcAirbnb, calcAlquiler, calcPlusvalia } from '@/simulator/engine'
 import { useSaveSimulation } from '@/hooks/useSimulations'
@@ -17,7 +16,7 @@ import { useProjects } from '@/hooks/useProjects'
 import { useTypologies } from '@/hooks/useTypologies'
 import { formatUsd } from '@/utils/money'
 
-type Tab = 'airbnb' | 'alquiler' | 'plusvalia' | 'flip'
+type Tab = 'airbnb' | 'alquiler' | 'plusvalia'
 
 const TABS: {
   id: Tab
@@ -55,15 +54,6 @@ const TABS: {
     activeBorder: '#d97706',
     dot: '#d97706',
   },
-  {
-    id: 'flip',
-    label: 'Flip',
-    sublabel: 'Reventa',
-    activeColor: '#065f46',
-    activeBg: '#d1fae5',
-    activeBorder: '#059669',
-    dot: '#059669',
-  },
 ]
 
 export function SimuladorPage() {
@@ -84,8 +74,6 @@ export function SimuladorPage() {
   const rapidoPrecio = parseFloat(rapido.precio)
   const isReadyRapido = !!(modoRapido && rapido.proyecto && rapido.tipologia && rapido.cliente && rapidoPrecio > 0)
   const isReady = modoRapido ? isReadyRapido : !!(projectId && typologyId && clientId && baseValues?.price_usd)
-  const isFlip = activeTab === 'flip'
-
   function handleRapidoChange(field: keyof typeof rapido, val: string) {
     const next = { ...rapido, [field]: val }
     setRapido(next)
@@ -151,17 +139,15 @@ export function SimuladorPage() {
               Resetear
             </Button>
           )}
-          {!isFlip && (
-            <Button size="sm" disabled={!isReady || saveSimulation.isPending} onClick={handleSave}>
-              <Save className="h-3.5 w-3.5 mr-1.5" />
-              {saveSimulation.isPending ? 'Guardando...' : 'Guardar simulación'}
-            </Button>
-          )}
+          <Button size="sm" disabled={!isReady || saveSimulation.isPending} onClick={handleSave}>
+            <Save className="h-3.5 w-3.5 mr-1.5" />
+            {saveSimulation.isPending ? 'Guardando...' : 'Guardar simulación'}
+          </Button>
         </div>
       </div>
 
-      {/* Selector — hidden on flip tab */}
-      {!isFlip && (
+      {/* Selector */}
+      {(
         <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-gray-700">Selección</p>
@@ -297,11 +283,9 @@ export function SimuladorPage() {
         {/* Tab content */}
         <div
           className="p-5"
-          style={activeTab !== 'flip' ? { borderTop: `3px solid ${activeTabDef.activeBorder}` } : {}}
+          style={{ borderTop: `3px solid ${activeTabDef.activeBorder}` }}
         >
-          {isFlip ? (
-            <FlipCalculator />
-          ) : !isReady ? (
+          {!isReady ? (
             <p className="text-sm text-muted-foreground text-center py-8">
               Completá la selección arriba para ver los escenarios.
             </p>

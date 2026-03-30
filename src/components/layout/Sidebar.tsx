@@ -3,7 +3,7 @@ import { NavLink } from 'react-router'
 import {
   Home, Building2, Users, Calculator, FileText, Settings,
   BookMarked, LogOut, X, Receipt, MapPin, ClipboardList,
-  NotebookPen, HandCoins,
+  NotebookPen, HandCoins, TrendingUp,
 } from 'lucide-react'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { supabase } from '@/lib/supabase'
@@ -45,6 +45,7 @@ const NAV_GRUPOS: {
     label: 'Análisis',
     items: [
       { to: '/simulador',    label: 'Simulador',    icon: Calculator },
+      { to: '/flip',         label: 'Flip',         icon: TrendingUp },
       { to: '/presupuestos', label: 'Presupuestos', icon: Receipt },
       { to: '/informes',     label: 'Informes',     icon: FileText },
     ],

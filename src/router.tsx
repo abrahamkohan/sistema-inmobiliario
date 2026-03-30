@@ -28,6 +28,7 @@ import { NotasPage }  from '@/pages/NotasPage'
 import { ClientDetailPage } from '@/pages/ClientDetailPage'
 import { ComisionesPage } from '@/pages/ComisionesPage'
 import { VentaFormPage } from '@/pages/VentaFormPage'
+import { FlipPage } from '@/pages/FlipPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 import { RequireRole } from '@/components/auth/RequireRole'
 
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
       { path: 'clientes/:id', element: <ClientDetailPage /> },
       { path: 'clientes/:id/editar', element: <ClienteFormPage /> },
       { path: 'simulador', element: <SimuladorPage /> },
+      { path: 'flip',      element: <FlipPage /> },
       { path: 'informes', element: <InformesPage /> },
       { path: 'presupuestos',             element: <PresupuestosPage /> },
       { path: 'presupuestos/nuevo',       element: <PresupuestoFormPage /> },

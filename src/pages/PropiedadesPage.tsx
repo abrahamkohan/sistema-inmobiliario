@@ -4,7 +4,6 @@ import { Search, Plus, Building2 } from 'lucide-react'
 import { useProperties } from '@/hooks/useProperties'
 import { PropertyCard } from '@/components/properties/PropertyCard'
 import { EmptyState } from '@/components/ui/EmptyState'
-import type { PropertyRow } from '@/lib/properties'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -139,7 +138,7 @@ export function PropiedadesPage() {
       {/* Grid agrupado por operación */}
       {!isLoading && filtered.length > 0 && (
         <div className="flex flex-col gap-6">
-          {groups.map((group, gi) => (
+          {groups.map((group) => (
             <div key={group.key}>
               {/* Header de grupo — solo si hay más de un grupo visible */}
               {groups.length > 1 && (

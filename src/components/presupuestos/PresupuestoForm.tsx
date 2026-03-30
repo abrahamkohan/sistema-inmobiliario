@@ -1,6 +1,6 @@
 // src/components/presupuestos/PresupuestoForm.tsx
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { X as XIcon, UploadCloud, Loader2 } from 'lucide-react'
+import { X as XIcon, UploadCloud, Loader2, Clipboard } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { uploadPresupuestoFloorPlan, getPublicUrl } from '@/lib/storage'
@@ -177,11 +177,19 @@ function FFieldNum({ label, value, onChange, suffix, compact }: {
 function FloorPlanField({ value, onChange, uploading, onFile }: {
   value: string | null; onChange: (path: string | null) => void; uploading: boolean; onFile: (file: File) => void
 }) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const previewUrl = value ? getPublicUrl(value) : null
+  const inputRef    = useRef<HTMLInputElement>(null)
+  const pasteRef    = useRef<HTMLDivElement>(null)
+  const [focused, setFocused] = useState(false)
+  const previewUrl  = value ? getPublicUrl(value) : null
+
+  function handlePaste(e: React.ClipboardEvent) {
+    const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith('image/'))
+    const file = item?.getAsFile()
+    if (file) { e.preventDefault(); onFile(file) }
+  }
 
   return (
-    <div>
+    <div className="flex flex-col gap-2">
       {previewUrl ? (
         <div className="relative">
           <img src={previewUrl} alt="Plano" className="w-full rounded-lg border max-h-52 object-contain bg-gray-50" />
@@ -190,14 +198,40 @@ function FloorPlanField({ value, onChange, uploading, onFile }: {
           </button>
         </div>
       ) : (
-        <div
-          className="border border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2.5 px-4 py-3"
-          onClick={() => inputRef.current?.click()}
-        >
-          {uploading
-            ? <Loader2 className="h-4 w-4 text-gray-300 flex-shrink-0 animate-spin" />
-            : <UploadCloud className="h-4 w-4 text-gray-300 flex-shrink-0" />}
-          <p className="text-xs text-gray-400">{uploading ? 'Subiendo...' : 'Subir plano · clic o Ctrl+V'}</p>
+        <div className="flex gap-2">
+          {/* Subir archivo */}
+          <div
+            className="flex-1 border border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2.5 px-4 py-3"
+            onClick={() => inputRef.current?.click()}
+          >
+            {uploading
+              ? <Loader2 className="h-4 w-4 text-gray-300 flex-shrink-0 animate-spin" />
+              : <UploadCloud className="h-4 w-4 text-gray-300 flex-shrink-0" />}
+            <p className="text-xs text-gray-400">{uploading ? 'Subiendo...' : 'Subir plano'}</p>
+          </div>
+
+          {/* Pegar desde portapapeles */}
+          <div
+            ref={pasteRef}
+            tabIndex={0}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onPaste={handlePaste}
+            onClick={() => pasteRef.current?.focus()}
+            className={`flex items-center gap-2 px-3 py-3 rounded-lg border-2 cursor-pointer transition-all outline-none text-xs ${
+              focused
+                ? 'border-gray-900 bg-gray-900/5 ring-2 ring-gray-900/10'
+                : 'border-dashed border-gray-200 hover:border-gray-400 text-gray-400'
+            }`}
+          >
+            <Clipboard className="h-4 w-4 flex-shrink-0" />
+            <span className="whitespace-nowrap">
+              {focused
+                ? <><span className="font-semibold text-gray-700">Listo</span> — <kbd className="px-1 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[11px]">Ctrl+V</kbd></>
+                : <><kbd className="px-1 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-[11px]">Ctrl+V</kbd></>
+              }
+            </span>
+          </div>
         </div>
       )}
       <input

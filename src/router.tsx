@@ -35,6 +35,8 @@ import { FlipFormPage } from '@/pages/FlipFormPage'
 import { FlipPrintPage } from '@/pages/FlipPrintPage'
 import { PropiedadesCatalogoPage } from '@/pages/PropiedadesCatalogoPage'
 import { ProyectosCatalogoPage } from '@/pages/ProyectosCatalogoPage'
+import { PropiedadFichaPage } from '@/pages/PropiedadFichaPage'
+import { ProyectoFichaPage } from '@/pages/ProyectoFichaPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 import { RequireRole } from '@/components/auth/RequireRole'
 
@@ -77,8 +79,10 @@ export const router = createBrowserRouter([
   // Rutas públicas (sin auth)
   { path: 'catalogo/propiedades', element: <PropiedadesCatalogoPage /> },
   { path: 'catalogo/proyectos',   element: <ProyectosCatalogoPage /> },
-  { path: 'p/:id',        element: <PropiedadLandingPage /> },
-  { path: 'proyecto/:id', element: <ProyectoLandingPage /> },
+  { path: 'p/:id',              element: <PropiedadLandingPage /> },
+  { path: 'p/:id/ficha',        element: <PropiedadFichaPage /> },
+  { path: 'proyecto/:id',       element: <ProyectoLandingPage /> },
+  { path: 'proyecto/:id/ficha', element: <ProyectoFichaPage /> },
   { path: 'simulador', element: <SimuladorPublicoPage /> },
   { path: 'lead-quick', element: <LeadQuickPage /> },
   { path: 'l/:ref',     element: <LeadShortLinkPage /> },

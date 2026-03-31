@@ -1,14 +1,14 @@
 // src/pages/PropiedadFichaPage.tsx
-// Ruta pública: /p/:id/ficha — ficha imprimible sin contacto comercial
+// Ruta pública: /p/:id/ficha — ficha editorial imprimible, sin contacto comercial
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
-import { Printer, Bed, Bath, Maximize2, Car, Building2 } from 'lucide-react'
+import { useParams, useSearchParams } from 'react-router'
+import { Printer, Bed, Bath, Maximize2, Car } from 'lucide-react'
 import { getPublicProperty, getPublicPropertyPhotos, getConsultoraBranding } from '@/lib/publicData'
 import { getPhotoUrl, formatPrice } from '@/lib/properties'
 import type { Database } from '@/types/database'
 
-type PropertyRow   = Database['public']['Tables']['properties']['Row']
-type PhotoRow      = Database['public']['Tables']['property_photos']['Row']
+type PropertyRow = Database['public']['Tables']['properties']['Row']
+type PhotoRow    = Database['public']['Tables']['property_photos']['Row']
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -23,21 +23,12 @@ const CONDICION_LABEL: Record<string, string> = {
   reventa: 'Reventa',
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between py-2 border-b border-gray-50 last:border-0">
-      <span className="text-xs text-gray-400 uppercase tracking-wide">{label}</span>
-      <span className="text-sm font-medium text-gray-800 text-right max-w-[60%]">{value}</span>
-    </div>
-  )
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function PropiedadFichaPage() {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
+  const conMarca = searchParams.has('marca')
 
   const [property, setProperty] = useState<PropertyRow | null>(null)
   const [photos, setPhotos]     = useState<PhotoRow[]>([])
@@ -80,32 +71,42 @@ export function PropiedadFichaPage() {
 
   const p = property
 
-  // Fotos — máx 4 para la ficha
-  const photoUrls   = photos.map(ph => getPhotoUrl(ph.storage_path))
-  const coverUrl    = p.foto_portada ? getPhotoUrl(p.foto_portada) : photoUrls[0] ?? null
-  const allPhotos   = coverUrl
-    ? [coverUrl, ...photoUrls.filter(u => u !== coverUrl)].slice(0, 4)
-    : photoUrls.slice(0, 4)
+  // Fotos
+  const photoUrls = photos.map(ph => getPhotoUrl(ph.storage_path))
+  const coverUrl  = p.foto_portada ? getPhotoUrl(p.foto_portada) : photoUrls[0] ?? null
+  const secondary = photoUrls.filter(u => u !== coverUrl).slice(0, 3)
 
   const ubicacion = [p.direccion, p.barrio, p.zona, p.ciudad].filter(Boolean).join(', ')
   const title     = p.titulo ?? `${TIPO_LABEL[p.tipo] ?? p.tipo}${p.barrio ? ` en ${p.barrio}` : ''}`
 
   const chips = [
-    p.dormitorios != null && { icon: 'bed',  label: p.dormitorios === 0 ? 'Monoambiente' : `${p.dormitorios} dorm.` },
-    p.banos       != null && { icon: 'bath', label: `${p.banos} baño${p.banos !== 1 ? 's' : ''}` },
-    p.superficie_m2 != null && { icon: 'm2', label: `${p.superficie_m2} m²` },
-    p.garajes != null && p.garajes > 0 && { icon: 'car', label: `${p.garajes} garage${p.garajes !== 1 ? 's' : ''}` },
+    p.dormitorios != null && {
+      icon: 'bed',
+      label: p.dormitorios === 0 ? 'Monoambiente' : `${p.dormitorios} dorm.`,
+    },
+    p.banos != null && {
+      icon: 'bath',
+      label: `${p.banos} baño${p.banos !== 1 ? 's' : ''}`,
+    },
+    p.superficie_m2 != null && {
+      icon: 'm2',
+      label: `${p.superficie_m2} m²`,
+    },
+    p.garajes != null && p.garajes > 0 && {
+      icon: 'car',
+      label: `${p.garajes} garage${p.garajes !== 1 ? 's' : ''}`,
+    },
   ].filter(Boolean) as { icon: string; label: string }[]
 
   const detalles = [
-    p.condicion     && { label: 'Condición',      value: CONDICION_LABEL[p.condicion] ?? p.condicion },
-    p.piso != null  && { label: 'Piso',            value: String(p.piso) },
+    p.condicion             && { label: 'Condición',      value: CONDICION_LABEL[p.condicion] ?? p.condicion },
+    p.piso != null          && { label: 'Piso',            value: String(p.piso) },
     p.superficie_cubierta_m2 != null && { label: 'Sup. cubierta', value: `${p.superficie_cubierta_m2} m²` },
-    p.terreno_m2 != null && { label: 'Terreno',   value: `${p.terreno_m2} m²` },
-    p.anio != null  && { label: 'Año',             value: String(p.anio) },
-    p.deposito      && { label: 'Baulera',         value: 'Sí' },
-    p.amoblado      && { label: 'Amoblado',        value: 'Sí' },
-    p.financiacion  && { label: 'Financiación',    value: 'Disponible' },
+    p.terreno_m2 != null    && { label: 'Terreno',         value: `${p.terreno_m2} m²` },
+    p.anio != null          && { label: 'Año',             value: String(p.anio) },
+    p.deposito              && { label: 'Baulera',         value: 'Sí' },
+    p.amoblado              && { label: 'Amoblado',        value: 'Sí' },
+    p.financiacion          && { label: 'Financiación',    value: 'Disponible' },
   ].filter(Boolean) as { label: string; value: string }[]
 
   return (
@@ -114,7 +115,7 @@ export function PropiedadFichaPage() {
         @media print {
           .no-print { display: none !important; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .page { box-shadow: none !important; border: none !important; }
+          .page { box-shadow: none !important; border: none !important; border-radius: 0 !important; }
           @page { margin: 15mm; }
         }
       `}</style>
@@ -135,88 +136,54 @@ export function PropiedadFichaPage() {
         {/* Documento */}
         <div className="page bg-white max-w-2xl mx-auto rounded-2xl shadow-lg overflow-hidden">
 
-          {/* Header */}
-          <div className="bg-gray-900 px-6 py-5 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              {branding?.logo_url ? (
-                <img src={branding.logo_url} alt={branding.nombre} className="h-9 object-contain" />
-              ) : branding?.nombre ? (
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-white/60" />
-                  <span className="text-white font-semibold text-base">{branding.nombre}</span>
-                </div>
-              ) : null}
-            </div>
-            <div className="text-right flex-shrink-0">
-              <p className="text-white/50 text-[10px] uppercase tracking-widest">Ficha de propiedad</p>
-            </div>
-          </div>
-
-          {/* Fotos */}
-          {allPhotos.length > 0 && (
-            <div className={`grid gap-0.5 ${
-              allPhotos.length === 1 ? 'grid-cols-1' :
-              allPhotos.length === 2 ? 'grid-cols-2' :
-              allPhotos.length === 3 ? 'grid-cols-3' :
-              'grid-cols-2'
-            }`} style={{ height: allPhotos.length === 1 ? 260 : 220 }}>
-              {allPhotos.map((url, i) => (
-                <img
-                  key={i}
-                  src={url}
-                  alt=""
-                  className={`w-full h-full object-cover ${
-                    allPhotos.length === 4 && i === 0 ? 'col-span-2' : ''
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Título + badges */}
-          <div className="px-6 pt-5 pb-4 border-b border-gray-100">
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-900 text-white uppercase tracking-wide">
-                {p.operacion === 'venta' ? 'En Venta' : 'En Alquiler'}
-              </span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                {TIPO_LABEL[p.tipo] ?? p.tipo}
-              </span>
-              {p.condicion && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                  {CONDICION_LABEL[p.condicion]}
+          {/* ── 1. Encabezado ── */}
+          <div className="px-8 pt-7 pb-5 border-b border-gray-100">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-gray-900 text-white uppercase tracking-wide">
+                  {p.operacion === 'venta' ? 'En Venta' : 'En Alquiler'}
                 </span>
-              )}
+                <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wide">
+                  {TIPO_LABEL[p.tipo] ?? p.tipo}
+                </span>
+                {p.condicion && (
+                  <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wide">
+                    {CONDICION_LABEL[p.condicion]}
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-gray-300 uppercase tracking-widest whitespace-nowrap flex-shrink-0">
+                Ficha de propiedad
+              </p>
             </div>
-            <h1 className="text-xl font-bold text-gray-900 leading-snug">{title}</h1>
+
+            <h1 className="text-2xl font-bold text-gray-900 leading-snug">{title}</h1>
             {ubicacion && (
-              <p className="text-sm text-gray-500 mt-1">{ubicacion}</p>
+              <p className="text-sm text-gray-400 mt-1.5">{ubicacion}</p>
             )}
           </div>
 
-          {/* Precio */}
-          {p.precio != null && (
-            <div className="px-6 py-4 border-b border-gray-100">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Precio</p>
-              <div className="flex items-baseline gap-3">
-                <span className="text-2xl font-bold text-gray-900">{formatPrice(p.precio, p.moneda)}</span>
+          {/* ── 2. Precio + chips ── */}
+          <div className="px-8 py-5 border-b border-gray-100">
+            {p.precio != null && (
+              <div className="flex items-baseline gap-3 mb-4">
+                <span className="text-3xl font-bold text-gray-900 tracking-tight">
+                  {formatPrice(p.precio, p.moneda)}
+                </span>
                 {p.superficie_m2 != null && p.superficie_m2 > 0 && (
                   <span className="text-sm text-gray-400">
                     {formatPrice(Math.round(p.precio / p.superficie_m2), p.moneda)}/m²
                   </span>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Chips de superficie/ambientes */}
-          {chips.length > 0 && (
-            <div className="px-6 py-4 border-b border-gray-100">
+            {chips.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {chips.map((chip, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-700"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700"
                   >
                     {chip.icon === 'bed'  && <Bed       className="w-3.5 h-3.5 text-gray-400" />}
                     {chip.icon === 'bath' && <Bath      className="w-3.5 h-3.5 text-gray-400" />}
@@ -226,32 +193,50 @@ export function PropiedadFichaPage() {
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+
+          {/* ── 3. Imagen principal ── */}
+          {coverUrl && (
+            <div style={{ height: 280 }}>
+              <img
+                src={coverUrl}
+                alt={title}
+                className="w-full h-full object-cover"
+              />
             </div>
           )}
 
-          {/* Detalles */}
+          {/* ── 4. Detalles ── */}
           {detalles.length > 0 && (
-            <div className="px-6 py-4 border-b border-gray-100">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-2">Detalles</p>
-              {detalles.map(d => <DetailRow key={d.label} label={d.label} value={d.value} />)}
+            <div className="px-8 py-5 border-t border-gray-100 border-b border-gray-100">
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-3">Detalles</p>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-0">
+                {detalles.map(d => (
+                  <div key={d.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                    <span className="text-xs text-gray-400">{d.label}</span>
+                    <span className="text-sm font-medium text-gray-800">{d.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Descripción */}
+          {/* ── 5. Descripción ── */}
           {p.descripcion && (
-            <div className="px-6 py-4 border-b border-gray-100">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-2">Descripción</p>
+            <div className="px-8 py-5 border-b border-gray-100">
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-3">Descripción</p>
               <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{p.descripcion}</p>
             </div>
           )}
 
-          {/* Amenities */}
+          {/* ── 6. Amenities ── */}
           {p.amenities && p.amenities.length > 0 && (
-            <div className="px-6 py-4 border-b border-gray-100">
+            <div className="px-8 py-5 border-b border-gray-100">
               <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-3">Comodidades</p>
               <div className="flex flex-wrap gap-1.5">
                 {p.amenities.map((a, i) => (
-                  <span key={i} className="text-xs px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-600">
+                  <span key={i} className="text-xs px-2.5 py-1 rounded-full bg-gray-50 border border-gray-100 text-gray-500">
                     {a}
                   </span>
                 ))}
@@ -259,9 +244,26 @@ export function PropiedadFichaPage() {
             </div>
           )}
 
-          {/* Footer neutro */}
-          <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
-            <p className="text-xs text-gray-400">{branding?.nombre ?? ''}</p>
+          {/* ── 7. Fotos secundarias ── */}
+          {secondary.length > 0 && (
+            <div className="px-8 py-5 border-b border-gray-100">
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-3">Más fotos</p>
+              <div className={`grid gap-2 ${secondary.length === 1 ? 'grid-cols-1' : secondary.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                {secondary.map((url, i) => (
+                  <div key={i} className="rounded-lg overflow-hidden" style={{ height: 120 }}>
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Footer ── */}
+          <div className="px-8 py-4 flex items-center justify-between">
+            {conMarca
+              ? <p className="text-[10px] text-gray-300">{branding?.nombre ?? ''}</p>
+              : <span />
+            }
             <p className="text-[10px] text-gray-300">Ficha de catálogo</p>
           </div>
 

@@ -1,8 +1,8 @@
 // src/pages/ProyectoFichaPage.tsx
-// Ruta pública: /proyecto/:id/ficha — ficha imprimible sin contacto comercial
+// Ruta pública: /proyecto/:id/ficha — ficha editorial imprimible, sin contacto comercial
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
-import { Printer, Building2, MapPin, Calendar, DollarSign } from 'lucide-react'
+import { useParams, useSearchParams } from 'react-router'
+import { Printer, MapPin, Calendar, DollarSign, Building2 } from 'lucide-react'
 import { getPublicProject, getConsultoraBranding } from '@/lib/publicData'
 import type { Database } from '@/types/database'
 
@@ -34,25 +34,12 @@ function fmtDate(dateStr: string) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('es-PY', { month: 'long', year: 'numeric' })
 }
 
-function DetailRow({ icon, label, value, sub }: {
-  icon: React.ReactNode; label: string; value: string; sub?: string | null
-}) {
-  return (
-    <div className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
-      <div className="mt-0.5 flex-shrink-0 text-gray-300">{icon}</div>
-      <div className="flex-1">
-        <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{label}</p>
-        <p className="text-sm font-medium text-gray-800 mt-0.5">{value}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
-      </div>
-    </div>
-  )
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function ProyectoFichaPage() {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
+  const conMarca = searchParams.has('marca')
 
   const [project, setProject]   = useState<ProjectRow | null>(null)
   const [branding, setBranding] = useState<{ nombre: string; logo_url: string | null } | null>(null)
@@ -91,7 +78,6 @@ export function ProyectoFichaPage() {
   }
 
   const p = project
-
   const locationDisplay = p.location ?? [p.direccion, p.barrio, p.zona, p.ciudad].filter(Boolean).join(', ')
 
   const fichaRows = [
@@ -99,13 +85,13 @@ export function ProyectoFichaPage() {
       icon:  <MapPin className="w-4 h-4" />,
       label: 'Ubicación',
       value: locationDisplay,
-      sub:   null,
+      sub:   null as string | null,
     },
     p.delivery_date && {
       icon:  <Calendar className="w-4 h-4" />,
       label: 'Entrega estimada',
       value: fmtDate(p.delivery_date),
-      sub:   null,
+      sub:   null as string | null,
     },
     p.precio_desde != null && {
       icon:  <DollarSign className="w-4 h-4" />,
@@ -117,7 +103,7 @@ export function ProyectoFichaPage() {
       icon:  <Building2 className="w-4 h-4" />,
       label: 'Desarrolladora',
       value: p.developer_name,
-      sub:   null,
+      sub:   null as string | null,
     },
   ].filter(Boolean) as { icon: React.ReactNode; label: string; value: string; sub: string | null }[]
 
@@ -127,7 +113,7 @@ export function ProyectoFichaPage() {
         @media print {
           .no-print { display: none !important; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .page { box-shadow: none !important; border: none !important; }
+          .page { box-shadow: none !important; border: none !important; border-radius: 0 !important; }
           @page { margin: 15mm; }
         }
       `}</style>
@@ -148,26 +134,38 @@ export function ProyectoFichaPage() {
         {/* Documento */}
         <div className="page bg-white max-w-2xl mx-auto rounded-2xl shadow-lg overflow-hidden">
 
-          {/* Header */}
-          <div className="bg-gray-900 px-6 py-5 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              {branding?.logo_url ? (
-                <img src={branding.logo_url} alt={branding.nombre} className="h-9 object-contain" />
-              ) : branding?.nombre ? (
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-white/60" />
-                  <span className="text-white font-semibold text-base">{branding.nombre}</span>
-                </div>
-              ) : null}
+          {/* ── 1. Encabezado ── */}
+          <div className="px-8 pt-7 pb-5 border-b border-gray-100">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex flex-wrap gap-1.5">
+                {p.status && (
+                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide ${STATUS_CLS[p.status] ?? 'bg-gray-100 text-gray-500'}`}>
+                    {STATUS_LABEL[p.status] ?? p.status}
+                  </span>
+                )}
+                {p.tipo_proyecto && (
+                  <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wide">
+                    {TIPO_LABEL[p.tipo_proyecto] ?? p.tipo_proyecto}
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-gray-300 uppercase tracking-widest whitespace-nowrap flex-shrink-0">
+                Ficha de proyecto
+              </p>
             </div>
-            <div className="text-right flex-shrink-0">
-              <p className="text-white/50 text-[10px] uppercase tracking-widest">Ficha de proyecto</p>
-            </div>
+
+            <h1 className="text-2xl font-bold text-gray-900 leading-snug">{p.name}</h1>
+            {p.developer_name && (
+              <p className="text-sm text-gray-400 mt-1">{p.developer_name}</p>
+            )}
+            {locationDisplay && (
+              <p className="text-sm text-gray-400 mt-0.5">{locationDisplay}</p>
+            )}
           </div>
 
-          {/* Hero image */}
+          {/* ── 2. Imagen hero ── */}
           {p.hero_image_url && (
-            <div style={{ height: 220 }}>
+            <div style={{ height: 260 }}>
               <img
                 src={p.hero_image_url}
                 alt={p.name}
@@ -176,62 +174,53 @@ export function ProyectoFichaPage() {
             </div>
           )}
 
-          {/* Nombre + badges */}
-          <div className="px-6 pt-5 pb-4 border-b border-gray-100">
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {p.status && (
-                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${STATUS_CLS[p.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                  {STATUS_LABEL[p.status] ?? p.status}
-                </span>
-              )}
-              {p.tipo_proyecto && (
-                <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                  {TIPO_LABEL[p.tipo_proyecto] ?? p.tipo_proyecto}
-                </span>
-              )}
-            </div>
-            <h1 className="text-xl font-bold text-gray-900 leading-snug">{p.name}</h1>
-            {locationDisplay && (
-              <p className="text-sm text-gray-500 mt-1">{locationDisplay}</p>
-            )}
-          </div>
-
-          {/* Ficha técnica */}
+          {/* ── 3. Ficha técnica ── */}
           {fichaRows.length > 0 && (
-            <div className="px-6 py-2 border-b border-gray-100">
+            <div className="px-8 py-5 border-t border-gray-100 border-b border-gray-100">
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Ficha técnica</p>
               {fichaRows.map((row, i) => (
-                <DetailRow key={i} icon={row.icon} label={row.label} value={row.value} sub={row.sub} />
+                <div key={i} className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
+                  <div className="mt-0.5 flex-shrink-0 text-gray-300">{row.icon}</div>
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{row.label}</p>
+                    <p className="text-sm font-medium text-gray-800 mt-0.5">{row.value}</p>
+                    {row.sub && <p className="text-xs text-gray-400 mt-0.5">{row.sub}</p>}
+                  </div>
+                </div>
               ))}
             </div>
           )}
 
-          {/* Descripción */}
+          {/* ── 4. Descripción ── */}
           {p.description && (
-            <div className="px-6 py-4 border-b border-gray-100">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-2">Descripción</p>
+            <div className="px-8 py-5 border-b border-gray-100">
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-3">Descripción</p>
               <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{p.description}</p>
             </div>
           )}
 
-          {/* Destacados */}
+          {/* ── 5. Destacados ── */}
           {p.highlights && (
-            <div className="px-6 py-4 border-b border-gray-100">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-2">Destacados</p>
+            <div className="px-8 py-5 border-b border-gray-100">
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-3">Destacados</p>
               <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{p.highlights}</p>
             </div>
           )}
 
-          {/* Características */}
+          {/* ── 6. Características ── */}
           {p.caracteristicas && (
-            <div className="px-6 py-4 border-b border-gray-100">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-2">Características</p>
+            <div className="px-8 py-5 border-b border-gray-100">
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-3">Características</p>
               <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{p.caracteristicas}</p>
             </div>
           )}
 
-          {/* Footer neutro */}
-          <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
-            <p className="text-xs text-gray-400">{branding?.nombre ?? ''}</p>
+          {/* ── Footer ── */}
+          <div className="px-8 py-4 flex items-center justify-between">
+            {conMarca
+              ? <p className="text-[10px] text-gray-300">{branding?.nombre ?? ''}</p>
+              : <span />
+            }
             <p className="text-[10px] text-gray-300">Ficha de catálogo</p>
           </div>
 

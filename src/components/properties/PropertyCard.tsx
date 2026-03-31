@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Bed, Bath, Maximize2, MapPin, Globe, GlobeLock, Trash2 } from 'lucide-react'
+import { Bed, Bath, Maximize2, MapPin, Trash2 } from 'lucide-react'
 import { useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties'
 import { getPhotoUrl, formatPrice } from '@/lib/properties'
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog'
@@ -109,16 +109,18 @@ export function PropertyCard({ property }: Props) {
         <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-gray-50">
           <button
             onClick={togglePublicado}
-            className={`flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg transition-colors ${
-              property.publicado_en_web
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'bg-gray-100 text-gray-400'
-            }`}
+            disabled={updateProperty.isPending}
+            title={property.publicado_en_web ? 'Publicado en web' : 'No publicado'}
+            className="flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {property.publicado_en_web
-              ? <><Globe className="w-3 h-3" /> Web</>
-              : <><GlobeLock className="w-3 h-3" /> Web</>
-            }
+            <span className="text-[10px] text-gray-400">Web</span>
+            <div className={`relative w-8 h-4 rounded-full transition-colors duration-200 ${
+              property.publicado_en_web ? 'bg-emerald-500' : 'bg-gray-200'
+            }`}>
+              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform duration-200 ${
+                property.publicado_en_web ? 'translate-x-4' : 'translate-x-0.5'
+              }`} />
+            </div>
           </button>
           <button
             onClick={handleDeleteClick}

@@ -21,6 +21,8 @@ import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { ClienteFormPage } from '@/pages/ClienteFormPage'
 import { LeadQuickPage } from '@/pages/LeadQuickPage'
 import { LeadShortLinkPage } from '@/pages/LeadShortLinkPage'
+import { PropiedadLandingPage } from '@/pages/PropiedadLandingPage'
+import { ProyectoLandingPage } from '@/pages/ProyectoLandingPage'
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { TareasPage } from '@/pages/TareasPage'
@@ -31,6 +33,8 @@ import { VentaFormPage } from '@/pages/VentaFormPage'
 import { FlipPage } from '@/pages/FlipPage'
 import { FlipFormPage } from '@/pages/FlipFormPage'
 import { FlipPrintPage } from '@/pages/FlipPrintPage'
+import { PropiedadesCatalogoPage } from '@/pages/PropiedadesCatalogoPage'
+import { ProyectosCatalogoPage } from '@/pages/ProyectosCatalogoPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 import { RequireRole } from '@/components/auth/RequireRole'
 
@@ -71,6 +75,10 @@ export const router = createBrowserRouter([
     ],
   },
   // Rutas públicas (sin auth)
+  { path: 'catalogo/propiedades', element: <PropiedadesCatalogoPage /> },
+  { path: 'catalogo/proyectos',   element: <ProyectosCatalogoPage /> },
+  { path: 'p/:id',        element: <PropiedadLandingPage /> },
+  { path: 'proyecto/:id', element: <ProyectoLandingPage /> },
   { path: 'simulador', element: <SimuladorPublicoPage /> },
   { path: 'lead-quick', element: <LeadQuickPage /> },
   { path: 'l/:ref',     element: <LeadShortLinkPage /> },

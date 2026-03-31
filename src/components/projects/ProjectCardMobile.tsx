@@ -1,6 +1,8 @@
 // src/components/projects/ProjectCardMobile.tsx
 import { useNavigate } from 'react-router'
 import { MapPin, Building2, FileText } from 'lucide-react'
+import { toast } from 'sonner'
+import { useUpdateProject } from '@/hooks/useProjects'
 import type { Database } from '@/types/database'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
@@ -23,6 +25,15 @@ interface ProjectCardMobileProps {
 
 export function ProjectCardMobile({ project }: ProjectCardMobileProps) {
   const navigate = useNavigate()
+  const updateProject = useUpdateProject()
+
+  function handleTogglePublicado(e: React.MouseEvent) {
+    e.stopPropagation()
+    updateProject.mutate(
+      { id: project.id, input: { publicado_en_web: !project.publicado_en_web } },
+      { onError: () => toast.error('No se pudo actualizar la publicación') }
+    )
+  }
 
   return (
     <div
@@ -64,18 +75,40 @@ export function ProjectCardMobile({ project }: ProjectCardMobileProps) {
           </div>
         )}
 
-        {project.drive_folder_url && (
-          <a
-            href={project.drive_folder_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-            className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-[#D4AF37]"
+        <div className="flex items-center justify-between mt-1.5">
+          {project.drive_folder_url ? (
+            <a
+              href={project.drive_folder_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="flex items-center gap-1.5 text-[11px] font-semibold text-[#D4AF37]"
+            >
+              <FileText className="w-3 h-3 flex-shrink-0" />
+              Carpeta de Venta
+            </a>
+          ) : (
+            <span />
+          )}
+
+          {/* Toggle publicado en web */}
+          <button
+            type="button"
+            onClick={handleTogglePublicado}
+            disabled={updateProject.isPending}
+            title={project.publicado_en_web ? 'Publicado en web' : 'No publicado'}
+            className="flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FileText className="w-3 h-3 flex-shrink-0" />
-            Carpeta de Venta
-          </a>
-        )}
+            <span className="text-[10px] text-gray-400">Web</span>
+            <div className={`relative w-8 h-4 rounded-full transition-colors duration-200 ${
+              project.publicado_en_web ? 'bg-emerald-500' : 'bg-gray-200'
+            }`}>
+              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform duration-200 ${
+                project.publicado_en_web ? 'translate-x-4' : 'translate-x-0.5'
+              }`} />
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   )

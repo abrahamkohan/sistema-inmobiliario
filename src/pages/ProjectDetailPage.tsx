@@ -1,7 +1,14 @@
 // src/pages/ProjectDetailPage.tsx
 import { useNavigate, useParams } from 'react-router'
-import { ArrowLeft, Pencil, MapPin, Building2, Calendar, DollarSign, FileText, Map, Video } from 'lucide-react'
+import { ArrowLeft, Pencil, MapPin, Building2, Calendar, DollarSign, FileText, Map, Video, ExternalLink, Copy } from 'lucide-react'
+import { toast } from 'sonner'
 import { useProject } from '@/hooks/useProjects'
+
+const APP_URL = (
+  import.meta.env.DEV
+    ? window.location.origin
+    : ((import.meta.env.VITE_APP_URL as string) || window.location.origin)
+).replace(/\/$/, '')
 
 const STATUS_LABEL: Record<string, string> = {
   en_pozo:          'En pozo',
@@ -58,6 +65,15 @@ export function ProjectDetailPage() {
 
   const fullLocation = [project.direccion, project.barrio, project.ciudad].filter(Boolean).join(', ')
 
+  function handleCopiarLink() {
+    const url = `${APP_URL}/proyecto/${id}`
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success('Link copiado')
+    }).catch(() => {
+      toast.error('No se pudo copiar el link')
+    })
+  }
+
   return (
     <div className="flex flex-col min-h-full bg-gray-50">
 
@@ -85,13 +101,35 @@ export function ProjectDetailPage() {
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <button
-            onClick={() => navigate(`/proyectos/${project.id}/editar`)}
-            className="flex items-center gap-1.5 h-9 px-4 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-semibold shadow-sm"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            Editar
-          </button>
+          <div className="flex items-center gap-2">
+            {project.publicado_en_web && (
+              <>
+                <a
+                  href={`${APP_URL}/proyecto/${id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-semibold shadow-sm"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Ver landing
+                </a>
+                <button
+                  onClick={handleCopiarLink}
+                  className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-semibold shadow-sm"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Copiar link
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => navigate(`/proyectos/${project.id}/editar`)}
+              className="flex items-center gap-1.5 h-9 px-4 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-semibold shadow-sm"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Editar
+            </button>
+          </div>
         </div>
 
         {/* Badges sobre imagen */}

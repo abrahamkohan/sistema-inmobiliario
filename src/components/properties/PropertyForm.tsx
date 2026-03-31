@@ -700,14 +700,14 @@ export function PropertyForm({
                         className={`w-full h-full object-cover rounded-xl ${isPortada ? 'ring-2 ring-gray-900' : ''}`}
                       />
                       {isPortada ? (
-                        <span className="absolute top-1 left-1 bg-gray-900/80 text-white text-[10px] px-1.5 py-0.5 rounded-md">Portada</span>
+                        <span className="absolute top-1 left-1 bg-gray-900/80 text-white text-[10px] px-1.5 py-0.5 rounded-md">Portada · Ficha PDF</span>
                       ) : (
                         <button
                           type="button"
                           onClick={() => onSetPortada?.(photo.storage_path)}
                           className="absolute top-1 left-1 bg-white/80 text-gray-700 text-[10px] px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
                         >
-                          ★ Portada
+                          ★ Usar como portada y ficha PDF
                         </button>
                       )}
                       <button
@@ -744,7 +744,7 @@ export function PropertyForm({
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-400">{s.fotos.length}/20 fotos · La primera es la portada</p>
+                <p className="text-xs text-gray-400">{s.fotos.length}/20 fotos · La primera se usa como portada y en la ficha PDF</p>
               </>
             )}
 

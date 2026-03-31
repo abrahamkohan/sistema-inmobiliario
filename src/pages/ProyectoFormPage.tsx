@@ -666,8 +666,8 @@ export function ProyectoFormPage() {
 
           {/* ── Imagen de portada (hero) ── */}
           <div className="mt-5 pt-5 border-t border-gray-100">
-            <FieldLabel>Imagen de portada (hero)</FieldLabel>
-            <p className="text-xs text-gray-400 mb-3">Esta imagen se muestra como banner principal en el frontend. Independiente de la galería.</p>
+            <FieldLabel>Imagen de portada · Ficha PDF</FieldLabel>
+            <p className="text-xs text-gray-400 mb-3">Esta imagen se usa como banner principal en el frontend y como portada de la ficha PDF. Independiente de la galería.</p>
 
             {/* Preview actual */}
             {(s.hero_previewUrl || s.hero_image_url) && (
@@ -685,7 +685,7 @@ export function ProyectoFormPage() {
                   <X className="w-3.5 h-3.5" />
                 </button>
                 <span className="absolute bottom-2 left-2 text-[10px] bg-black/60 text-white px-2 py-0.5 rounded-full font-semibold">
-                  {s.hero_previewUrl ? 'Nueva portada (sin guardar)' : 'Portada actual'}
+                  {s.hero_previewUrl ? 'Nueva portada · Ficha PDF (sin guardar)' : 'Portada · Ficha PDF'}
                 </span>
               </div>
             )}

@@ -120,6 +120,15 @@ export function ProjectDetailPage() {
                   <Copy className="w-3.5 h-3.5" />
                   Copiar link
                 </button>
+                <a
+                  href={`${APP_URL}/proyecto/${id}/ficha`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-semibold shadow-sm"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  Ficha PDF
+                </a>
               </>
             )}
             <button

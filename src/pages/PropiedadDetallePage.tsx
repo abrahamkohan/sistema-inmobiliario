@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { ArrowLeft, Bed, Bath, Maximize2, MapPin, ExternalLink, MessageCircle, Edit, Calendar, Copy } from 'lucide-react'
+import { ArrowLeft, Bed, Bath, Maximize2, MapPin, ExternalLink, MessageCircle, Edit, Calendar, Copy, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { useProperty, usePropertyPhotos, useUpdateProperty } from '@/hooks/useProperties'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
@@ -186,6 +186,15 @@ export function PropiedadDetallePage() {
                   <Copy className="w-3.5 h-3.5" />
                   Copiar link
                 </button>
+                <a
+                  href={`${APP_URL}/p/${id}/ficha`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  Ficha PDF
+                </a>
               </>
             )}
             <button

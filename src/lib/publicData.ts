@@ -58,8 +58,18 @@ export async function getPublicProjects(): Promise<ProjectRow[]> {
     .select('*')
     .eq('publicado_en_web', true)
     .order('name')
-  if (error) throw error
+  if (error) return []
   return data as unknown as ProjectRow[]
+}
+
+export async function getPublicProperties(): Promise<PropertyRow[]> {
+  const { data, error } = await supabase
+    .from('properties')
+    .select('id, titulo, operacion, tipo, condicion, precio, moneda, dormitorios, banos, superficie_m2, barrio, zona, ciudad, foto_portada, publicado_en_web, created_at')
+    .eq('publicado_en_web', true)
+    .order('created_at', { ascending: false })
+  if (error) return []
+  return data as unknown as PropertyRow[]
 }
 
 export async function getPublicTypologies(projectId: string): Promise<TypologyRow[]> {

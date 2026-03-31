@@ -14,12 +14,11 @@ function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-white">
       <div className="h-14 bg-white border-b border-gray-100 animate-pulse" />
-      <div className="max-w-xl mx-auto px-6 pt-20 flex flex-col items-center gap-6">
-        <div className="h-10 w-48 bg-gray-100 rounded-xl animate-pulse" />
-        <div className="h-4 w-64 bg-gray-100 rounded-lg animate-pulse" />
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full">
-          <div className="flex-1 h-32 bg-gray-100 rounded-2xl animate-pulse" />
-          <div className="flex-1 h-32 bg-gray-100 rounded-2xl animate-pulse" />
+      <div className="h-52 bg-[#1a2744] animate-pulse" />
+      <div className="max-w-2xl mx-auto px-6 py-10 flex flex-col gap-4">
+        <div className="flex gap-4">
+          <div className="flex-1 h-44 bg-gray-100 rounded-2xl animate-pulse" />
+          <div className="flex-1 h-44 bg-gray-100 rounded-2xl animate-pulse" />
         </div>
       </div>
     </div>
@@ -40,110 +39,97 @@ export function CatalogoCoverPage() {
 
   if (loading) return <LoadingSkeleton />
 
+  const contactLinks = [
+    config?.whatsapp
+      ? { href: `https://wa.me/${config.whatsapp.replace(/\D/g, '')}`, label: 'WhatsApp', external: true }
+      : config?.telefono
+        ? { href: `tel:${config.telefono}`, label: config.telefono, external: false }
+        : null,
+    config?.email
+      ? { href: `mailto:${config.email}`, label: config.email, external: false }
+      : null,
+    config?.sitio_web
+      ? { href: config.sitio_web, label: config.sitio_web.replace(/^https?:\/\//, ''), external: true }
+      : null,
+  ].filter(Boolean) as { href: string; label: string; external: boolean }[]
+
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <PublicHeader config={config} />
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
-        <div className="w-full max-w-xl text-center">
+      {/* ── Hero ── */}
+      <div className="bg-[#1a2744] px-6 py-14 flex flex-col items-center text-center">
+        {config?.logo_url ? (
+          <img
+            src={config.logo_url}
+            alt={config.nombre ?? 'Catálogo'}
+            className="h-14 w-auto object-contain mb-5 brightness-0 invert"
+          />
+        ) : (
+          <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-2">
+            {config?.nombre ?? 'Catálogo'}
+          </h1>
+        )}
+        {config?.logo_url && config?.nombre && (
+          <p className="text-white/70 text-sm font-medium tracking-wide uppercase">
+            {config.nombre}
+          </p>
+        )}
+      </div>
 
-          {/* Logo o nombre grande */}
-          {config?.logo_url ? (
-            <img
-              src={config.logo_url}
-              alt={config.nombre ?? 'Catálogo'}
-              className="h-14 w-auto object-contain mx-auto mb-12"
-            />
-          ) : config?.nombre ? (
-            <h1 className="text-3xl font-bold text-gray-900 mb-12 tracking-tight">
-              {config.nombre}
-            </h1>
-          ) : (
-            <h1 className="text-3xl font-bold text-gray-900 mb-12 tracking-tight">
-              Catálogo
-            </h1>
-          )}
-
-          {/* Cards de acceso */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              to="/catalogo/propiedades"
-              className="flex-1 group flex flex-col items-center gap-3 px-6 py-8 rounded-2xl border border-gray-200 hover:border-gray-900 hover:bg-gray-50 transition-all"
-            >
-              <span className="text-3xl">🏠</span>
-              <div>
-                <p className="text-base font-semibold text-gray-900">Propiedades</p>
-                <p className="text-sm text-gray-400 mt-0.5">Casas, departamentos y más</p>
-              </div>
-              <span className="text-xs text-gray-400 group-hover:text-gray-700 transition-colors mt-1">
-                Ver propiedades →
-              </span>
-            </Link>
-
-            <Link
-              to="/catalogo/proyectos"
-              className="flex-1 group flex flex-col items-center gap-3 px-6 py-8 rounded-2xl border border-gray-200 hover:border-gray-900 hover:bg-gray-50 transition-all"
-            >
-              <span className="text-3xl">🏗️</span>
-              <div>
-                <p className="text-base font-semibold text-gray-900">Proyectos</p>
-                <p className="text-sm text-gray-400 mt-0.5">Desarrollos en construcción y pozo</p>
-              </div>
-              <span className="text-xs text-gray-400 group-hover:text-gray-700 transition-colors mt-1">
-                Ver proyectos →
-              </span>
-            </Link>
-          </div>
-
-          {/* Contacto */}
-          {(config?.whatsapp || config?.telefono || config?.email) && (
-            <div className="mt-12 flex items-center justify-center gap-4 flex-wrap">
-              {config.whatsapp && (
-                <a
-                  href={`https://wa.me/${config.whatsapp.replace(/\D/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                >
-                  WhatsApp
-                </a>
-              )}
-              {config.telefono && !config.whatsapp && (
-                <a
-                  href={`tel:${config.telefono}`}
-                  className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                >
-                  {config.telefono}
-                </a>
-              )}
-              {config.email && (
-                <a
-                  href={`mailto:${config.email}`}
-                  className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                >
-                  {config.email}
-                </a>
-              )}
-              {config.sitio_web && (
-                <a
-                  href={config.sitio_web}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                >
-                  {config.sitio_web.replace(/^https?:\/\//, '')}
-                </a>
-              )}
+      {/* ── Cards de acceso ── */}
+      <main className="flex-1 max-w-2xl w-full mx-auto px-6 py-10">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link
+            to="/catalogo/propiedades"
+            className="flex-1 group flex flex-col items-center gap-4 px-6 py-10 rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-[#1a2744] transition-all"
+          >
+            <span className="text-4xl">🏠</span>
+            <div className="text-center">
+              <p className="text-base font-semibold text-gray-900 group-hover:text-[#1a2744] transition-colors">
+                Propiedades →
+              </p>
+              <p className="text-sm text-gray-400 mt-1">Casas, departamentos y más</p>
             </div>
-          )}
+          </Link>
+
+          <Link
+            to="/catalogo/proyectos"
+            className="flex-1 group flex flex-col items-center gap-4 px-6 py-10 rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-[#1a2744] transition-all"
+          >
+            <span className="text-4xl">🏗️</span>
+            <div className="text-center">
+              <p className="text-base font-semibold text-gray-900 group-hover:text-[#1a2744] transition-colors">
+                Proyectos →
+              </p>
+              <p className="text-sm text-gray-400 mt-1">Desarrollos en construcción y pozo</p>
+            </div>
+          </Link>
         </div>
       </main>
 
-      {config?.nombre && (
-        <footer className="text-center py-6 text-xs text-gray-400 border-t border-gray-100">
-          {config.nombre}
-        </footer>
-      )}
+      {/* ── Footer consolidado ── */}
+      <footer className="border-t border-gray-200 bg-white py-6 px-6">
+        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          {config?.nombre && (
+            <span className="text-sm font-medium text-gray-700">{config.nombre}</span>
+          )}
+          {contactLinks.length > 0 && (
+            <div className="flex items-center gap-4 flex-wrap justify-center">
+              {contactLinks.map(link => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  className="text-sm text-gray-400 hover:text-gray-900 transition-colors"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </footer>
     </div>
   )
 }

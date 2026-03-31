@@ -6,15 +6,38 @@ import type { Database } from '@/types/database'
 type ProjectRow      = Database['public']['Tables']['projects']['Row']
 type TypologyRow     = Database['public']['Tables']['typologies']['Row']
 type ConsultoraRow   = Database['public']['Tables']['consultora_config']['Row']
+type PropertyRow     = Database['public']['Tables']['properties']['Row']
+type PropertyPhotoRow = Database['public']['Tables']['property_photos']['Row']
 
 export async function getConsultoraPublic(): Promise<ConsultoraRow | null> {
   const { data, error } = await supabase
     .from('consultora_config')
-    .select('simulador_publico, nombre, logo_url')
+    .select('id, nombre, logo_url, whatsapp, telefono, email, instagram, sitio_web, simulador_publico, pwa_icon_url')
     .limit(1)
     .single()
   if (error) return null
   return data as unknown as ConsultoraRow
+}
+
+export async function getPublicProperty(id: string): Promise<PropertyRow | null> {
+  const { data, error } = await supabase
+    .from('properties')
+    .select('*')
+    .eq('id', id)
+    .eq('publicado_en_web', true)
+    .single()
+  if (error) return null
+  return data as unknown as PropertyRow
+}
+
+export async function getPublicPropertyPhotos(propertyId: string): Promise<PropertyPhotoRow[]> {
+  const { data, error } = await supabase
+    .from('property_photos')
+    .select('*')
+    .eq('property_id', propertyId)
+    .order('sort_order')
+  if (error) return []
+  return data as unknown as PropertyPhotoRow[]
 }
 
 export async function getPublicProjects(): Promise<ProjectRow[]> {

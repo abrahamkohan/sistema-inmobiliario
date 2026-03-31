@@ -21,6 +21,7 @@ import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { ClienteFormPage } from '@/pages/ClienteFormPage'
 import { LeadQuickPage } from '@/pages/LeadQuickPage'
 import { LeadShortLinkPage } from '@/pages/LeadShortLinkPage'
+import { PropiedadLandingPage } from '@/pages/PropiedadLandingPage'
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { TareasPage } from '@/pages/TareasPage'
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
     ],
   },
   // Rutas públicas (sin auth)
+  { path: 'p/:id',     element: <PropiedadLandingPage /> },
   { path: 'simulador', element: <SimuladorPublicoPage /> },
   { path: 'lead-quick', element: <LeadQuickPage /> },
   { path: 'l/:ref',     element: <LeadShortLinkPage /> },

@@ -33,6 +33,7 @@ import { VentaFormPage } from '@/pages/VentaFormPage'
 import { FlipPage } from '@/pages/FlipPage'
 import { FlipFormPage } from '@/pages/FlipFormPage'
 import { FlipPrintPage } from '@/pages/FlipPrintPage'
+import { CatalogoCoverPage } from '@/pages/CatalogoCoverPage'
 import { PropiedadesCatalogoPage } from '@/pages/PropiedadesCatalogoPage'
 import { ProyectosCatalogoPage } from '@/pages/ProyectosCatalogoPage'
 import { PropiedadFichaPage } from '@/pages/PropiedadFichaPage'
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
     ],
   },
   // Rutas públicas (sin auth)
+  { path: 'catalogo',             element: <CatalogoCoverPage /> },
   { path: 'catalogo/propiedades', element: <PropiedadesCatalogoPage /> },
   { path: 'catalogo/proyectos',   element: <ProyectosCatalogoPage /> },
   { path: 'p/:id',              element: <PropiedadLandingPage /> },

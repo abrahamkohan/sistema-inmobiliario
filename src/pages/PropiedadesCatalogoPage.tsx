@@ -1,7 +1,8 @@
 // src/pages/PropiedadesCatalogoPage.tsx
 // Ruta pública: /catalogo/propiedades — sin auth, sin AppShell
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router'
+import { Search, X } from 'lucide-react'
 import { getPublicProperties, getConsultoraPublic } from '@/lib/publicData'
 import { PublicHeader } from '@/components/landing/PublicHeader'
 import { PropertyPublicCard } from '@/components/landing/PropertyPublicCard'
@@ -10,6 +11,18 @@ import type { Database } from '@/types/database'
 type PropertyRow   = Database['public']['Tables']['properties']['Row']
 type ConsultoraRow = Database['public']['Tables']['consultora_config']['Row']
 
+const OPERACION_LABEL: Record<string, string> = {
+  venta:   'Venta',
+  alquiler: 'Alquiler',
+}
+
+const TIPO_LABEL: Record<string, string> = {
+  departamento: 'Departamento',
+  casa:         'Casa',
+  terreno:      'Terreno',
+  comercial:    'Comercial',
+}
+
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function LoadingSkeleton() {
@@ -17,6 +30,7 @@ function LoadingSkeleton() {
     <div className="min-h-screen bg-gray-50">
       <div className="h-14 bg-white border-b border-gray-100 animate-pulse" />
       <div className="h-36 bg-[#1a2744] animate-pulse" />
+      <div className="h-14 bg-white border-b border-gray-100 animate-pulse" />
       <div className="max-w-5xl mx-auto px-4 pt-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -28,7 +42,7 @@ function LoadingSkeleton() {
   )
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+// ── Empty state sin publicaciones ─────────────────────────────────────────────
 
 function EmptyState({ config }: { config: ConsultoraRow | null }) {
   const contactUrl = config?.whatsapp
@@ -62,12 +76,34 @@ function EmptyState({ config }: { config: ConsultoraRow | null }) {
   )
 }
 
+// ── Empty state con filtros activos ───────────────────────────────────────────
+
+function EmptyFiltered({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+      <p className="text-sm text-gray-500 mb-3">
+        No se encontraron propiedades con estos filtros.
+      </p>
+      <button
+        onClick={onClear}
+        className="text-xs text-gray-400 hover:text-gray-700 underline underline-offset-2 transition-colors"
+      >
+        Limpiar filtros
+      </button>
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function PropiedadesCatalogoPage() {
   const [properties, setProperties] = useState<PropertyRow[]>([])
   const [config, setConfig]         = useState<ConsultoraRow | null>(null)
   const [loading, setLoading]       = useState(true)
+
+  const [search,    setSearch]    = useState('')
+  const [operacion, setOperacion] = useState('')
+  const [tipo,      setTipo]      = useState('')
 
   useEffect(() => {
     Promise.all([getPublicProperties(), getConsultoraPublic()])
@@ -78,7 +114,27 @@ export function PropiedadesCatalogoPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <LoadingSkeleton />
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim()
+    return properties.filter(p => {
+      if (operacion && p.operacion !== operacion) return false
+      if (tipo      && p.tipo      !== tipo)      return false
+      if (q) {
+        const haystack = [p.titulo, p.barrio, p.zona, p.ciudad]
+          .filter(Boolean).join(' ').toLowerCase()
+        if (!haystack.includes(q)) return false
+      }
+      return true
+    })
+  }, [properties, search, operacion, tipo])
+
+  const hasFilters = search !== '' || operacion !== '' || tipo !== ''
+
+  function clearFilters() {
+    setSearch('')
+    setOperacion('')
+    setTipo('')
+  }
 
   const contactLinks = [
     config?.whatsapp
@@ -93,6 +149,8 @@ export function PropiedadesCatalogoPage() {
       ? { href: config.sitio_web, label: config.sitio_web.replace(/^https?:\/\//, ''), external: true }
       : null,
   ].filter(Boolean) as { href: string; label: string; external: boolean }[]
+
+  if (loading) return <LoadingSkeleton />
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -116,13 +174,71 @@ export function PropiedadesCatalogoPage() {
         </div>
       </div>
 
+      {/* ── Filtros ── */}
+      <div className="bg-white border-b border-gray-100 px-4 py-3 sticky top-14 z-10">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por título, barrio, zona..."
+              className="w-full pl-8 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a2744]/20 focus:border-[#1a2744]/40 bg-white"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <select
+            value={operacion}
+            onChange={e => setOperacion(e.target.value)}
+            className="w-full sm:w-36 py-2 px-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a2744]/20 focus:border-[#1a2744]/40 bg-white text-gray-700"
+          >
+            <option value="">Operación</option>
+            {Object.entries(OPERACION_LABEL).map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+
+          <select
+            value={tipo}
+            onChange={e => setTipo(e.target.value)}
+            className="w-full sm:w-40 py-2 px-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a2744]/20 focus:border-[#1a2744]/40 bg-white text-gray-700"
+          >
+            <option value="">Tipo</option>
+            {Object.entries(TIPO_LABEL).map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs text-gray-400 hover:text-gray-700 border border-gray-200 rounded-xl transition-colors whitespace-nowrap"
+            >
+              <X className="w-3 h-3" />
+              Limpiar
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* ── Grilla ── */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 pt-8 pb-12">
         {properties.length === 0 ? (
           <EmptyState config={config} />
+        ) : filtered.length === 0 ? (
+          <EmptyFiltered onClear={clearFilters} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {properties.map(p => (
+            {filtered.map(p => (
               <PropertyPublicCard key={p.id} property={p} />
             ))}
           </div>

@@ -67,9 +67,15 @@ export function useCreateTask() {
       if (newTask.property_id) qc.invalidateQueries({ queryKey: ['tasks', 'property', newTask.property_id] })
       // Google Calendar sync — fire-and-forget, nunca bloquea ni falla la creación
       if (GCAL_ELIGIBLE_TYPES.includes(newTask.type) && !!newTask.due_date) {
-        supabase.functions
-          .invoke('google-calendar-sync', { body: { task_id: newTask.id } })
-          .catch(() => { /* intencional: fallo silencioso */ })
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!session) return
+          supabase.functions
+            .invoke('google-calendar-sync', {
+              body: { task_id: newTask.id },
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            })
+            .catch(() => { /* intencional: fallo silencioso */ })
+        })
       }
     },
   })

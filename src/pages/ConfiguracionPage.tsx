@@ -163,21 +163,33 @@ export function ConfiguracionPage() {
   }
 
   useEffect(() => {
-    supabase.functions
-      .invoke('google-oauth', { body: { action: 'status' } })
-      .then(({ data }) => setGcalConnected(data?.connected ?? false))
-      .catch(() => setGcalConnected(false))
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) { setGcalConnected(false); return }
+      supabase.functions
+        .invoke('google-oauth', {
+          body: { action: 'status' },
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        .then(({ data }) => setGcalConnected(data?.connected ?? false))
+        .catch(() => setGcalConnected(false))
+    })
   }, [])
 
   async function handleConnectGoogle() {
     setGcalLoading(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { toast.error('No hay sesión activa. Volvé a iniciar sesión.'); return }
+
       // Generar state criptográficamente seguro para protección CSRF
       const stateBytes = new Uint8Array(16)
       crypto.getRandomValues(stateBytes)
       const state = Array.from(stateBytes).map(b => b.toString(16).padStart(2, '0')).join('')
 
-      const { data, error } = await supabase.functions.invoke('google-oauth', { body: { action: 'authorize', state } })
+      const { data, error } = await supabase.functions.invoke('google-oauth', {
+        body: { action: 'authorize', state },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
       if (error || !data?.url) { toast.error('No se pudo obtener la URL de autorización'); return }
 
       // Guardar state antes de redirigir — se valida en el callback

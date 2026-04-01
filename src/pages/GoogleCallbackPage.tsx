@@ -35,18 +35,28 @@ export function GoogleCallbackPage() {
       return
     }
 
-    supabase.functions
-      .invoke('google-oauth', { body: { action: 'callback', code } })
-      .then(({ error: fnError }) => {
-        if (fnError) {
-          setError('Error al guardar la conexión con Google Calendar. Reintentá desde Configuración.')
-          return
-        }
-        navigate('/configuracion', { replace: true })
-      })
-      .catch(() => {
-        setError('Error inesperado. Reintentá desde Configuración.')
-      })
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        setError('No hay sesión activa. Iniciá sesión e intentá de nuevo.')
+        return
+      }
+
+      supabase.functions
+        .invoke('google-oauth', {
+          body: { action: 'callback', code },
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        .then(({ error: fnError }) => {
+          if (fnError) {
+            setError('Error al guardar la conexión con Google Calendar. Reintentá desde Configuración.')
+            return
+          }
+          navigate('/configuracion', { replace: true })
+        })
+        .catch(() => {
+          setError('Error inesperado. Reintentá desde Configuración.')
+        })
+    })
   }, [navigate])
 
   if (error) {

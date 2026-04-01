@@ -2,7 +2,7 @@
 import { useNavigate, useParams } from 'react-router'
 import { ArrowLeft, Pencil, MapPin, Building2, Calendar, DollarSign, FileText, Map, Video, ExternalLink, Copy } from 'lucide-react'
 import { toast } from 'sonner'
-import { useProject } from '@/hooks/useProjects'
+import { useProject, useUpdateProject } from '@/hooks/useProjects'
 
 const APP_URL = (
   import.meta.env.DEV
@@ -46,6 +46,12 @@ export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: project, isLoading } = useProject(id!)
+  const updateProject = useUpdateProject()
+
+  function togglePublicado() {
+    if (!project) return
+    updateProject.mutate({ id: project.id, input: { publicado_en_web: !project.publicado_en_web } })
+  }
 
   if (isLoading) {
     return (
@@ -77,45 +83,33 @@ export function ProjectDetailPage() {
   return (
     <div className="flex flex-col min-h-full bg-gray-50">
 
-      {/* ── Hero image ── */}
-      <div className="relative w-full bg-gray-200" style={{ height: 240 }}>
-        {project.hero_image_url ? (
-          <img
-            src={project.hero_image_url}
-            alt={project.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-            <Building2 className="w-16 h-16 text-gray-400" />
-          </div>
-        )}
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+      {/* ── Contenido ── */}
+      <div className="flex flex-col gap-4 px-4 py-4 md:px-6 md:py-6 max-w-[940px] mx-auto w-full">
 
-        {/* Back + Edit */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 safe-area-top">
+        {/* ── Nav bar — mismo patrón que PropiedadDetallePage ── */}
+        <div className="flex items-center justify-between">
           <button
             onClick={() => navigate('/proyectos')}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-gray-700 shadow-sm"
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
+            Proyectos
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {project.publicado_en_web && (
               <>
                 <a
                   href={`${APP_URL}/proyecto/${id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-semibold shadow-sm"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Ver landing
                 </a>
                 <button
                   onClick={handleCopiarLink}
-                  className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-semibold shadow-sm"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
                 >
                   <Copy className="w-3.5 h-3.5" />
                   Copiar link
@@ -124,7 +118,7 @@ export function ProjectDetailPage() {
                   href={`${APP_URL}/proyecto/${id}/ficha`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-semibold shadow-sm"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   Ficha PDF
@@ -133,36 +127,58 @@ export function ProjectDetailPage() {
             )}
             <button
               onClick={() => navigate(`/proyectos/${project.id}/editar`)}
-              className="flex items-center gap-1.5 h-9 px-4 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-semibold shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               <Pencil className="w-3.5 h-3.5" />
               Editar
             </button>
+            <button onClick={togglePublicado} className="flex items-center gap-2.5 group">
+              <span className="text-xs font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
+                {project.publicado_en_web ? 'Publicado' : 'No publicado'}
+              </span>
+              <div className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${
+                project.publicado_en_web ? 'bg-emerald-500' : 'bg-gray-200'
+              }`}>
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+                  project.publicado_en_web ? 'translate-x-5' : 'translate-x-1'
+                }`} />
+              </div>
+            </button>
           </div>
         </div>
 
-        {/* Badges sobre imagen */}
-        {(project.status || project.badge_analisis) && (
-          <div className="absolute bottom-3 left-4 flex gap-1.5">
-            {project.status && (
-              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm ${STATUS_CLS[project.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                {STATUS_LABEL[project.status] ?? project.status}
-              </span>
-            )}
-            {project.badge_analisis && (
-              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm ${BADGE_CLS[project.badge_analisis] ?? 'bg-gray-100 text-gray-600'}`}>
-                {BADGE_LABEL[project.badge_analisis] ?? project.badge_analisis}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+        {/* ── Hero image — limpio, sin overlay ── */}
+        <div className="w-full rounded-2xl overflow-hidden bg-gray-200" style={{ height: 240 }}>
+          {project.hero_image_url ? (
+            <img
+              src={project.hero_image_url}
+              alt={project.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
+              <Building2 className="w-16 h-16 text-gray-400" />
+            </div>
+          )}
+        </div>
 
-      {/* ── Contenido ── */}
-      <div className="flex flex-col gap-4 px-4 py-5 max-w-[940px] mx-auto w-full">
-
-        {/* Nombre + desarrolladora */}
+        {/* ── Nombre + badges + desarrolladora ── */}
         <div>
+          {/* Badges arriba del título */}
+          {(project.status || project.badge_analisis) && (
+            <div className="flex gap-1.5 mb-2">
+              {project.status && (
+                <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${STATUS_CLS[project.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {STATUS_LABEL[project.status] ?? project.status}
+                </span>
+              )}
+              {project.badge_analisis && (
+                <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${BADGE_CLS[project.badge_analisis] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {BADGE_LABEL[project.badge_analisis] ?? project.badge_analisis}
+                </span>
+              )}
+            </div>
+          )}
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">{project.name}</h1>
           {project.developer_name && (
             <div className="flex items-center gap-1.5 mt-1">

@@ -3,11 +3,11 @@
 // Patrón idéntico a "Nuevo lead" (MobileFormScreen + Modal desktop).
 
 import { useState, useEffect, useRef } from 'react'
-import { ChevronDown, ChevronUp, MessageCircle, Loader2, Phone, MapPin, Mail, Video } from 'lucide-react'
+import { ChevronDown, ChevronUp, MessageCircle, Loader2, Phone, MapPin, Mail, Video, Trash2 } from 'lucide-react'
 import { MobileFormScreen } from '@/components/ui/MobileFormScreen'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
-import { useCreateTask, useUpdateTask, useTask } from '@/hooks/useTasks'
+import { useCreateTask, useUpdateTask, useTask, useDeleteTask } from '@/hooks/useTasks'
 import { useClient, useClients } from '@/hooks/useClients'
 import { useWhatsApp } from '@/hooks/useWhatsApp'
 import { useAuth } from '@/context/AuthContext'
@@ -134,6 +134,7 @@ export function TaskModal({
 
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
+  const deleteTask = useDeleteTask()
   const { openWhatsApp, getTemplate } = useWhatsApp()
 
   const [form,          setForm]          = useState<FormState>(() => initialForm(defaultValues))
@@ -220,6 +221,13 @@ export function TaskModal({
       openWhatsApp(lead.phone, msg)
     }
 
+    onClose()
+  }
+
+  function handleDelete() {
+    if (!taskId) return
+    if (!confirm('¿Eliminar esta tarea? Esta acción no se puede deshacer.')) return
+    deleteTask.mutate(taskId)
     onClose()
   }
 
@@ -467,6 +475,17 @@ export function TaskModal({
 
       {/* ── Botones desktop (ocultos en mobile, tienen su footer propio) ── */}
       <div className="hidden md:flex items-center gap-2 pt-4 border-t border-gray-100 mt-2" style={{ position: 'sticky', bottom: 0, background: '#fff', paddingBottom: 4 }}>
+        {isEdit && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isSaving}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors mr-auto"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Eliminar
+          </button>
+        )}
         <button
           type="button"
           onClick={onClose}
@@ -503,7 +522,8 @@ export function TaskModal({
 
   // ── Footer mobile — fijo fuera del scroll, siempre visible ───────────────
   const mobileFooter = (
-    <div className="flex items-center gap-2 px-4 py-3">
+    <div className="flex flex-col gap-1 px-4 py-3">
+    <div className="flex items-center gap-2">
       <button
         type="button"
         onClick={onClose}
@@ -545,6 +565,18 @@ export function TaskModal({
           {isEdit ? 'Guardar cambios' : 'Agregar tarea'}
         </button>
       )}
+    </div>
+    {isEdit && (
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={isSaving}
+        className="flex items-center justify-center gap-1.5 w-full h-9 text-sm font-medium text-red-500 hover:text-red-700 transition-colors"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+        Eliminar tarea
+      </button>
+    )}
     </div>
   )
 

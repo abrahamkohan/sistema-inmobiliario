@@ -201,37 +201,37 @@ export function ProyectoLandingPage() {
         )}
       </header>
 
-      {/* ── Hero image ── */}
-      <div className="relative w-full bg-gray-200" style={{ height: 220 }}>
-        {p.hero_image_url ? (
-          <img src={p.hero_image_url} alt={p.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-            <Building2 className="w-14 h-14 text-gray-400" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-
-        {/* Badges sobre imagen */}
-        <div className="absolute bottom-3 left-4 flex gap-1.5 flex-wrap">
-          {p.status && (
-            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border backdrop-blur-sm ${STATUS_CLS[p.status] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-              {STATUS_LABEL[p.status] ?? p.status}
-            </span>
-          )}
-          {p.tipo_proyecto && (
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-white/90 text-gray-700 border-white/50 backdrop-blur-sm">
-              {TIPO_LABEL[p.tipo_proyecto] ?? p.tipo_proyecto}
-            </span>
-          )}
-        </div>
-      </div>
-
       {/* ── Contenido ── */}
       <div className="max-w-[940px] mx-auto px-4 pb-32 lg:pb-8 flex flex-col gap-4 pt-5">
 
+        {/* ── Hero image — contenido y redondeado ── */}
+        <div className="rounded-2xl overflow-hidden bg-gray-200 flex-shrink-0" style={{ height: 220 }}>
+          {p.hero_image_url ? (
+            <img src={p.hero_image_url} alt={p.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
+              <Building2 className="w-14 h-14 text-gray-400" />
+            </div>
+          )}
+        </div>
+
         {/* ── Nombre + desarrolladora ── */}
         <div className="bg-white border border-gray-100 rounded-2xl p-5">
+          {/* Badges antes del título */}
+          {(p.status || p.tipo_proyecto) && (
+            <div className="flex gap-1.5 flex-wrap mb-3">
+              {p.status && (
+                <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${STATUS_CLS[p.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {STATUS_LABEL[p.status] ?? p.status}
+                </span>
+              )}
+              {p.tipo_proyecto && (
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
+                  {TIPO_LABEL[p.tipo_proyecto] ?? p.tipo_proyecto}
+                </span>
+              )}
+            </div>
+          )}
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">{p.name}</h1>
           {p.developer_name && (
             <div className="flex items-center gap-1.5 mt-1.5">

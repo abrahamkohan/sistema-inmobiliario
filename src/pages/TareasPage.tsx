@@ -8,6 +8,7 @@ import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/context/AuthContext'
 import { getUrgency } from '@/lib/tasks'
 import { TaskList } from '@/components/tasks/TaskList'
+import { TaskModal } from '@/components/tasks/TaskModal'
 import { TaskFAB } from '@/components/tasks/TaskFAB'
 import { LeadPeekSheet } from '@/components/tasks/LeadPeekSheet'
 import { TaskCompleteSheet } from '@/components/tasks/TaskCompleteSheet'
@@ -82,6 +83,7 @@ export function TareasPage() {
 
   const [peekLeadId,   setPeekLeadId]   = useState<string | null>(null)
   const [completeTask, setCompleteTask] = useState<TaskRow | null>(null)
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
 
   // ── Clasificación base por tab ─────────────────────────────────────────
   const byTab = useMemo<TaskRow[]>(() => {
@@ -127,9 +129,7 @@ export function TareasPage() {
   function handleComplete(task: TaskRow) { setCompleteTask(task) }
 
   function handleReschedule(task: TaskRow) {
-    // En TareasPage el reschedule abre TaskModal en modo edición
-    // (implementación futura — por ahora no-op; DayView tiene inline reschedule)
-    void task
+    setEditingTaskId(task.id)
   }
 
   function handleConfirmComplete(outcome: OutcomeVal, nextDate: Date) {
@@ -323,6 +323,12 @@ export function TareasPage() {
         lead={completeTask?.lead_id ? leads[completeTask.lead_id] : undefined}
         onClose={() => setCompleteTask(null)}
         onConfirm={handleConfirmComplete}
+      />
+
+      <TaskModal
+        isOpen={!!editingTaskId}
+        taskId={editingTaskId ?? undefined}
+        onClose={() => setEditingTaskId(null)}
       />
 
       <TaskFAB />

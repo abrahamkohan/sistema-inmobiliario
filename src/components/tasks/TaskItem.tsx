@@ -203,6 +203,15 @@ export function TaskItem({
               Llamar
             </a>
           )}
+          {/* Editar — siempre visible salvo cerrada */}
+          {!isClosed && (
+            <button
+              onClick={() => onReschedule(task)}
+              className="h-7 px-2.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 transition flex-shrink-0"
+            >
+              Editar
+            </button>
+          )}
           {/* ✓ Hecho siempre al final */}
           <button
             onClick={() => onComplete(task)}

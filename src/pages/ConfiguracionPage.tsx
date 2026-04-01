@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 import { useConsultoraConfig, useSaveConsultoraConfig } from '@/hooks/useConsultora'
 import { useAgentes, useCreateAgente, useDeleteAgente } from '@/hooks/useAgentes'
 import { useTeam, useSetRole, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
@@ -168,7 +170,7 @@ export function ConfiguracionPage() {
       supabase.functions
         .invoke('google-oauth', {
           body: { action: 'status' },
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
         })
         .then(({ data }) => setGcalConnected(data?.connected ?? false))
         .catch(() => setGcalConnected(false))
@@ -188,7 +190,7 @@ export function ConfiguracionPage() {
 
       const { data, error } = await supabase.functions.invoke('google-oauth', {
         body: { action: 'authorize', state },
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
       })
       if (error || !data?.url) { toast.error('No se pudo obtener la URL de autorización'); return }
 

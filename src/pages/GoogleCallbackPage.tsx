@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { supabase } from '@/lib/supabase'
 
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+
 export function GoogleCallbackPage() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +46,7 @@ export function GoogleCallbackPage() {
       supabase.functions
         .invoke('google-oauth', {
           body: { action: 'callback', code },
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
         })
         .then(({ error: fnError }) => {
           if (fnError) {

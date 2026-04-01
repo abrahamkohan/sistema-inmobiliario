@@ -1,6 +1,8 @@
 // src/hooks/useTasks.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 import {
   getTasks,
   getTask,
@@ -72,7 +74,7 @@ export function useCreateTask() {
           supabase.functions
             .invoke('google-calendar-sync', {
               body: { task_id: newTask.id },
-              headers: { Authorization: `Bearer ${session.access_token}` },
+              headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
             })
             .catch(() => { /* intencional: fallo silencioso */ })
         })

@@ -1,6 +1,7 @@
 // src/components/tasks/TaskItem.tsx
 
-import { CheckCircle2, MessageCircle, Phone, MapPin, Mail, Video, Trash2, Pencil } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { CheckCircle2, MessageCircle, Phone, MapPin, Mail, Video, Trash2, Pencil, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useWhatsApp } from '@/hooks/useWhatsApp'
 import { getUrgency } from '@/lib/tasks'
@@ -78,6 +79,19 @@ export function TaskItem({
   onDelete,
 }: TaskItemProps) {
   const { openWhatsApp, getTemplate } = useWhatsApp()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpen])
 
   const urgency = getUrgency(task)
   const isClosed = urgency === 'closed'
@@ -203,17 +217,7 @@ export function TaskItem({
               Llamar
             </a>
           )}
-          {/* Editar — siempre visible salvo cerrada */}
-          {!isClosed && (
-            <button
-              onClick={() => onReschedule(task)}
-              title="Editar"
-              className="h-7 w-7 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 transition flex-shrink-0"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
-          )}
-          {/* ✓ Hecho siempre al final */}
+          {/* ✓ Hecho */}
           <button
             onClick={() => onComplete(task)}
             disabled={isClosed}
@@ -224,6 +228,41 @@ export function TaskItem({
           >
             {isClosed ? 'Cerrado' : '✓ Hecho'}
           </button>
+
+          {/* ⋯ Menú contextual */}
+          {!isClosed && (
+            <div ref={menuRef} className="relative flex-shrink-0">
+              <button
+                onClick={() => setMenuOpen(v => !v)}
+                className="h-7 w-7 flex items-center justify-center rounded-lg bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-700 transition"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 bottom-full mb-1.5 w-36 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10">
+                  <button
+                    onClick={() => { setMenuOpen(false); onReschedule(task) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-gray-400" />
+                    Editar
+                  </button>
+                  {onDelete && (
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false)
+                        if (confirm('¿Eliminar esta tarea?')) onDelete(task.id)
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Eliminar
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Meet link al pie — accesible para tareas tipo reunión sin meet abierta */}

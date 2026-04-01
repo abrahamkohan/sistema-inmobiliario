@@ -115,7 +115,7 @@ export function TaskItem({
   const date  = task.due_date ? new Date(task.due_date) : new Date()
   const day   = date.getDate()
   const month = date.toLocaleDateString('es-PY', { month: 'short' }).toUpperCase()
-  const time  = date.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' })
+  const time  = date.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit', hour12: false })
 
 
   return (

@@ -470,14 +470,17 @@ export function ConfiguracionPage() {
                   <div>
                     <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
                       {member.full_name ?? '—'}
-                      {member.id === session?.user.id && (
+                      {member.is_owner && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Propietario</span>
+                      )}
+                      {!member.is_owner && member.id === session?.user.id && (
                         <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">Vos</span>
                       )}
                     </p>
                     <p className="text-xs text-gray-400">{member.role ?? 'Sin rol'}</p>
                   </div>
                 </div>
-                {member.id !== session?.user.id && (
+                {!member.is_owner && member.id !== session?.user.id && (
                   <div className="flex items-center gap-2">
                     <select
                       value={member.role ?? ''}

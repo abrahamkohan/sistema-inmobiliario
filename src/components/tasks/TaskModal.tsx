@@ -480,10 +480,11 @@ export function TaskModal({
             type="button"
             onClick={handleDelete}
             disabled={isSaving}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors mr-auto"
+            title="Eliminar tarea"
+            aria-label="Eliminar tarea"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors mr-auto flex-shrink-0"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            Eliminar
+            <Trash2 className="w-4 h-4" />
           </button>
         )}
         <button

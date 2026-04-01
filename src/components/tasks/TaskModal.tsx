@@ -263,14 +263,27 @@ export function TaskModal({
       {/* ── Fecha y hora ── */}
       <div className="flex flex-col gap-1.5">
         <label className={LABEL_CLS}>FECHA Y HORA *</label>
-        <input
-          ref={dateInputRef}
-          type="datetime-local"
-          value={form.due_date}
-          min={toInputValue(new Date())}
-          onChange={e => set('due_date', e.target.value)}
-          className={INPUT_CLS}
-        />
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={form.due_date.split('T')[0]}
+            min={toInputValue(new Date()).split('T')[0]}
+            onChange={e => {
+              const timePart = form.due_date.split('T')[1] ?? '09:00'
+              set('due_date', `${e.target.value}T${timePart}`)
+            }}
+            className={INPUT_CLS + ' flex-1'}
+          />
+          <input
+            type="time"
+            value={form.due_date.split('T')[1] ?? '09:00'}
+            onChange={e => {
+              const datePart = form.due_date.split('T')[0]
+              set('due_date', `${datePart}T${e.target.value}`)
+            }}
+            className={INPUT_CLS + ' w-32'}
+          />
+        </div>
       </div>
 
       {/* ── Tipo (chips wrap) ── */}

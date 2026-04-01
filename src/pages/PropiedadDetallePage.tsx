@@ -95,7 +95,7 @@ export function PropiedadDetallePage() {
   // ── Loading ──
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col gap-4">
+      <div className="max-w-[940px] mx-auto px-4 py-6 flex flex-col gap-4">
         <div className="h-8 w-48 bg-gray-100 rounded-xl animate-pulse" />
         <div className="h-72 bg-gray-100 rounded-2xl animate-pulse" />
         <div className="h-28 bg-gray-100 rounded-2xl animate-pulse" />
@@ -156,7 +156,7 @@ export function PropiedadDetallePage() {
 
   return (
     <>
-      <div className="max-w-3xl mx-auto px-4 py-4 md:px-6 md:py-6 flex flex-col gap-4">
+      <div className="max-w-[940px] mx-auto px-4 py-4 md:px-6 md:py-6 flex flex-col gap-4">
 
         {/* ── Nav bar ── */}
         <div className="flex items-center justify-between">

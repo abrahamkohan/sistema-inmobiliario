@@ -159,7 +159,7 @@ export function ProjectDetailPage() {
       </div>
 
       {/* ── Contenido ── */}
-      <div className="flex flex-col gap-4 px-4 py-5 max-w-2xl mx-auto w-full">
+      <div className="flex flex-col gap-4 px-4 py-5 max-w-[940px] mx-auto w-full">
 
         {/* Nombre + desarrolladora */}
         <div>

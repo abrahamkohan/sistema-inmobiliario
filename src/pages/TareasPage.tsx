@@ -78,6 +78,7 @@ export function TareasPage() {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [ctxFilter,   setCtxFilter]   = useState<Context | 'all'>('all')
   const [typeFilter,  setTypeFilter]  = useState<TaskType | 'all'>('all')
+  const [leadFilter,  setLeadFilter]  = useState<string>('all')
 
   const [peekLeadId,   setPeekLeadId]   = useState<string | null>(null)
   const [completeTask, setCompleteTask] = useState<TaskRow | null>(null)
@@ -92,12 +93,21 @@ export function TareasPage() {
     }
   }, [allTasks, tab])
 
+  // Clientes que tienen al menos una tarea — evita mostrar lista completa en el filtro
+  const clientsWithTasks = useMemo(() => {
+    const ids = new Set(allTasks.map(t => t.lead_id).filter(Boolean) as string[])
+    return allClients
+      .filter(c => ids.has(c.id))
+      .sort((a, b) => a.full_name.localeCompare(b.full_name))
+  }, [allClients, allTasks])
+
   // ── Aplicar filtros opcionales + búsqueda de texto ────────────────────
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return byTab
       .filter(t => ctxFilter  === 'all' || t.context === ctxFilter)
       .filter(t => typeFilter === 'all' || t.type    === typeFilter)
+      .filter(t => leadFilter === 'all' || t.lead_id === leadFilter)
       .filter(t => {
         if (!q) return true
         if (t.title.toLowerCase().includes(q)) return true
@@ -105,7 +115,7 @@ export function TareasPage() {
         if (lead?.full_name.toLowerCase().includes(q)) return true
         return false
       })
-  }, [byTab, ctxFilter, typeFilter, search, leads])
+  }, [byTab, ctxFilter, typeFilter, leadFilter, search, leads])
 
   // Contadores para badges de tabs
   const overdueCount = useMemo(
@@ -194,7 +204,7 @@ export function TareasPage() {
         >
           {filtersOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           Filtros
-          {(ctxFilter !== 'all' || typeFilter !== 'all') && (
+          {(ctxFilter !== 'all' || typeFilter !== 'all' || leadFilter !== 'all') && (
             <span className="ml-1 w-1.5 h-1.5 rounded-full bg-[#D4AF37] inline-block" />
           )}
         </button>
@@ -234,6 +244,27 @@ export function TareasPage() {
                 ))}
               </div>
             </div>
+
+            {/* Cliente / Lead */}
+            {clientsWithTasks.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Cliente / Lead
+                </p>
+                <select
+                  value={leadFilter}
+                  onChange={e => setLeadFilter(e.target.value)}
+                  className="w-full sm:w-64 h-9 px-3 rounded-xl border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="all">Todos</option>
+                  {clientsWithTasks.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.full_name}{c.tipo === 'lead' ? ' · Lead' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Agente — solo supervisor / admin (futuro: selector real) */}
             {role !== 'agent' && (

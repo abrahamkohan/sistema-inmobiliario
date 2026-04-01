@@ -33,7 +33,7 @@ function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="h-14 bg-white border-b border-gray-100 animate-pulse" />
-      <div className="max-w-3xl mx-auto px-4 pt-5 pb-8 flex flex-col gap-4">
+      <div className="max-w-[940px] mx-auto px-4 pt-5 pb-8 flex flex-col gap-4">
         <div className="h-64 bg-gray-200 rounded-2xl animate-pulse" />
         <div className="h-28 bg-gray-200 rounded-2xl animate-pulse" />
         <div className="h-16 bg-gray-200 rounded-2xl animate-pulse" />
@@ -234,7 +234,7 @@ export function PropiedadLandingPage() {
           )}
         </header>
 
-        <div className="max-w-3xl mx-auto px-4 pb-32 lg:pb-8 flex flex-col gap-4 pt-5">
+        <div className="max-w-[940px] mx-auto px-4 pb-32 lg:pb-8 flex flex-col gap-4 pt-5">
 
           {/* ── Galería ── */}
           {allPhotos.length > 0 ? (

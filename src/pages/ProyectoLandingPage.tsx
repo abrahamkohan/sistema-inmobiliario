@@ -61,7 +61,7 @@ function LoadingSkeleton() {
     <div className="min-h-screen bg-gray-50">
       <div className="h-14 bg-white border-b border-gray-100 animate-pulse" />
       <div className="h-52 bg-gray-200 animate-pulse" />
-      <div className="max-w-2xl mx-auto px-4 pt-5 flex flex-col gap-4">
+      <div className="max-w-[940px] mx-auto px-4 pt-5 flex flex-col gap-4">
         <div className="h-20 bg-gray-200 rounded-2xl animate-pulse" />
         <div className="h-32 bg-gray-200 rounded-2xl animate-pulse" />
         <div className="h-24 bg-gray-200 rounded-2xl animate-pulse" />
@@ -228,7 +228,7 @@ export function ProyectoLandingPage() {
       </div>
 
       {/* ── Contenido ── */}
-      <div className="max-w-2xl mx-auto px-4 pb-32 lg:pb-8 flex flex-col gap-4 pt-5">
+      <div className="max-w-[940px] mx-auto px-4 pb-32 lg:pb-8 flex flex-col gap-4 pt-5">
 
         {/* ── Nombre + desarrolladora ── */}
         <div className="bg-white border border-gray-100 rounded-2xl p-5">

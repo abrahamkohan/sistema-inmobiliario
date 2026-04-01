@@ -15,7 +15,7 @@ function LoadingSkeleton() {
     <div className="min-h-screen bg-white">
       <div className="h-14 bg-white border-b border-gray-100 animate-pulse" />
       <div className="h-52 bg-[#1a2744] animate-pulse" />
-      <div className="max-w-2xl mx-auto px-6 py-10 flex flex-col gap-4">
+      <div className="max-w-[940px] mx-auto px-6 py-10 flex flex-col gap-4">
         <div className="flex gap-4">
           <div className="flex-1 h-44 bg-gray-100 rounded-2xl animate-pulse" />
           <div className="flex-1 h-44 bg-gray-100 rounded-2xl animate-pulse" />
@@ -78,7 +78,7 @@ export function CatalogoCoverPage() {
       </div>
 
       {/* ── Cards de acceso ── */}
-      <main className="flex-1 max-w-2xl w-full mx-auto px-6 py-10">
+      <main className="flex-1 max-w-[940px] w-full mx-auto px-6 py-10">
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
             to="/catalogo/propiedades"
@@ -110,7 +110,7 @@ export function CatalogoCoverPage() {
 
       {/* ── Footer consolidado ── */}
       <footer className="border-t border-gray-200 bg-white py-6 px-6">
-        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-[940px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           {config?.nombre && (
             <span className="text-sm font-medium text-gray-700">{config.nombre}</span>
           )}

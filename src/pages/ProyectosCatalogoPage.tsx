@@ -25,7 +25,7 @@ function LoadingSkeleton() {
       <div className="h-14 bg-white border-b border-gray-100 animate-pulse" />
       <div className="h-36 bg-[#1a2744] animate-pulse" />
       <div className="h-14 bg-white border-b border-gray-100 animate-pulse" />
-      <div className="max-w-5xl mx-auto px-4 pt-8">
+      <div className="max-w-[940px] mx-auto px-4 pt-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-72 bg-gray-200 rounded-2xl animate-pulse" />
@@ -149,7 +149,7 @@ export function ProyectosCatalogoPage() {
 
       {/* ── Hero ── */}
       <div className="bg-[#1a2744] px-6 py-10">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-[940px] mx-auto">
           <Link
             to="/catalogo"
             className="inline-flex items-center gap-1.5 text-white/50 hover:text-white/80 text-xs mb-4 transition-colors"
@@ -167,7 +167,7 @@ export function ProyectosCatalogoPage() {
 
       {/* ── Filtros ── */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 sticky top-14 z-10">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row gap-2">
+        <div className="max-w-[940px] mx-auto flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
             <input
@@ -211,7 +211,7 @@ export function ProyectosCatalogoPage() {
       </div>
 
       {/* ── Grilla ── */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 pt-8 pb-12">
+      <main className="flex-1 max-w-[940px] w-full mx-auto px-4 pt-8 pb-12">
         {projects.length === 0 ? (
           <EmptyState config={config} />
         ) : filtered.length === 0 ? (
@@ -227,7 +227,7 @@ export function ProyectosCatalogoPage() {
 
       {/* ── Footer consolidado ── */}
       <footer className="border-t border-gray-200 bg-white py-6 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-[940px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           {config?.nombre && (
             <span className="text-sm font-medium text-gray-700">{config.nombre}</span>
           )}

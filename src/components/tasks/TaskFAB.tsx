@@ -2,9 +2,9 @@
 // Speed-dial FAB: Nueva tarea + Nueva nota
 
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
 import { Plus, X, ClipboardList, NotebookPen, UserPlus } from 'lucide-react'
 import { TaskModal } from './TaskModal'
+import { QuickLeadModal } from './QuickLeadModal'
 import { NoteEditor } from '@/components/notes/NoteEditor'
 import { useCreateNote } from '@/hooks/useNotes'
 import { useClients } from '@/hooks/useClients'
@@ -21,10 +21,10 @@ interface TaskFABProps {
 }
 
 export function TaskFAB({ defaultContext, defaultLeadId, defaultPropertyId }: TaskFABProps) {
-  const navigate = useNavigate()
-  const [open,        setOpen]        = useState(false)
-  const [expanded,    setExpanded]    = useState(false)
-  const [editingNote, setEditingNote] = useState<NoteRow | null>(null)
+  const [open,          setOpen]          = useState(false)
+  const [quickLead,     setQuickLead]     = useState(false)
+  const [expanded,      setExpanded]      = useState(false)
+  const [editingNote,   setEditingNote]   = useState<NoteRow | null>(null)
 
   const createNote = useCreateNote()
   const { data: clients  = [] } = useClients()
@@ -32,7 +32,7 @@ export function TaskFAB({ defaultContext, defaultLeadId, defaultPropertyId }: Ta
 
   function handleNewLead() {
     setExpanded(false)
-    navigate('/clientes/nuevo')
+    setQuickLead(true)
   }
 
   async function handleNewNote() {
@@ -68,7 +68,7 @@ export function TaskFAB({ defaultContext, defaultLeadId, defaultPropertyId }: Ta
             pointerEvents: expanded ? 'auto' : 'none',
           }}
         >
-          {/* Nuevo lead */}
+          {/* Contacto rápido */}
           <button
             onClick={handleNewLead}
             className="flex items-center gap-2.5 pl-3 pr-4 py-2 rounded-full shadow-lg text-white text-sm font-semibold transition-transform active:scale-95 hover:scale-105"
@@ -77,7 +77,7 @@ export function TaskFAB({ defaultContext, defaultLeadId, defaultPropertyId }: Ta
             <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
               <UserPlus className="w-3.5 h-3.5" />
             </span>
-            Nuevo lead
+            Contacto rápido
           </button>
 
           {/* Nueva tarea */}
@@ -125,6 +125,11 @@ export function TaskFAB({ defaultContext, defaultLeadId, defaultPropertyId }: Ta
       </div>
 
       {/* Modales */}
+      <QuickLeadModal
+        isOpen={quickLead}
+        onClose={() => setQuickLead(false)}
+      />
+
       <TaskModal
         isOpen={open}
         onClose={() => setOpen(false)}

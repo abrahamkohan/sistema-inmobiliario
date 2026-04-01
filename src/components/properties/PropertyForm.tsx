@@ -246,6 +246,15 @@ export function PropertyForm({
 }: PropertyFormProps) {
   const update = useCallback((patch: Partial<PropertyFormState>) => onChange(patch), [onChange])
 
+  // ── Política de moneda ────────────────────────────────────────────────────
+  // Venta (y null) solo admite USD. Si el estado es inválido —tanto al cargar
+  // una propiedad existente como al cambiar operación en runtime— se normaliza.
+  useEffect(() => {
+    if (s.operacion !== 'alquiler' && s.moneda === 'PYG') {
+      update({ moneda: 'USD', precio: '' })
+    }
+  }, [s.operacion, s.moneda]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Maps state
   const [isResolvingMap, setIsResolvingMap] = useState(false)
   const [resolvedEmbed, setResolvedEmbed] = useState<{ embedSrc: string; lat: number | null; lng: number | null } | null>(null)
@@ -419,20 +428,26 @@ export function PropertyForm({
           <div>
             <Label>Precio</Label>
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex rounded-xl border border-gray-200 overflow-hidden flex-shrink-0">
-                {(['USD', 'PYG'] as const).map(m => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => update({ moneda: m, precio: '' })}
-                    className={`px-3 py-2 text-sm font-semibold transition-all ${
-                      s.moneda === m ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
+              {s.operacion === 'alquiler' ? (
+                <div className="flex rounded-xl border border-gray-200 overflow-hidden flex-shrink-0">
+                  {(['USD', 'PYG'] as const).map(m => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => update({ moneda: m, precio: '' })}
+                      className={`px-3 py-2 text-sm font-semibold transition-all ${
+                        s.moneda === m ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <span className="px-3 py-2 text-sm font-semibold bg-gray-900 text-white rounded-xl">
+                  USD
+                </span>
+              )}
               <input
                 type="number"
                 value={s.precio}

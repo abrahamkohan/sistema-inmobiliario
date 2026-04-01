@@ -1,5 +1,6 @@
 // src/hooks/useTasks.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase'
 import {
   getTasks,
   getTask,
@@ -50,6 +51,9 @@ export function useTasksByProperty(propertyId: string) {
   })
 }
 
+// Tipos de tarea que se sincronizan con Google Calendar
+const GCAL_ELIGIBLE_TYPES = ['call', 'meeting', 'visit']
+
 // ── Mutations ─────────────────────────────────────────────────────────────
 
 export function useCreateTask() {
@@ -61,6 +65,12 @@ export function useCreateTask() {
       // Invalida también la lista del lead/propiedad si aplica
       if (newTask.lead_id)     qc.invalidateQueries({ queryKey: ['tasks', 'lead',     newTask.lead_id] })
       if (newTask.property_id) qc.invalidateQueries({ queryKey: ['tasks', 'property', newTask.property_id] })
+      // Google Calendar sync — fire-and-forget, nunca bloquea ni falla la creación
+      if (GCAL_ELIGIBLE_TYPES.includes(newTask.type) && !!newTask.due_date) {
+        supabase.functions
+          .invoke('google-calendar-sync', { body: { task_id: newTask.id } })
+          .catch(() => { /* intencional: fallo silencioso */ })
+      }
     },
   })
 }

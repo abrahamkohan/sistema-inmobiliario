@@ -1,10 +1,11 @@
 // src/components/tasks/TaskItem.tsx
 
 import { useState, useEffect, useRef } from 'react'
-import { CheckCircle2, MessageCircle, Phone, MapPin, Mail, Video, Trash2, Pencil, MoreHorizontal } from 'lucide-react'
+import { CheckCircle2, MessageCircle, Phone, MapPin, Mail, Video, Trash2, Pencil, MoreHorizontal, CalendarPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useWhatsApp } from '@/hooks/useWhatsApp'
 import { getUrgency } from '@/lib/tasks'
+import { buildGoogleCalendarUrl, GCAL_SUPPORTED_TYPES } from '@/lib/googleCalendar'
 import { SwipeableRow } from '@/components/ui/SwipeableRow'
 import type { Database } from '@/types/database'
 
@@ -239,7 +240,7 @@ export function TaskItem({
                 <MoreHorizontal className="w-4 h-4" />
               </button>
               {menuOpen && (
-                <div className="absolute right-0 bottom-full mb-1.5 w-36 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10">
+                <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10">
                   <button
                     onClick={() => { setMenuOpen(false); onReschedule(task) }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -247,6 +248,19 @@ export function TaskItem({
                     <Pencil className="w-3.5 h-3.5 text-gray-400" />
                     Editar
                   </button>
+                  {GCAL_SUPPORTED_TYPES.includes(task.type) && !!task.due_date && (
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false)
+                        const url = buildGoogleCalendarUrl({ task, leadName: lead?.full_name })
+                        if (url) window.open(url, '_blank')
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <CalendarPlus className="w-3.5 h-3.5 text-gray-400" />
+                      Al calendario
+                    </button>
+                  )}
                   {onDelete && (
                     <button
                       onClick={() => {

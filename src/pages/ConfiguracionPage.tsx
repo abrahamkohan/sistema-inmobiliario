@@ -2,12 +2,13 @@
 import { useEffect, useState } from 'react'
 import {
   Building2, Phone, Mail, MessageCircle, Instagram, Globe, Image,
-  Loader2, Check, Copy, Users, Trash2, Plus,
+  Loader2, Check, Copy, Users, Trash2, Plus, Calendar,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
 import { useConsultoraConfig, useSaveConsultoraConfig } from '@/hooks/useConsultora'
 import { useAgentes, useCreateAgente, useDeleteAgente } from '@/hooks/useAgentes'
 import { useTeam, useSetRole, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
@@ -85,6 +86,10 @@ export function ConfiguracionPage() {
   const [refName, setRefName]     = useState('')
   const [refLink, setRefLink]     = useState('')
 
+  // Google Calendar
+  const [gcalConnected, setGcalConnected] = useState<boolean | null>(null)
+  const [gcalLoading,   setGcalLoading]   = useState(false)
+
   // Equipo (solo admin)
   const isAdmin   = useIsAdmin()
   const { session } = useAuth()
@@ -154,6 +159,32 @@ export function ConfiguracionPage() {
       toast.success('Agente eliminado')
     } catch {
       toast.error('Error al eliminar')
+    }
+  }
+
+  useEffect(() => {
+    supabase.functions
+      .invoke('google-oauth', { body: { action: 'status' } })
+      .then(({ data }) => setGcalConnected(data?.connected ?? false))
+      .catch(() => setGcalConnected(false))
+  }, [])
+
+  async function handleConnectGoogle() {
+    setGcalLoading(true)
+    try {
+      // Generar state criptográficamente seguro para protección CSRF
+      const stateBytes = new Uint8Array(16)
+      crypto.getRandomValues(stateBytes)
+      const state = Array.from(stateBytes).map(b => b.toString(16).padStart(2, '0')).join('')
+
+      const { data, error } = await supabase.functions.invoke('google-oauth', { body: { action: 'authorize', state } })
+      if (error || !data?.url) { toast.error('No se pudo obtener la URL de autorización'); return }
+
+      // Guardar state antes de redirigir — se valida en el callback
+      sessionStorage.setItem('gcal_oauth_state', state)
+      window.location.href = data.url
+    } finally {
+      setGcalLoading(false)
     }
   }
 
@@ -405,6 +436,49 @@ export function ConfiguracionPage() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* ── Google Calendar ── */}
+      <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Google Calendar</p>
+        </div>
+
+        {gcalConnected === null ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Verificando conexión...
+          </div>
+        ) : gcalConnected ? (
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100">
+              <Check className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm font-medium text-emerald-700">Conectado</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Las tareas de tipo llamada, visita y reunión se sincronizan automáticamente al crearse.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">
+              Conectá la cuenta Google de la consultora para que las tareas de tipo llamada, visita y reunión se agreguen automáticamente al calendario al crearse.
+            </p>
+            <button
+              onClick={handleConnectGoogle}
+              disabled={gcalLoading}
+              className="self-start flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-semibold disabled:opacity-50 hover:bg-gray-800 transition-colors"
+            >
+              {gcalLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Calendar className="w-4 h-4" />
+              )}
+              Conectar Google Calendar
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Equipo (solo admin) ── */}

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router'
 import { ArrowLeft, Pencil, MapPin, Building2, Calendar, DollarSign, FileText, Map, Video, ExternalLink, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import { useProject, useUpdateProject } from '@/hooks/useProjects'
+import { WhatsAppShareButton } from '@/components/whatsapp/WhatsAppShareButton'
 
 const APP_URL = (
   import.meta.env.DEV
@@ -71,6 +72,12 @@ export function ProjectDetailPage() {
 
   const fullLocation = [project.direccion, project.barrio, project.ciudad].filter(Boolean).join(', ')
 
+  const resourceContext = [
+    STATUS_LABEL[project.status] ?? project.status,
+    project.ciudad,
+    project.precio_desde != null ? `desde ${fmtPrice(project.precio_desde, project.moneda)}` : null,
+  ].filter(Boolean).join(' · ')
+
   function handleCopiarLink() {
     const url = `${APP_URL}/proyecto/${id}`
     navigator.clipboard.writeText(url).then(() => {
@@ -125,6 +132,11 @@ export function ProjectDetailPage() {
                 </a>
               </>
             )}
+            <WhatsAppShareButton
+              resourceTitle={project.name}
+              resourceUrl={`${APP_URL}/proyecto/${id}`}
+              resourceContext={resourceContext}
+            />
             <button
               onClick={() => navigate(`/proyectos/${project.id}/editar`)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"

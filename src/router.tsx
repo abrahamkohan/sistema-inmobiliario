@@ -33,6 +33,7 @@ import { VentaFormPage } from '@/pages/VentaFormPage'
 import { FlipPage } from '@/pages/FlipPage'
 import { FlipFormPage } from '@/pages/FlipFormPage'
 import { FlipPrintPage } from '@/pages/FlipPrintPage'
+import { GoogleCallbackPage } from '@/pages/GoogleCallbackPage'
 import { CatalogoCoverPage } from '@/pages/CatalogoCoverPage'
 import { PropiedadesCatalogoPage } from '@/pages/PropiedadesCatalogoPage'
 import { ProyectosCatalogoPage } from '@/pages/ProyectosCatalogoPage'
@@ -91,6 +92,7 @@ export const router = createBrowserRouter([
   { path: 'informes/:id',      element: <ReporteHtmlPage /> },
   { path: 'presupuestos/:id/pdf', element: <PresupuestoPdfPage /> },
   { path: 'flip/:id/imprimir',   element: <FlipPrintPage /> },
-  { path: 'auth/callback', element: <AuthCallbackPage /> },
+  { path: 'auth/callback',        element: <AuthCallbackPage /> },
+  { path: 'auth/google/callback', element: <GoogleCallbackPage /> },
   { path: 'reset-password', element: <ResetPasswordPage /> },
 ])

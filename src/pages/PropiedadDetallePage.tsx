@@ -6,6 +6,8 @@ import { useProperty, usePropertyPhotos, useUpdateProperty } from '@/hooks/usePr
 import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { getPhotoUrl, formatPrice, timeAgo } from '@/lib/properties'
 import { PropertyLightbox, PropertyPhotoMosaic } from '@/components/properties/PropertyGallery'
+import { WhatsAppShareButton } from '@/components/whatsapp/WhatsAppShareButton'
+import { buildShareUrl } from '@/lib/whatsapp'
 
 const APP_URL = (
   import.meta.env.DEV
@@ -70,12 +72,11 @@ export function PropiedadDetallePage() {
   }
 
   function handleConsultar() {
-    if (!property) return
-    if (consultora?.whatsapp) {
-      const title = property.titulo || `${TIPO_LABEL[property.tipo]} en ${property.barrio ?? property.zona ?? property.ciudad ?? ''}`
-      const msg = encodeURIComponent(`Hola, me interesa la propiedad: ${title}`)
-      window.open(`https://wa.me/${consultora.whatsapp.replace(/\D/g, '')}?text=${msg}`, '_blank')
-    }
+    if (!property || !consultora?.whatsapp) return
+    const propertyTitle = property.titulo || `${TIPO_LABEL[property.tipo]} en ${property.barrio ?? property.zona ?? property.ciudad ?? ''}`
+    const url = buildShareUrl(consultora.whatsapp, `Hola, me interesa la propiedad: ${propertyTitle}`)
+    if (!url) return
+    window.open(url, '_blank')
   }
 
   function togglePublicado() {
@@ -118,6 +119,12 @@ export function PropiedadDetallePage() {
 
   const title = property.titulo ||
     `${TIPO_LABEL[property.tipo] ?? property.tipo} en ${property.barrio ?? property.zona ?? property.ciudad ?? 'Sin ubicación'}`
+
+  const resourceContext = [
+    OP_LABEL[property.operacion]  ?? property.operacion,
+    TIPO_LABEL[property.tipo]     ?? property.tipo,
+    property.precio != null ? formatPrice(property.precio, property.moneda) : null,
+  ].filter(Boolean).join(' · ')
 
   const statsChips = [
     property.dormitorios != null && {
@@ -197,6 +204,11 @@ export function PropiedadDetallePage() {
                 </a>
               </>
             )}
+            <WhatsAppShareButton
+              resourceTitle={title}
+              resourceUrl={`${APP_URL}/p/${id}`}
+              resourceContext={resourceContext}
+            />
             <button
               onClick={() => navigate(`/propiedades/${id}/editar`)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"

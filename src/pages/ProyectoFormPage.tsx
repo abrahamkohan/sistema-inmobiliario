@@ -435,6 +435,7 @@ export function ProyectoFormPage() {
         direccion:       s.direccion || null,
         description:     s.resumen || null,
         delivery_date:   s.delivery_date || null,
+        moneda:          'USD',
         precio_desde:    precioDesde,
         maps_url:        s.maps_url || null,
         tour_360_url:    s.tour_360_url || null,

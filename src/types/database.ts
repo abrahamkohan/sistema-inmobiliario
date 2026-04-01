@@ -718,13 +718,16 @@ export interface Database {
           user_id: string
           role: 'admin' | 'agente'
           created_at: string
+          is_owner: boolean
         }
         Insert: {
           user_id: string
           role: 'admin' | 'agente'
+          is_owner?: boolean
         }
         Update: {
           role?: 'admin' | 'agente'
+          is_owner?: boolean
         }
         Relationships: [
           { foreignKeyName: "user_roles_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }

@@ -94,29 +94,29 @@ export function ProjectDetailPage() {
       <div className="flex flex-col gap-4 px-4 py-4 md:px-6 md:py-6 max-w-[940px] mx-auto w-full">
 
         {/* ── Nav bar — mismo patrón que PropiedadDetallePage ── */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <button
             onClick={() => navigate('/proyectos')}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors self-start"
           >
             <ArrowLeft className="w-4 h-4" />
             Proyectos
           </button>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap gap-1.5 sm:gap-3">
             {project.publicado_en_web && (
               <>
                 <a
                   href={`${APP_URL}/proyecto/${id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Ver landing
                 </a>
                 <button
                   onClick={handleCopiarLink}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
                 >
                   <Copy className="w-3.5 h-3.5" />
                   Copiar link
@@ -125,7 +125,7 @@ export function ProjectDetailPage() {
                   href={`${APP_URL}/proyecto/${id}/ficha`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   Ficha PDF
@@ -139,14 +139,14 @@ export function ProjectDetailPage() {
             />
             <button
               onClick={() => navigate(`/proyectos/${project.id}/editar`)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
             >
               <Pencil className="w-3.5 h-3.5" />
               Editar
             </button>
-            <button onClick={togglePublicado} className="flex items-center gap-2.5 group">
+            <button onClick={togglePublicado} className="flex items-center gap-1.5 sm:gap-2.5 group">
               <span className="text-xs font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
-                {project.publicado_en_web ? 'Publicado' : 'No publicado'}
+                {project.publicado_en_web ? 'Publicado' : <><span className="sm:hidden">No pub.</span><span className="hidden sm:inline">No publicado</span></>}
               </span>
               <div className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${
                 project.publicado_en_web ? 'bg-emerald-500' : 'bg-gray-200'

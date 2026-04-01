@@ -1,6 +1,6 @@
 // src/components/tasks/TaskItem.tsx
 
-import { CheckCircle2, MessageCircle, Phone, MapPin, Mail, Video, Trash2 } from 'lucide-react'
+import { CheckCircle2, MessageCircle, Phone, MapPin, Mail, Video, Trash2, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useWhatsApp } from '@/hooks/useWhatsApp'
 import { getUrgency } from '@/lib/tasks'
@@ -73,7 +73,7 @@ export function TaskItem({
   lead,
   agencyName = 'Kohan & Campos',
   onComplete,
-  onReschedule: _onReschedule,
+  onReschedule,
   onOpenPeek,
   onDelete,
 }: TaskItemProps) {
@@ -207,9 +207,10 @@ export function TaskItem({
           {!isClosed && (
             <button
               onClick={() => onReschedule(task)}
-              className="h-7 px-2.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 transition flex-shrink-0"
+              title="Editar"
+              className="h-7 w-7 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-800 transition flex-shrink-0"
             >
-              Editar
+              <Pencil className="w-3.5 h-3.5" />
             </button>
           )}
           {/* ✓ Hecho siempre al final */}

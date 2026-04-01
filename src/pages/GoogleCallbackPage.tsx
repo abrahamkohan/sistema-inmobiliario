@@ -6,8 +6,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { supabase } from '@/lib/supabase'
 
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
-
 export function GoogleCallbackPage() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
@@ -27,38 +25,28 @@ export function GoogleCallbackPage() {
       return
     }
 
-    // Validar state para protección CSRF — siempre limpiar sessionStorage
     const stateFromUrl     = params.get('state')
-    const stateFromStorage = sessionStorage.getItem('gcal_oauth_state')
     sessionStorage.removeItem('gcal_oauth_state')
 
-    if (!stateFromUrl || !stateFromStorage || stateFromUrl !== stateFromStorage) {
-      setError('Error de validación de seguridad. Reintentá el proceso desde Configuración.')
+    if (!stateFromUrl) {
+      setError('No se recibió el estado de validación. Reintentá el proceso desde Configuración.')
       return
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        setError('No hay sesión activa. Iniciá sesión e intentá de nuevo.')
-        return
-      }
-
-      supabase.functions
-        .invoke('google-oauth', {
-          body: { action: 'callback', code },
-          headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
-        })
-        .then(({ error: fnError }) => {
-          if (fnError) {
-            setError('Error al guardar la conexión con Google Calendar. Reintentá desde Configuración.')
-            return
-          }
-          navigate('/configuracion', { replace: true })
-        })
-        .catch(() => {
-          setError('Error inesperado. Reintentá desde Configuración.')
-        })
-    })
+    supabase.functions
+      .invoke('google-oauth', {
+        body: { action: 'callback', code, state: stateFromUrl },
+      })
+      .then(({ error: fnError }) => {
+        if (fnError) {
+          setError('Error al guardar la conexión con Google Calendar. Reintentá desde Configuración.')
+          return
+        }
+        navigate('/configuracion', { replace: true })
+      })
+      .catch(() => {
+        setError('Error inesperado. Reintentá desde Configuración.')
+      })
   }, [navigate])
 
   if (error) {

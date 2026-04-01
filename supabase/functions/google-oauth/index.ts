@@ -52,18 +52,6 @@ serve(async (req) => {
   }
 
   try {
-    // ── Auth: requiere sesión activa ──────────────────────────────────────────
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return json({ error: 'Unauthorized' }, 401)
-
-    const userClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    )
-    const { data: { user } } = await userClient.auth.getUser()
-    if (!user) return json({ error: 'Unauthorized' }, 401)
-
     // ── Clientes y env vars ───────────────────────────────────────────────────
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -77,6 +65,22 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}))
     const action = body?.action as string | undefined
+
+    let user: { id: string } | null = null
+
+    if (action !== 'callback') {
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) return json({ error: 'Unauthorized' }, 401)
+
+      const userClient = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } }
+      )
+      const { data } = await userClient.auth.getUser()
+      user = data.user
+      if (!user) return json({ error: 'Unauthorized' }, 401)
+    }
 
     // ── STATUS ────────────────────────────────────────────────────────────────
     if (action === 'status') {
@@ -93,6 +97,21 @@ serve(async (req) => {
       const state = body?.state as string | undefined
       if (!state) return json({ error: 'Missing state' }, 400)
 
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+
+      const { error: stateError } = await supabase
+        .from('consultora_google_oauth_states')
+        .upsert({
+          state,
+          user_id: user!.id,
+          expires_at: expiresAt,
+        })
+
+      if (stateError) {
+        console.error('google-oauth authorize: state storage error', stateError.code)
+        return json({ error: 'State storage error' }, 500)
+      }
+
       const params = new URLSearchParams({
         client_id:     CLIENT_ID,
         redirect_uri:  REDIRECT_URI,
@@ -108,7 +127,29 @@ serve(async (req) => {
     // ── CALLBACK ──────────────────────────────────────────────────────────────
     if (action === 'callback') {
       const code = body?.code as string | undefined
+      const state = body?.state as string | undefined
       if (!code) return json({ error: 'Missing code' }, 400)
+      if (!state) return json({ error: 'Missing state' }, 400)
+
+      const { data: pendingState, error: pendingStateError } = await supabase
+        .from('consultora_google_oauth_states')
+        .select('state, expires_at')
+        .eq('state', state)
+        .maybeSingle()
+
+      if (pendingStateError) {
+        console.error('google-oauth callback: state lookup error', pendingStateError.code)
+        return json({ error: 'State lookup error' }, 500)
+      }
+
+      if (!pendingState) {
+        return json({ error: 'Invalid state' }, 401)
+      }
+
+      if (new Date(pendingState.expires_at).getTime() < Date.now()) {
+        await supabase.from('consultora_google_oauth_states').delete().eq('state', state)
+        return json({ error: 'Expired state' }, 401)
+      }
 
       const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -154,6 +195,8 @@ serve(async (req) => {
         console.error('google-oauth callback: upsert error', upsertError.code)
         return json({ error: 'Storage error' }, 500)
       }
+
+      await supabase.from('consultora_google_oauth_states').delete().eq('state', state)
 
       return json({ ok: true })
     }

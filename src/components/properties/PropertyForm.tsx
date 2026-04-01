@@ -875,17 +875,17 @@ export function PropertyForm({
       </div>
 
       {/* ── Barra inferior mobile ── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 flex items-center gap-3 px-4 py-3"
-        style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 flex items-center gap-3 px-4 py-2"
+        style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}>
         {mode === 'create' ? (
           <>
             <button type="button" onClick={() => onSave(true)} disabled={isSaving}
-              className="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-50"
             >
               Borrador
             </button>
             <button type="button" onClick={() => onSave(false)} disabled={isSaving}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
+              className="flex-1 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
               {isSaving ? 'Guardando...' : 'Publicar'}
             </button>
@@ -893,12 +893,12 @@ export function PropertyForm({
         ) : (
           <>
             <button type="button" onClick={onCancel}
-              className="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+              className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors"
             >
               Cancelar
             </button>
             <button type="button" onClick={() => onSave()} disabled={!isDirty || isSaving}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex-1 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Guardando...' : 'Guardar cambios'}
             </button>
@@ -907,16 +907,16 @@ export function PropertyForm({
       </div>
 
       {/* ── Panel flotante desktop ── */}
-      <div className="hidden md:flex fixed bottom-6 right-6 z-30 w-[280px] bg-gray-900 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.35)] p-4 flex-col gap-2">
+      <div className="hidden md:flex fixed bottom-5 right-5 z-30 w-[220px] bg-gray-900 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.35)] p-3 flex-col gap-1.5">
         {mode === 'create' ? (
           <>
             <button type="button" onClick={() => onSave(false)} disabled={isSaving}
-              className="w-full py-3 rounded-xl text-sm font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
+              className="w-full py-2 rounded-xl text-sm font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
             >
               {isSaving ? 'Guardando...' : 'Publicar propiedad'}
             </button>
             <button type="button" onClick={() => onSave(true)} disabled={isSaving}
-              className="w-full py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 transition-colors disabled:opacity-50"
+              className="w-full py-1.5 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 transition-colors disabled:opacity-50"
             >
               Guardar borrador
             </button>
@@ -924,12 +924,12 @@ export function PropertyForm({
         ) : (
           <>
             <button type="button" onClick={() => onSave()} disabled={!isDirty || isSaving}
-              className="w-full py-3 rounded-xl text-sm font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full py-2 rounded-xl text-sm font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Guardando...' : 'Guardar cambios'}
             </button>
             <button type="button" onClick={onCancel}
-              className="w-full py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 transition-colors"
+              className="w-full py-1.5 rounded-xl text-sm font-medium text-white/50 hover:text-white/80 transition-colors"
             >
               Cancelar
             </button>

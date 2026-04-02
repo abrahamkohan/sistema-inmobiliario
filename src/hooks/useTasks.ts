@@ -1,5 +1,6 @@
 // src/hooks/useTasks.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
@@ -67,18 +68,22 @@ export function useCreateTask() {
       // Invalida también la lista del lead/propiedad si aplica
       if (newTask.lead_id)     qc.invalidateQueries({ queryKey: ['tasks', 'lead',     newTask.lead_id] })
       if (newTask.property_id) qc.invalidateQueries({ queryKey: ['tasks', 'property', newTask.property_id] })
-      // Google Calendar sync — fire-and-forget, nunca bloquea ni falla la creación
-      if (GCAL_ELIGIBLE_TYPES.includes(newTask.type) && !!newTask.due_date) {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (!session) return
-          supabase.functions
-            .invoke('google-calendar-sync', {
-              body: { task_id: newTask.id },
-              headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
-            })
-            .catch(() => { /* intencional: fallo silencioso */ })
-        })
-      }
+       // Google Calendar sync — fire-and-forget, nunca bloquea ni falla la creación
+       if (GCAL_ELIGIBLE_TYPES.includes(newTask.type) && !!newTask.due_date) {
+         supabase.auth.getSession().then(async ({ data: { session } }) => {
+           if (!session) return
+           const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
+             body: { task_id: newTask.id },
+           })
+           if (error || !data?.ok) {
+             const reason = data?.reason
+             if (reason === 'not_connected' || reason === 'already_synced') return
+             toast.error('No se pudo sincronizar con Google Calendar')
+           } else {
+             toast.success('Evento creado en Google Calendar')
+           }
+         })
+       }
     },
   })
 }

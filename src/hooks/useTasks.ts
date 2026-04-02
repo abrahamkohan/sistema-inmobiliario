@@ -73,6 +73,7 @@ export function useCreateTask() {
            if (!session) return
            const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
              body: { task_id: newTask.id },
+             headers: { Authorization: `Bearer ${session.access_token}` },
            })
            if (error || !data?.ok) {
              const reason = data?.reason

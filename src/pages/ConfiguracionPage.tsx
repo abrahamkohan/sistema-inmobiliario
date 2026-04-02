@@ -91,6 +91,7 @@ export function ConfiguracionPage() {
   // Google Calendar
   const [gcalConnected, setGcalConnected] = useState<boolean | null>(null)
   const [gcalLoading,   setGcalLoading]   = useState(false)
+  const [gcalDisconnecting, setGcalDisconnecting] = useState(false)
 
   // Equipo (solo admin)
   const isAdmin   = useIsAdmin()
@@ -199,6 +200,24 @@ export function ConfiguracionPage() {
       window.location.href = data.url
     } finally {
       setGcalLoading(false)
+    }
+  }
+
+  async function handleDisconnectGoogle() {
+    setGcalDisconnecting(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      await supabase.functions.invoke('google-oauth', {
+        body: { action: 'disconnect' },
+        headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
+      })
+      setGcalConnected(false)
+      toast.success('Google Calendar desconectado')
+    } catch {
+      toast.error('No se pudo desconectar')
+    } finally {
+      setGcalDisconnecting(false)
     }
   }
 
@@ -465,10 +484,20 @@ export function ConfiguracionPage() {
             Verificando conexión...
           </div>
         ) : gcalConnected ? (
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100">
-              <Check className="w-4 h-4 text-emerald-600" />
-              <span className="text-sm font-medium text-emerald-700">Conectado</span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100">
+                <Check className="w-4 h-4 text-emerald-600" />
+                <span className="text-sm font-medium text-emerald-700">Conectado</span>
+              </div>
+              <button
+                onClick={handleDisconnectGoogle}
+                disabled={gcalDisconnecting}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
+              >
+                {gcalDisconnecting ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                Desconectar
+              </button>
             </div>
             <p className="text-xs text-muted-foreground">
               Las tareas de tipo llamada, visita y reunión se sincronizan automáticamente al crearse.

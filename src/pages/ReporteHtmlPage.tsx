@@ -398,23 +398,23 @@ function FiscalVentaBlock({ precioVenta, inversionTotal, comisionPct, escribania
           title="Residente en Paraguay"
           borderRight
           items={[
-            { label: 'Impuestos estimados (2.4%)', value: fmt(impRes) },
+            { label: 'Precio neto de venta',         value: fmt(netoRes) },
             { label: `Comisión inmobiliaria (${comisionPct}%)`, value: fmt(comision) },
-            { label: 'Gasto Escribanía',            value: fmt(escribaniaUsd) },
-            { label: 'Precio neto de venta',        value: fmt(netoRes) },
-            { label: 'Plusvalía neta',               value: fmt(plusRes), highlight: true },
-            { label: 'ROI final',                    value: pct1(roiRes), highlight: true },
+            { label: 'Impuestos estimados (2.4%)',   value: fmt(impRes) },
+            { label: 'Gasto Escribanía',             value: fmt(escribaniaUsd) },
+            { label: 'Plusvalía neta',                value: fmt(plusRes), highlight: true },
+            { label: 'ROI final',                     value: pct1(roiRes), highlight: true },
           ]}
         />
         <FiscalColumn
           title="No Residente"
           items={[
-            { label: 'Impuestos estimados (6%)',    value: fmt(impNr) },
+            { label: 'Precio neto de venta',         value: fmt(netoNr) },
             { label: `Comisión inmobiliaria (${comisionPct}%)`, value: fmt(comision) },
-            { label: 'Gasto Escribanía',            value: fmt(escribaniaUsd) },
-            { label: 'Precio neto de venta',        value: fmt(netoNr) },
-            { label: 'Plusvalía neta',               value: fmt(plusNr), highlight: true },
-            { label: 'ROI final',                    value: pct1(roiNr),  highlight: true },
+            { label: 'Impuestos estimados (6%)',     value: fmt(impNr) },
+            { label: 'Gasto Escribanía',             value: fmt(escribaniaUsd) },
+            { label: 'Plusvalía neta',                value: fmt(plusNr), highlight: true },
+            { label: 'ROI final',                     value: pct1(roiNr),  highlight: true },
           ]}
         />
       </div>

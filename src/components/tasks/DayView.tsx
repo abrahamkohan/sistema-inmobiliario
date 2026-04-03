@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext'
 import { getUrgency } from '@/lib/tasks'
 import { TaskList } from './TaskList'
 import { TaskFAB } from './TaskFAB'
+import { TaskModal } from './TaskModal'
 import { DayViewTeamWidget } from './DayViewTeamWidget'
 import { LeadPeekSheet } from './LeadPeekSheet'
 import { TaskCompleteSheet } from './TaskCompleteSheet'
@@ -27,106 +28,28 @@ function sortByPriorityDesc(tasks: TaskRow[]): TaskRow[] {
   return [...tasks].sort((a, b) => (ORDER[a.priority] ?? 1) - (ORDER[b.priority] ?? 1))
 }
 
-// ── RescheduleInline — date input que aparece debajo del item ─────────────
-
-interface RescheduleInlineProps {
-  taskId:   string
-  onSave:   (taskId: string, date: Date) => void
-  onCancel: () => void
-}
-
-function toInputValue(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-function RescheduleInline({ taskId, onSave, onCancel }: RescheduleInlineProps) {
-  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1)
-  const [val, setVal] = useState(toInputValue(tomorrow))
-
-  function handleSave() {
-    const [y, mo, d] = val.split('-').map(Number)
-    onSave(taskId, new Date(y, mo - 1, d, 12, 0, 0))
-  }
-
-  return (
-    <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 -mt-1">
-      <input
-        type="date"
-        value={val}
-        min={toInputValue(new Date())}
-        onChange={e => setVal(e.target.value)}
-        className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-        autoFocus
-      />
-      <button
-        type="button"
-        onClick={handleSave}
-        className="px-3 py-2 rounded-lg text-xs font-semibold text-white"
-        style={{ backgroundColor: '#D4AF37' }}
-      >
-        Guardar
-      </button>
-      <button
-        type="button"
-        onClick={onCancel}
-        className="px-2 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground"
-      >
-        ✕
-      </button>
-    </div>
-  )
-}
 
 // ── TaskListWithReschedule — TaskList + inline reschedule ─────────────────
 
 interface TaskListWithRescheduleProps {
-  tasks:          TaskRow[]
-  leads:          Record<string, TaskLead>
-  tab:            'today' | 'overdue' | 'upcoming' | 'all'
-  onComplete:     (task: TaskRow) => void
-  onOpenPeek:     (leadId: string) => void
-  onDelete:       (id: string) => void
-  rescheduleId:   string | null
-  onReschedule:   (task: TaskRow) => void
-  onRescheduleSave:   (taskId: string, date: Date) => void
-  onRescheduleCancel: () => void
+  tasks:        TaskRow[]
+  leads:        Record<string, TaskLead>
+  tab:          'today' | 'overdue' | 'upcoming' | 'all'
+  onComplete:   (task: TaskRow) => void
+  onOpenPeek:   (leadId: string) => void
+  onDelete:     (id: string) => void
+  onReschedule: (task: TaskRow) => void
 }
 
 function TaskListWithReschedule({
-  tasks, leads, tab, onComplete, onOpenPeek, onDelete,
-  rescheduleId, onReschedule, onRescheduleSave, onRescheduleCancel,
+  tasks, leads, tab, onComplete, onOpenPeek, onDelete, onReschedule,
 }: TaskListWithRescheduleProps) {
-  if (tasks.length === 0) {
-    return (
-      <TaskList
-        tasks={[]} leads={leads} tab={tab}
-        onComplete={onComplete} onReschedule={onReschedule} onOpenPeek={onOpenPeek}
-        onDelete={onDelete}
-      />
-    )
-  }
   return (
-    <div className="flex flex-col gap-3">
-      {tasks.map(task => (
-        <div key={task.id} className="flex flex-col gap-0">
-          <TaskList
-            tasks={[task]} leads={leads} tab={tab}
-            onComplete={onComplete} onReschedule={onReschedule} onOpenPeek={onOpenPeek}
-            onDelete={onDelete}
-          />
-          {rescheduleId === task.id && (
-            <RescheduleInline
-              taskId={task.id}
-              onSave={onRescheduleSave}
-              onCancel={onRescheduleCancel}
-            />
-          )}
-        </div>
-      ))}
-    </div>
+    <TaskList
+      tasks={tasks} leads={leads} tab={tab}
+      onComplete={onComplete} onReschedule={onReschedule}
+      onOpenPeek={onOpenPeek} onDelete={onDelete}
+    />
   )
 }
 
@@ -166,7 +89,7 @@ export function DayView() {
   // ── Estado de sheets ───────────────────────────────────────────────────
   const [peekLeadId,    setPeekLeadId]    = useState<string | null>(null)
   const [completeTask,  setCompleteTask]  = useState<TaskRow | null>(null)
-  const [rescheduleId,  setRescheduleId]  = useState<string | null>(null)
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
 
   // ── Mutations ──────────────────────────────────────────────────────────
   const updateTask = useUpdateTask()
@@ -178,12 +101,7 @@ export function DayView() {
   }
 
   function handleReschedule(task: TaskRow) {
-    setRescheduleId(prev => prev === task.id ? null : task.id)
-  }
-
-  function handleRescheduleSave(taskId: string, date: Date) {
-    updateTask.mutate({ id: taskId, input: { due_date: date.toISOString(), status: 'rescheduled' } })
-    setRescheduleId(null)
+    setEditingTaskId(task.id)
   }
 
   function handleConfirmComplete(outcome: OutcomeVal, nextDate: Date) {
@@ -243,10 +161,7 @@ export function DayView() {
           <TaskListWithReschedule
             tasks={overdue} leads={leads} tab="overdue"
             onComplete={handleComplete} onOpenPeek={setPeekLeadId}
-            onDelete={id => deleteTask.mutate(id)}
-            rescheduleId={rescheduleId} onReschedule={handleReschedule}
-            onRescheduleSave={handleRescheduleSave}
-            onRescheduleCancel={() => setRescheduleId(null)}
+            onDelete={id => deleteTask.mutate(id)} onReschedule={handleReschedule}
           />
         </section>
       )}
@@ -260,10 +175,7 @@ export function DayView() {
           <TaskListWithReschedule
             tasks={today} leads={leads} tab="today"
             onComplete={handleComplete} onOpenPeek={setPeekLeadId}
-            onDelete={id => deleteTask.mutate(id)}
-            rescheduleId={rescheduleId} onReschedule={handleReschedule}
-            onRescheduleSave={handleRescheduleSave}
-            onRescheduleCancel={() => setRescheduleId(null)}
+            onDelete={id => deleteTask.mutate(id)} onReschedule={handleReschedule}
           />
         </section>
       )}
@@ -286,10 +198,7 @@ export function DayView() {
           <TaskListWithReschedule
             tasks={upcoming} leads={leads} tab="upcoming"
             onComplete={handleComplete} onOpenPeek={setPeekLeadId}
-            onDelete={id => deleteTask.mutate(id)}
-            rescheduleId={rescheduleId} onReschedule={handleReschedule}
-            onRescheduleSave={handleRescheduleSave}
-            onRescheduleCancel={() => setRescheduleId(null)}
+            onDelete={id => deleteTask.mutate(id)} onReschedule={handleReschedule}
           />
         </section>
       )}
@@ -310,6 +219,12 @@ export function DayView() {
         lead={completeTask?.lead_id ? leads[completeTask.lead_id] : undefined}
         onClose={() => setCompleteTask(null)}
         onConfirm={handleConfirmComplete}
+      />
+
+      <TaskModal
+        isOpen={!!editingTaskId}
+        taskId={editingTaskId ?? undefined}
+        onClose={() => setEditingTaskId(null)}
       />
 
       {/* FAB */}

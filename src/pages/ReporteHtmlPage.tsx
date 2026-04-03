@@ -355,16 +355,15 @@ function FiscalVentaBlock({ precioVenta, inversionTotal, comisionPct, escribania
   comisionPct: number
   escribaniaUsd: number
 }) {
-  const comision = precioVenta * (comisionPct / 100)
+  const comision   = precioVenta * (comisionPct / 100)
+  const precioNeto = precioVenta - comision - escribaniaUsd   // igual para ambos perfiles
 
   const impRes  = precioVenta * TASA_FISCAL_RES
-  const netoRes = precioVenta - impRes - comision - escribaniaUsd
-  const plusRes = netoRes - inversionTotal
+  const plusRes = precioNeto - impRes - inversionTotal
   const roiRes  = inversionTotal > 0 ? (plusRes / inversionTotal) * 100 : 0
 
   const impNr   = precioVenta * TASA_FISCAL_NR
-  const netoNr  = precioVenta - impNr - comision - escribaniaUsd
-  const plusNr  = netoNr - inversionTotal
+  const plusNr  = precioNeto - impNr - inversionTotal
   const roiNr   = inversionTotal > 0 ? (plusNr / inversionTotal) * 100 : 0
 
   return (
@@ -398,7 +397,7 @@ function FiscalVentaBlock({ precioVenta, inversionTotal, comisionPct, escribania
           title="Residente en Paraguay"
           borderRight
           items={[
-            { label: 'Precio neto de venta',         value: fmt(netoRes) },
+            { label: 'Precio de venta',                value: fmt(precioVenta) },
             { label: `Comisión inmobiliaria (${comisionPct}%)`, value: fmt(comision) },
             { label: 'Impuestos estimados (2.4%)',   value: fmt(impRes) },
             { label: 'Gasto Escribanía',             value: fmt(escribaniaUsd) },
@@ -409,7 +408,7 @@ function FiscalVentaBlock({ precioVenta, inversionTotal, comisionPct, escribania
         <FiscalColumn
           title="No Residente"
           items={[
-            { label: 'Precio neto de venta',         value: fmt(netoNr) },
+            { label: 'Precio de venta',                value: fmt(precioVenta) },
             { label: `Comisión inmobiliaria (${comisionPct}%)`, value: fmt(comision) },
             { label: 'Impuestos estimados (6%)',     value: fmt(impNr) },
             { label: 'Gasto Escribanía',             value: fmt(escribaniaUsd) },

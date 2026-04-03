@@ -935,7 +935,6 @@ export interface Database {
         }
         Relationships: []
       }
-    }
       assets: {
         Row: {
           id:           string

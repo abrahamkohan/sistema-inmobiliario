@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
-import { useTasks, useUpdateTask, useCreateTask } from '@/hooks/useTasks'
+import { useTasks, useUpdateTask, useCreateTask, useDeleteTask } from '@/hooks/useTasks'
 import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/context/AuthContext'
 import { getUrgency } from '@/lib/tasks'
@@ -88,6 +88,7 @@ interface TaskListWithRescheduleProps {
   tab:            'today' | 'overdue' | 'upcoming' | 'all'
   onComplete:     (task: TaskRow) => void
   onOpenPeek:     (leadId: string) => void
+  onDelete:       (id: string) => void
   rescheduleId:   string | null
   onReschedule:   (task: TaskRow) => void
   onRescheduleSave:   (taskId: string, date: Date) => void
@@ -95,7 +96,7 @@ interface TaskListWithRescheduleProps {
 }
 
 function TaskListWithReschedule({
-  tasks, leads, tab, onComplete, onOpenPeek,
+  tasks, leads, tab, onComplete, onOpenPeek, onDelete,
   rescheduleId, onReschedule, onRescheduleSave, onRescheduleCancel,
 }: TaskListWithRescheduleProps) {
   if (tasks.length === 0) {
@@ -103,6 +104,7 @@ function TaskListWithReschedule({
       <TaskList
         tasks={[]} leads={leads} tab={tab}
         onComplete={onComplete} onReschedule={onReschedule} onOpenPeek={onOpenPeek}
+        onDelete={onDelete}
       />
     )
   }
@@ -113,6 +115,7 @@ function TaskListWithReschedule({
           <TaskList
             tasks={[task]} leads={leads} tab={tab}
             onComplete={onComplete} onReschedule={onReschedule} onOpenPeek={onOpenPeek}
+            onDelete={onDelete}
           />
           {rescheduleId === task.id && (
             <RescheduleInline
@@ -168,6 +171,7 @@ export function DayView() {
   // ── Mutations ──────────────────────────────────────────────────────────
   const updateTask = useUpdateTask()
   const createTask = useCreateTask()
+  const deleteTask = useDeleteTask()
 
   function handleComplete(task: TaskRow) {
     setCompleteTask(task)
@@ -239,6 +243,7 @@ export function DayView() {
           <TaskListWithReschedule
             tasks={overdue} leads={leads} tab="overdue"
             onComplete={handleComplete} onOpenPeek={setPeekLeadId}
+            onDelete={id => deleteTask.mutate(id)}
             rescheduleId={rescheduleId} onReschedule={handleReschedule}
             onRescheduleSave={handleRescheduleSave}
             onRescheduleCancel={() => setRescheduleId(null)}
@@ -255,6 +260,7 @@ export function DayView() {
           <TaskListWithReschedule
             tasks={today} leads={leads} tab="today"
             onComplete={handleComplete} onOpenPeek={setPeekLeadId}
+            onDelete={id => deleteTask.mutate(id)}
             rescheduleId={rescheduleId} onReschedule={handleReschedule}
             onRescheduleSave={handleRescheduleSave}
             onRescheduleCancel={() => setRescheduleId(null)}
@@ -280,6 +286,7 @@ export function DayView() {
           <TaskListWithReschedule
             tasks={upcoming} leads={leads} tab="upcoming"
             onComplete={handleComplete} onOpenPeek={setPeekLeadId}
+            onDelete={id => deleteTask.mutate(id)}
             rescheduleId={rescheduleId} onReschedule={handleReschedule}
             onRescheduleSave={handleRescheduleSave}
             onRescheduleCancel={() => setRescheduleId(null)}

@@ -178,9 +178,7 @@ export function PropiedadDetallePage() {
             {property.publicado_en_web && (
               <>
                 <a
-                  href={`${APP_URL}/p/${id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={`${APP_URL}/p/${id}?from=app`}
                   className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />

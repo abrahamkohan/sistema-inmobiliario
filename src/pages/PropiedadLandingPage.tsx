@@ -1,7 +1,8 @@
 // src/pages/PropiedadLandingPage.tsx
 // Ruta pública: /p/:id — sin auth, sin AppShell
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
+import { useParams, useSearchParams } from 'react-router'
+import { ChevronLeft } from 'lucide-react'
 import { Bed, Bath, Maximize2, MapPin, ExternalLink, MessageCircle, Car, Phone, Mail } from 'lucide-react'
 import { getPublicProperty, getPublicPropertyPhotos, getConsultoraPublic } from '@/lib/publicData'
 import { getPhotoUrl, formatPrice } from '@/lib/properties'
@@ -90,6 +91,8 @@ function buildContactUrl(config: ConsultoraRow | null, title: string) {
 
 export function PropiedadLandingPage() {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
+  const fromApp = searchParams.get('from') === 'app'
 
   const [property, setProperty]         = useState<PropertyRow | null>(null)
   const [photos, setPhotos]             = useState<PhotoRow[]>([])
@@ -209,8 +212,21 @@ export function PropiedadLandingPage() {
     <>
       <div className="min-h-screen bg-gray-50">
 
+        {/* ── In-app back bar (mobile only, solo cuando viene desde el sistema) ── */}
+        {fromApp && (
+          <div className="sm:hidden sticky top-0 z-30 bg-gray-900 px-4 h-10 flex items-center">
+            <button
+              onClick={() => window.history.back()}
+              className="flex items-center gap-1 text-white text-sm font-medium"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Volver al sistema
+            </button>
+          </div>
+        )}
+
         {/* ── Header ── */}
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-20 px-5 h-14 flex items-center justify-between">
+        <header className={`bg-white border-b border-gray-100 sticky z-20 px-5 h-14 flex items-center justify-between ${fromApp ? 'top-10 sm:top-0' : 'top-0'}`}>
           <div className="flex items-center gap-3 min-w-0">
             {logoUrl ? (
               <img src={logoUrl} alt={companyName} className="h-7 w-auto object-contain flex-shrink-0" />

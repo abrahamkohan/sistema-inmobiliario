@@ -28,6 +28,7 @@ export interface SimOverrides {
   // Plusvalía
   plusvalia_precio_venta?: number
   plusvalia_anios?: number
+  plusvalia_comision_pct?: number
 }
 
 // Conservative market defaults for Paraguay
@@ -47,6 +48,7 @@ export const MARKET_DEFAULTS = {
   alquiler_otros: 0,
   plusvalia_precio_venta: 0,
   plusvalia_anios: 3,
+  plusvalia_comision_pct: 5.5,
 } as const
 
 interface SimState {
@@ -123,5 +125,6 @@ export function usePlusvaliaInputs(): PlusvaliaInputs {
     precio_estimado_venta_usd: overrides.plusvalia_precio_venta
       ?? (price > 0 ? Math.round(price * 1.30) : 0),
     anios_tenencia: overrides.plusvalia_anios ?? d.plusvalia_anios,
+    comision_inmobiliaria_pct: overrides.plusvalia_comision_pct ?? d.plusvalia_comision_pct,
   }
 }

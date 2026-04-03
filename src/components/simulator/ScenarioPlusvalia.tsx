@@ -81,6 +81,15 @@ export function ScenarioPlusvalia() {
           suffix="años"
         />
 
+        <NumInput
+          label="Comisión Inmobiliaria (%)"
+          value={inputs.comision_inmobiliaria_pct}
+          onChange={(v) => setOverride('plusvalia_comision_pct', v)}
+          step={0.5}
+          min={0}
+          suffix="%"
+        />
+
         {inputs.precio_estimado_venta_usd > inputs.precio_compra_propiedad_usd && inputs.precio_compra_propiedad_usd > 0 && (
           <p className="text-xs text-gray-400 bg-gray-50 rounded px-3 py-2 border">
             Apreciación implícita:{' '}

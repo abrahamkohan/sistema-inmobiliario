@@ -349,17 +349,21 @@ function FiscalBlock({ ingresoBruto, gananciaNeta, inversionTotal }: {
 const TASA_FISCAL_RES = 0.024
 const TASA_FISCAL_NR  = 0.06
 
-function FiscalVentaBlock({ precioVenta, inversionTotal }: {
+function FiscalVentaBlock({ precioVenta, inversionTotal, comisionPct }: {
   precioVenta: number
   inversionTotal: number
+  comisionPct: number
 }) {
+  const ESCRIBANIA = 300
+  const comision   = precioVenta * (comisionPct / 100)
+
   const impRes  = precioVenta * TASA_FISCAL_RES
-  const netoRes = precioVenta - impRes
+  const netoRes = precioVenta - impRes - comision - ESCRIBANIA
   const plusRes = netoRes - inversionTotal
   const roiRes  = inversionTotal > 0 ? (plusRes / inversionTotal) * 100 : 0
 
   const impNr   = precioVenta * TASA_FISCAL_NR
-  const netoNr  = precioVenta - impNr
+  const netoNr  = precioVenta - impNr - comision - ESCRIBANIA
   const plusNr  = netoNr - inversionTotal
   const roiNr   = inversionTotal > 0 ? (plusNr / inversionTotal) * 100 : 0
 
@@ -395,6 +399,8 @@ function FiscalVentaBlock({ precioVenta, inversionTotal }: {
           borderRight
           items={[
             { label: 'Impuestos estimados (2.4%)', value: fmt(impRes) },
+            { label: `Comisión inmobiliaria (${comisionPct}%)`, value: fmt(comision) },
+            { label: 'Gasto Escribanía',            value: fmt(ESCRIBANIA) },
             { label: 'Precio neto de venta',        value: fmt(netoRes) },
             { label: 'Plusvalía neta',               value: fmt(plusRes), highlight: true },
             { label: 'ROI final',                    value: pct1(roiRes), highlight: true },
@@ -403,10 +409,12 @@ function FiscalVentaBlock({ precioVenta, inversionTotal }: {
         <FiscalColumn
           title="No Residente"
           items={[
-            { label: 'Impuestos estimados (6%)', value: fmt(impNr) },
-            { label: 'Precio neto de venta',      value: fmt(netoNr) },
-            { label: 'Plusvalía neta',             value: fmt(plusNr), highlight: true },
-            { label: 'ROI final',                  value: pct1(roiNr),  highlight: true },
+            { label: 'Impuestos estimados (6%)',    value: fmt(impNr) },
+            { label: `Comisión inmobiliaria (${comisionPct}%)`, value: fmt(comision) },
+            { label: 'Gasto Escribanía',            value: fmt(ESCRIBANIA) },
+            { label: 'Precio neto de venta',        value: fmt(netoNr) },
+            { label: 'Plusvalía neta',               value: fmt(plusNr), highlight: true },
+            { label: 'ROI final',                    value: pct1(roiNr),  highlight: true },
           ]}
         />
       </div>
@@ -417,7 +425,7 @@ function FiscalVentaBlock({ precioVenta, inversionTotal }: {
         backgroundColor: KC.beigeLight,
       }}>
         <p style={{ fontSize: 10, color: KC.textMuted, margin: 0, lineHeight: 1.5 }}>
-          Cálculos estimativos según normativa vigente en Paraguay · Residente: estimación promedio 2.4% sobre precio de venta · No residente: INR 4.5% + IVA 1.5% (presunción 30% renta × 15% + 30% VA × 5%) · Los impuestos pueden variar según la estructura jurídica del vendedor.
+          Cálculos estimativos según normativa vigente en Paraguay · Residente: estimación promedio 2.4% sobre precio de venta · No residente: INR 4.5% + IVA 1.5% (presunción 30% renta × 15% + 30% VA × 5%) · Escribanía: USD 300 fijo · Los impuestos pueden variar según la estructura jurídica del vendedor.
         </p>
       </div>
     </div>
@@ -695,6 +703,7 @@ export function ReporteHtmlPage() {
               <FiscalVentaBlock
                 precioVenta={plusvalia.inputs.precio_estimado_venta_usd}
                 inversionTotal={plusvalia.result.inversion_total}
+                comisionPct={plusvalia.inputs.comision_inmobiliaria_pct}
               />
             </div>
           )}

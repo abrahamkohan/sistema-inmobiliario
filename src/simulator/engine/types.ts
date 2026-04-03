@@ -52,6 +52,7 @@ export interface PlusvaliaInputs {
   precio_compra_propiedad_usd: number
   precio_estimado_venta_usd: number
   anios_tenencia: number
+  comision_inmobiliaria_pct: number
 }
 
 export interface PlusvaliaResult {

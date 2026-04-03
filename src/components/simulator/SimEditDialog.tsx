@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { useUpdateSimulation } from '@/hooks/useSimulations'
 import { calcAirbnb, calcAlquiler, calcPlusvalia } from '@/simulator/engine'
 import type { AirbnbInputs, AlquilerInputs, PlusvaliaInputs } from '@/simulator/engine'
+import { MARKET_DEFAULTS } from '@/simulator/store'
 import type { Database } from '@/types/database'
 
 type SimRow = Database['public']['Tables']['simulations']['Row']
@@ -116,6 +117,7 @@ export function SimEditDialog({ sim, onClose }: Props) {
       precio_compra_propiedad_usd:  n(pvPrecio),
       precio_estimado_venta_usd:    n(pvVenta),
       anios_tenencia:               n(pvAnios),
+      comision_inmobiliaria_pct:    pv?.inputs.comision_inmobiliaria_pct ?? MARKET_DEFAULTS.plusvalia_comision_pct,
     }
 
     const newSnap    = { ...snap,    name: proyecto, ...(isCasual ? { _cliente: cliente } : {}) }

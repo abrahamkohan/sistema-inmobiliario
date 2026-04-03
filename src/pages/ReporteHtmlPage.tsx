@@ -202,7 +202,7 @@ function ScenarioCard({ title, accentBg, accentText, heroMetrics, leftGroups, ri
 }
 
 // ─── Fiscal block ─────────────────────────────────────────────────────────────
-const IVA_VIVIENDA = 0.05
+const IVA_VIVIENDA = 0.10
 const INR_RATE     = 0.075
 
 function calcFiscal(ingresoBruto: number, gananciaNeta: number, inversionTotal: number) {
@@ -313,7 +313,7 @@ function FiscalBlock({ ingresoBruto, gananciaNeta, inversionTotal }: {
           title="Residente en Paraguay"
           borderRight
           items={[
-            { label: 'IVA mensual (5%)',   value: fmt(f.iva) },
+            { label: 'IVA mensual (10%)',  value: fmt(f.iva) },
             { label: 'Ingreso neto / mes', value: fmt(f.residente.netaMes) },
             { label: 'Ingreso neto anual', value: fmt(f.residente.netaAno), highlight: true },
             { label: 'Rentabilidad final', value: pct1(f.residente.rent), highlight: true },
@@ -322,7 +322,7 @@ function FiscalBlock({ ingresoBruto, gananciaNeta, inversionTotal }: {
         <FiscalColumn
           title="No Residente"
           items={[
-            { label: 'IVA mensual (5%)',   value: fmt(f.iva) },
+            { label: 'IVA mensual (10%)',  value: fmt(f.iva) },
             { label: 'INR mensual (7.5%)', value: fmt(f.inr) },
             { label: 'Ingreso neto / mes', value: fmt(f.noResidente.netaMes) },
             { label: 'Ingreso neto anual', value: fmt(f.noResidente.netaAno), highlight: true },
@@ -338,7 +338,7 @@ function FiscalBlock({ ingresoBruto, gananciaNeta, inversionTotal }: {
         backgroundColor: KC.beigeLight,
       }}>
         <p style={{ fontSize: 10, color: KC.textMuted, margin: 0, lineHeight: 1.5 }}>
-          Cálculos estimativos según normativa vigente en Paraguay · IVA 5% vivienda · INR 7.5% sobre alquiler bruto (presunción legal 50% × 15%) · Pueden variar según la situación particular del contribuyente.
+          Cálculos estimativos según normativa vigente en Paraguay · IVA 10% vivienda · INR 7.5% sobre alquiler bruto (presunción legal 50% × 15%) · Pueden variar según la situación particular del contribuyente.
         </p>
       </div>
     </div>

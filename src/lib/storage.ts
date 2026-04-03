@@ -98,6 +98,18 @@ export async function deleteAmenityImage(path: string): Promise<void> {
   await deleteStorageFile(path).catch(() => null)
 }
 
+// Sube un asset genérico al bucket bajo el prefijo `brand/`.
+// Devuelve { path, url } — path para poder borrar después, url para mostrar.
+export async function uploadAsset(file: File): Promise<{ path: string; url: string }> {
+  const filename = `${Date.now()}-${sanitizeFilename(file.name)}`
+  const path = `brand/${filename}`
+  const { error } = await supabase.storage
+    .from(MEDIA_BUCKET)
+    .upload(path, file, { upsert: false })
+  if (error) throw error
+  return { path, url: getPublicUrl(path) }
+}
+
 export function getPublicUrl(path: string): string {
   if (path.startsWith('http://') || path.startsWith('https://')) return path
   const { data } = supabase.storage

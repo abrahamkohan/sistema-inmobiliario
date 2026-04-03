@@ -15,6 +15,7 @@ import { SeccionColores }       from '@/components/configuracion/SeccionColores'
 import { SeccionContacto }      from '@/components/configuracion/SeccionContacto'
 import { SeccionIntegraciones } from '@/components/configuracion/SeccionIntegraciones'
 import { SeccionEquipo }        from '@/components/configuracion/SeccionEquipo'
+import { SeccionAssets }        from '@/components/configuracion/SeccionAssets'
 
 // ─── Referidos ────────────────────────────────────────────────────────────────
 
@@ -201,6 +202,9 @@ export function ConfiguracionPage() {
         simulador_publico={form.simulador_publico}
         onSimuladorChange={v => set('simulador_publico', v)}
       />
+
+      {/* 5. Assets / Media */}
+      <SeccionAssets />
 
       {/* Referidos */}
       <div className="rounded-lg border bg-card p-5 flex flex-col gap-5">

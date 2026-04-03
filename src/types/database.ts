@@ -936,6 +936,75 @@ export interface Database {
         Relationships: []
       }
     }
+      assets: {
+        Row: {
+          id:           string
+          url:          string
+          storage_type: 'supabase' | 'external' | null
+          external_url: string | null
+          type:         'brand' | 'property' | 'project' | 'document'
+          subtipo:      'logo' | 'logo_light' | 'favicon' | 'hero' | 'gallery' | 'floor_plan' | 'brochure' | 'contract' | 'other'
+          nombre:       string
+          alt_text:     string | null
+          activo:       boolean
+          version:      number
+          created_at:   string
+          updated_at:   string
+        }
+        Insert: {
+          id?:          string
+          url:          string
+          storage_type?: 'supabase' | 'external' | null
+          external_url?: string | null
+          type:         'brand' | 'property' | 'project' | 'document'
+          subtipo:      'logo' | 'logo_light' | 'favicon' | 'hero' | 'gallery' | 'floor_plan' | 'brochure' | 'contract' | 'other'
+          nombre:       string
+          alt_text?:    string | null
+          activo?:      boolean
+          version?:     number
+          created_at?:  string
+          updated_at?:  string
+        }
+        Update: {
+          url?:          string
+          storage_type?: 'supabase' | 'external' | null
+          external_url?: string | null
+          type?:         'brand' | 'property' | 'project' | 'document'
+          subtipo?:      'logo' | 'logo_light' | 'favicon' | 'hero' | 'gallery' | 'floor_plan' | 'brochure' | 'contract' | 'other'
+          nombre?:       string
+          alt_text?:     string | null
+          activo?:       boolean
+          version?:      number
+          updated_at?:   string
+        }
+        Relationships: []
+      }
+      asset_usages: {
+        Row: {
+          asset_id:   string
+          usage_type: 'property' | 'project' | 'landing' | 'brand'
+          usage_id:   string
+        }
+        Insert: {
+          asset_id:   string
+          usage_type: 'property' | 'project' | 'landing' | 'brand'
+          usage_id:   string
+        }
+        Update: {
+          asset_id?:   string
+          usage_type?: 'property' | 'project' | 'landing' | 'brand'
+          usage_id?:   string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'asset_usages_asset_id_fkey'
+            columns: ['asset_id']
+            referencedRelation: 'assets'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+    }
     Views: Record<string, never>
     Functions: Record<string, never>
     Enums: Record<string, never>

@@ -5,9 +5,12 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+function corsHeaders(req: Request) {
+  return {
+    'Access-Control-Allow-Origin': req.headers.get('Origin') || '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -19,7 +22,7 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
 
   try {
     const payload = await req.json()
@@ -28,7 +31,7 @@ serve(async (req) => {
     // Solo leads
     if (record.tipo !== 'lead') {
       return new Response(JSON.stringify({ skipped: true, reason: 'not a lead' }), {
-        headers: { ...CORS, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
       })
     }
 
@@ -46,7 +49,7 @@ serve(async (req) => {
     if (rolesError) throw rolesError
     if (!adminRoles?.length) {
       return new Response(JSON.stringify({ ok: true, sent: 0 }), {
-        headers: { ...CORS, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
       })
     }
 
@@ -59,7 +62,7 @@ serve(async (req) => {
 
     if (!emails.length) {
       return new Response(JSON.stringify({ ok: true, sent: 0, reason: 'no admin emails' }), {
-        headers: { ...CORS, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
       })
     }
 
@@ -134,13 +137,13 @@ serve(async (req) => {
     const sent = results.filter(r => r.status === 'fulfilled').length
 
     return new Response(JSON.stringify({ ok: true, sent, total: emails.length }), {
-      headers: { ...CORS, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     })
   } catch (err) {
     console.error('notify-new-lead error:', err)
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
-      headers: { ...CORS, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     })
   }
 })

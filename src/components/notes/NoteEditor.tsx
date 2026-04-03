@@ -396,52 +396,65 @@ export function NoteEditor({ note, clients, projects, onClose }: NoteEditorProps
           {/* Meta expandible desktop */}
           {metaPanel}
 
-          {/* Footer desktop */}
-          <div className="flex-shrink-0 border-t border-gray-100 px-5 py-3.5 flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setShowMeta(v => !v)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-[13px] font-medium border transition-all ${
-                  hasTags ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                }`}
-              >
-                <Tag className="w-[16px] h-[16px]" />
-                <span>{hasTags ? `${tags.length} etiqueta${tags.length > 1 ? 's' : ''}` : 'Etiqueta'}</span>
-              </button>
-              <button
-                onClick={() => { setShowCal(v => !v); setShowMeta(true) }}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-[13px] font-medium border transition-all ${
-                  hasReminder ? 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                }`}
-              >
-                <Calendar className="w-[16px] h-[16px]" />
-                <span>{hasReminder ? formatReminder(reminder) : 'Fecha'}</span>
-              </button>
-              <button
-                onClick={() => setShowMeta(v => !v)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-[13px] font-medium border transition-all ${
-                  hasLink ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                }`}
-              >
-                <Link2 className="w-[16px] h-[16px]" />
-                <span>{hasLink
-                  ? (clients.find(c => c.id === clientId)?.full_name ?? projects.find(p => p.id === projectId)?.name ?? 'Vinculada')
-                  : 'Vínculo'
-                }</span>
-              </button>
+          {/* Footer desktop — dos filas para evitar desborde del CTA */}
+          <div className="flex-shrink-0 border-t border-gray-100">
+
+            {/* Fila 1: acciones contextuales (izq) + destructivas (der) */}
+            <div className="flex items-center justify-between px-5 pt-3 pb-2 gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                <button
+                  onClick={() => setShowMeta(v => !v)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-[13px] font-medium border transition-all ${
+                    hasTags ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                  }`}
+                >
+                  <Tag className="w-[16px] h-[16px] flex-shrink-0" />
+                  <span>{hasTags ? `${tags.length} etiqueta${tags.length > 1 ? 's' : ''}` : 'Etiqueta'}</span>
+                </button>
+                <button
+                  onClick={() => { setShowCal(v => !v); setShowMeta(true) }}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-[13px] font-medium border transition-all ${
+                    hasReminder ? 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                  }`}
+                >
+                  <Calendar className="w-[16px] h-[16px] flex-shrink-0" />
+                  <span>{hasReminder ? formatReminder(reminder) : 'Fecha'}</span>
+                </button>
+                <button
+                  onClick={() => setShowMeta(v => !v)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-[13px] font-medium border transition-all ${
+                    hasLink ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                  }`}
+                >
+                  <Link2 className="w-[16px] h-[16px] flex-shrink-0" />
+                  <span>{hasLink
+                    ? (clients.find(c => c.id === clientId)?.full_name ?? projects.find(p => p.id === projectId)?.name ?? 'Vinculada')
+                    : 'Vínculo'
+                  }</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={handleArchive}
+                  title={note.location === 'inbox' ? 'Archivar' : 'Mover a Inbox'}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-all"
+                >
+                  <Archive className="w-[16px] h-[16px]" />
+                  <span>{note.location === 'inbox' ? 'Archivar' : 'Inbox'}</span>
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                >
+                  <Trash2 className="w-[16px] h-[16px]" />
+                  <span>Eliminar</span>
+                </button>
+              </div>
             </div>
-            <div className="flex-1" />
-            <div className="flex items-center gap-1">
-              <button onClick={handleArchive} title={note.location === 'inbox' ? 'Archivar' : 'Mover a Inbox'}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-all">
-                <Archive className="w-[16px] h-[16px]" />
-                <span>{note.location === 'inbox' ? 'Archivar' : 'Inbox'}</span>
-              </button>
-              <button onClick={handleDelete}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all">
-                <Trash2 className="w-[16px] h-[16px]" />
-                <span>Eliminar</span>
-              </button>
+
+            {/* Fila 2: CTA principal — siempre visible */}
+            <div className="flex items-center justify-end gap-2 px-5 pb-3.5">
               <button
                 onClick={handleCancel}
                 className="h-9 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"

@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 import { useConsultoraConfig, useSaveConsultoraConfig } from '@/hooks/useConsultora'
 import { useAgentes, useCreateAgente, useDeleteAgente } from '@/hooks/useAgentes'
 import { useTeam, useSetRole, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
@@ -166,16 +165,14 @@ export function ConfiguracionPage() {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { setGcalConnected(false); return }
-      supabase.functions
-        .invoke('google-oauth', {
-          body: { action: 'status' },
-          headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
-        })
-        .then(({ data }) => setGcalConnected(data?.connected ?? false))
-        .catch(() => setGcalConnected(false))
-    })
+      const { data } = await supabase.functions.invoke('google-oauth', {
+        body: { action: 'status' },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      setGcalConnected(data?.connected ?? false)
+    }).catch(() => setGcalConnected(false))
   }, [])
 
   async function handleConnectGoogle() {
@@ -191,7 +188,7 @@ export function ConfiguracionPage() {
 
       const { data, error } = await supabase.functions.invoke('google-oauth', {
         body: { action: 'authorize', state },
-        headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       })
       if (error || !data?.url) { toast.error('No se pudo obtener la URL de autorización'); return }
 
@@ -210,7 +207,7 @@ export function ConfiguracionPage() {
       if (!session) return
       await supabase.functions.invoke('google-oauth', {
         body: { action: 'disconnect' },
-        headers: { Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       })
       setGcalConnected(false)
       toast.success('Google Calendar desconectado')

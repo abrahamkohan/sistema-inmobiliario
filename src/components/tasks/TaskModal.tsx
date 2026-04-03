@@ -3,7 +3,7 @@
 // Patrón idéntico a "Nuevo lead" (MobileFormScreen + Modal desktop).
 
 import { useState, useEffect, useRef } from 'react'
-import { ChevronDown, ChevronUp, MessageCircle, Loader2, Phone, MapPin, Mail, Video, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, MessageCircle, Loader2, Phone, MapPin, Mail, Video, Trash2, AlarmClock } from 'lucide-react'
 import { MobileFormScreen } from '@/components/ui/MobileFormScreen'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
@@ -94,26 +94,28 @@ interface TaskModalProps {
 // ── Estado del formulario ─────────────────────────────────────────────────
 
 interface FormState {
-  title:        string
-  due_date:     string
-  type:         TaskType
-  context:      Context
-  priority:     Priority
-  notes:        string
-  recurrence:   Recurrence
-  meet_link:    string
+  title:            string
+  due_date:         string
+  type:             TaskType
+  context:          Context
+  priority:         Priority
+  notes:            string
+  recurrence:       Recurrence
+  meet_link:        string
+  reminder_minutes: number | null
 }
 
 function initialForm(defaults?: DefaultValues): FormState {
   return {
-    title:      '',
-    due_date:   toInputValue(new Date()),
-    type:       'whatsapp',
-    context:    defaults?.context ?? 'lead',
-    priority:   'medium',
-    notes:      '',
-    recurrence: 'none',
-    meet_link:  '',
+    title:            '',
+    due_date:         toInputValue(new Date()),
+    type:             'whatsapp',
+    context:          defaults?.context ?? 'lead',
+    priority:         'medium',
+    notes:            '',
+    recurrence:       'none',
+    meet_link:        '',
+    reminder_minutes: null,
   }
 }
 
@@ -161,14 +163,15 @@ export function TaskModal({
   useEffect(() => {
     if (isOpen && isEdit && existingTask) {
       setForm({
-        title:      existingTask.title,
-        due_date:   toInputValue(new Date(existingTask.due_date)),
-        type:       existingTask.type,
-        context:    existingTask.context,
-        priority:   existingTask.priority,
-        notes:      existingTask.notes ?? '',
-        recurrence: existingTask.recurrence ?? 'none',
-        meet_link:  existingTask.meet_link ?? '',
+        title:            existingTask.title,
+        due_date:         toInputValue(new Date(existingTask.due_date)),
+        type:             existingTask.type,
+        context:          existingTask.context,
+        priority:         existingTask.priority,
+        notes:            existingTask.notes ?? '',
+        recurrence:       existingTask.recurrence ?? 'none',
+        meet_link:        existingTask.meet_link ?? '',
+        reminder_minutes: existingTask.reminder_minutes ?? null,
       })
     } else if (isOpen && !isEdit) {
       setForm(initialForm(defaultValues))
@@ -193,9 +196,10 @@ export function TaskModal({
       type:        form.type,
       context:     form.context,
       priority:    form.priority,
-      notes:       form.notes.trim() || null,
-      recurrence:  form.recurrence,
-      meet_link:   form.meet_link.trim() || null,
+      notes:            form.notes.trim() || null,
+      recurrence:       form.recurrence,
+      meet_link:        form.meet_link.trim() || null,
+      reminder_minutes: form.reminder_minutes,
       lead_id:     selectedLead || defaultValues?.lead_id || existingTask?.lead_id || null,
       property_id: defaultValues?.property_id ?? existingTask?.property_id ?? null,
     }
@@ -280,6 +284,30 @@ export function TaskModal({
           className={INPUT_CLS}
         />
       </div>
+
+      {/* ── Recordatorio Google Calendar — solo para call/meeting/visit ── */}
+      {['call', 'meeting', 'visit'].includes(form.type) && (
+        <div className="flex flex-col gap-1.5">
+          <label className={LABEL_CLS}>
+            <span className="flex items-center gap-1.5">
+              <AlarmClock className="w-3.5 h-3.5" />
+              RECORDATORIO (minutos antes)
+            </span>
+          </label>
+          <input
+            type="number"
+            min="0"
+            max="1440"
+            placeholder="Ej: 15"
+            value={form.reminder_minutes ?? ''}
+            onChange={e => set('reminder_minutes', e.target.value === '' ? null : Number(e.target.value))}
+            className={INPUT_CLS}
+          />
+          <p className="text-[11px] text-gray-400">
+            Google Calendar te avisará con este tiempo de anticipación. Dejalo vacío para usar el recordatorio por defecto de tu calendario.
+          </p>
+        </div>
+      )}
 
       {/* ── Tipo (chips wrap) ── */}
       <div className="flex flex-col gap-1.5">

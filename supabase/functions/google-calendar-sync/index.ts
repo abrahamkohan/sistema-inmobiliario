@@ -9,15 +9,19 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+function corsHeaders(req: Request) {
+  return {
+    'Access-Control-Allow-Origin': req.headers.get('Origin') || '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
-function json(data: unknown, status = 200) {
+function json(data: unknown, status = 200, req: Request | null = null) {
+  const hdrs = req ? corsHeaders(req) : { 'Access-Control-Allow-Origin': '*' }
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    headers: { 'Content-Type': 'application/json', ...hdrs },
   })
 }
 
@@ -67,21 +71,15 @@ const DURATION_MIN: Record<string, number> = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS })
+    return new Response('ok', { headers: corsHeaders(req) })
   }
 
   try {
     // ── Auth ──────────────────────────────────────────────────────────────────
+    // La Supabase gateway ya validó el JWT antes de llegar aquí.
+    // Solo verificamos que el header esté presente.
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return json({ error: 'Unauthorized' }, 401)
-
-    const userClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    )
-    const { data: { user } } = await userClient.auth.getUser()
-    if (!user) return json({ error: 'Unauthorized' }, 401)
+    if (!authHeader) return json({ error: 'Unauthorized' }, 401, req)
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -89,7 +87,7 @@ serve(async (req) => {
     )
 
     const { task_id } = await req.json()
-    if (!task_id) return json({ error: 'Missing task_id' }, 400)
+    if (!task_id) return json({ error: 'Missing task_id' }, 400, req)
 
     const ENCRYPTION_KEY = Deno.env.get('GCAL_ENCRYPTION_KEY')!
     const CLIENT_ID      = Deno.env.get('GOOGLE_CLIENT_ID')!
@@ -98,18 +96,18 @@ serve(async (req) => {
     // ── Leer tarea ────────────────────────────────────────────────────────────
     const { data: task, error: taskError } = await supabase
       .from('tasks')
-      .select('id, title, type, due_date, notes, meet_link, lead_id, google_event_id')
+      .select('id, title, type, due_date, notes, meet_link, lead_id, google_event_id, reminder_minutes')
       .eq('id', task_id)
       .single()
 
     if (taskError || !task) {
       console.error('google-calendar-sync: task not found', task_id)
-      return json({ ok: false, reason: 'task_not_found' })
+      return json({ ok: false, reason: 'task_not_found' }, 200, req)
     }
 
     // Evitar duplicados: si ya tiene evento creado, no crear otro
     if (task.google_event_id) {
-      return json({ ok: false, reason: 'already_synced' })
+      return json({ ok: false, reason: 'already_synced' }, 200, req)
     }
 
     // ── Leer nombre del lead si aplica ────────────────────────────────────────
@@ -131,8 +129,7 @@ serve(async (req) => {
       .maybeSingle()
 
     if (!tokenRow) {
-      // Google no está conectado — silencioso, es sync opcional
-      return json({ ok: false, reason: 'not_connected' })
+      return json({ ok: false, reason: 'not_connected' }, 200, req)
     }
 
     // ── Descifrar y refrescar si expiró ───────────────────────────────────────
@@ -154,7 +151,7 @@ serve(async (req) => {
 
       if (!refreshRes.ok) {
         console.error('google-calendar-sync: token refresh failed, HTTP', refreshRes.status)
-        return json({ ok: false, reason: 'refresh_failed' })
+        return json({ ok: false, reason: 'refresh_failed' }, 200, req)
       }
 
       const refreshData = await refreshRes.json()
@@ -193,13 +190,20 @@ serve(async (req) => {
           description: descParts.length ? descParts.join('\n\n') : undefined,
           start: { dateTime: start.toISOString(), timeZone: 'America/Asuncion' },
           end:   { dateTime: end.toISOString(),   timeZone: 'America/Asuncion' },
+          ...(task.reminder_minutes != null ? {
+            reminders: {
+              useDefault: false,
+              overrides: [{ method: 'popup', minutes: task.reminder_minutes }],
+            },
+          } : {}),
         }),
       }
     )
 
     if (!eventRes.ok) {
-      console.error('google-calendar-sync: event creation failed, HTTP', eventRes.status)
-      return json({ ok: false, reason: 'event_creation_failed' })
+      const errBody = await eventRes.text()
+      console.error('google-calendar-sync: event creation failed, HTTP', eventRes.status, errBody)
+      return json({ ok: false, reason: 'event_creation_failed' }, 200, req)
     }
 
     const eventData = await eventRes.json()
@@ -211,10 +215,10 @@ serve(async (req) => {
       .update({ google_event_id: googleEventId })
       .eq('id', task_id)
 
-    return json({ ok: true })
+    return json({ ok: true }, 200, req)
 
   } catch (err) {
     console.error('google-calendar-sync error:', err instanceof Error ? err.message : 'unknown error')
-    return json({ error: 'Internal error' }, 500)
+    return json({ error: 'Internal error' }, 500, req)
   }
 })

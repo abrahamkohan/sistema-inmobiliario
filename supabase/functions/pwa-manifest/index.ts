@@ -5,17 +5,19 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Content-Type': 'application/manifest+json',
+function corsHeaders(req: Request) {
+  return {
+    'Access-Control-Allow-Origin': req.headers.get('Origin') || '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
 const FALLBACK_ICON_192 = 'https://sistema.kohancampos.com.py/pwa-192.png'
 const FALLBACK_ICON_512 = 'https://sistema.kohancampos.com.py/pwa-512.png'
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
 
   try {
     const supabase = createClient(
@@ -53,7 +55,7 @@ serve(async (req) => {
           ],
     }
 
-    return new Response(JSON.stringify(manifest), { headers: CORS })
+    return new Response(JSON.stringify(manifest), { headers: corsHeaders(req) })
   } catch (err) {
     // Fallback manifest si algo falla
     const fallback = {
@@ -68,6 +70,6 @@ serve(async (req) => {
         { src: FALLBACK_ICON_512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
       ],
     }
-    return new Response(JSON.stringify(fallback), { headers: CORS })
+    return new Response(JSON.stringify(fallback), { headers: corsHeaders(req) })
   }
 })

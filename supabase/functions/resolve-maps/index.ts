@@ -1,6 +1,9 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+function corsHeaders(req: Request) {
+  return {
+    'Access-Control-Allow-Origin': req.headers.get('Origin') || '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
 function extractCoords(url: string): { lat: number; lng: number } | null {
@@ -16,13 +19,13 @@ function extractCoords(url: string): { lat: number; lng: number } | null {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders(req) })
   }
 
   const url = new URL(req.url).searchParams.get('url')
   if (!url) {
     return new Response(JSON.stringify({ error: 'missing url' }), {
-      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     })
   }
 
@@ -39,11 +42,11 @@ Deno.serve(async (req) => {
 
     const coords = extractCoords(finalUrl)
     return new Response(JSON.stringify({ finalUrl, coords, placeName }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     })
   } catch {
     return new Response(JSON.stringify({ error: 'failed to resolve' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     })
   }
 })

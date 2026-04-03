@@ -6,14 +6,16 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import webpush from 'npm:web-push'
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Content-Type': 'application/json',
+function corsHeaders(req: Request) {
+  return {
+    'Access-Control-Allow-Origin': req.headers.get('Origin') || '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
 
   // Solo llamadas internas (service role) o con DIGEST_TOKEN
   const token = req.headers.get('x-digest-token')
@@ -25,7 +27,7 @@ serve(async (req) => {
   const isDigest  = token === digestToken
 
   if (!isService && !isDigest) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: CORS })
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders(req) })
   }
 
   try {
@@ -56,7 +58,7 @@ serve(async (req) => {
       .eq('user_id', user_id)
 
     if (!subs?.length) {
-      return new Response(JSON.stringify({ ok: true, sent: 0 }), { headers: CORS })
+      return new Response(JSON.stringify({ ok: true, sent: 0 }), { headers: corsHeaders(req) })
     }
 
     const payload = JSON.stringify({ title, body, url: url ?? '/inicio' })
@@ -87,10 +89,10 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ ok: true, sent: subs.length - staleEndpoints.length }),
-      { headers: CORS }
+      { headers: corsHeaders(req) }
     )
   } catch (err) {
     console.error('send-push error:', err)
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: CORS })
+    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: corsHeaders(req) })
   }
 })

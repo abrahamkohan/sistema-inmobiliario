@@ -285,6 +285,29 @@ export function TaskModal({
         />
       </div>
 
+      {/* ── Tipo (chips wrap) ── */}
+      <div className="flex flex-col gap-1.5">
+        <label className={LABEL_CLS}>TIPO</label>
+        <div className="w-full flex flex-wrap gap-2">
+          {TYPE_CHIPS.map(chip => (
+            <button
+              key={chip.value}
+              type="button"
+              onClick={() => set('type', chip.value)}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-medium transition-all',
+                form.type === chip.value
+                  ? 'border-gray-900 bg-gray-900 text-white shadow-sm'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
+              )}
+            >
+              <chip.icon className="w-4 h-4 flex-shrink-0" />
+              {chip.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* ── Recordatorio Google Calendar — solo para call/meeting/visit ── */}
       {['call', 'meeting', 'visit'].includes(form.type) && (
         <div className="flex flex-col gap-1.5">
@@ -308,29 +331,6 @@ export function TaskModal({
           </p>
         </div>
       )}
-
-      {/* ── Tipo (chips wrap) ── */}
-      <div className="flex flex-col gap-1.5">
-        <label className={LABEL_CLS}>TIPO</label>
-        <div className="w-full flex flex-wrap gap-2">
-          {TYPE_CHIPS.map(chip => (
-            <button
-              key={chip.value}
-              type="button"
-              onClick={() => set('type', chip.value)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-medium transition-all',
-                form.type === chip.value
-                  ? 'border-gray-900 bg-gray-900 text-white shadow-sm'
-                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
-              )}
-            >
-              <chip.icon className="w-4 h-4 flex-shrink-0" />
-              {chip.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Lead readonly (si viene fijo desde contexto externo) */}
       {lockedLeadId && lead && (

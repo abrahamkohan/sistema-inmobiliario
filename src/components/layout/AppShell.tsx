@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { Menu, Search, Bell, X } from 'lucide-react'
 import { Sidebar } from './Sidebar'
-import { useConsultoraConfig } from '@/hooks/useConsultora'
+import { useBrand } from '@/context/BrandContext'
 import { useRealtimeTasks } from '@/hooks/useRealtimeTasks'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
@@ -13,7 +13,7 @@ export function AppShell() {
   useRealtimeTasks()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showPushBanner, setShowPushBanner] = useState(false)
-  const { data: consultora } = useConsultoraConfig()
+  const { engine, nombre } = useBrand()
   const navigate = useNavigate()
   const location = useLocation()
   const mainRef  = useRef<HTMLDivElement>(null)
@@ -90,11 +90,11 @@ export function AppShell() {
             className="flex-1 flex items-center justify-center"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            {consultora?.logo_url ? (
-              <img src={consultora.logo_url} alt={consultora.nombre} style={{ height: 28, objectFit: 'contain' }} />
+            {engine.getLogo('crm') ? (
+              <img src={engine.getLogo('crm')} alt={nombre} style={{ height: 28, objectFit: 'contain' }} />
             ) : (
               <span className="text-sm font-semibold text-sidebar-primary">
-                {consultora?.nombre ?? 'Sistema'}
+                {nombre || 'Sistema'}
               </span>
             )}
           </button>

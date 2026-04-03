@@ -59,18 +59,19 @@ export function CatalogoCoverPage() {
 
       {/* ── Hero ── */}
       <div className="bg-[#1a2744] px-6 py-14 flex flex-col items-center text-center">
-        {config?.logo_url ? (
+        {(config?.logo_light_url || config?.logo_url) ? (
           <img
-            src={config.logo_url}
+            src={config.logo_light_url ?? config.logo_url!}
             alt={config.nombre ?? 'Catálogo'}
-            className="h-14 w-auto object-contain mb-5 brightness-0 invert"
+            className="h-14 w-auto object-contain mb-5"
+            style={!config.logo_light_url ? { filter: 'brightness(0) invert(1)' } : undefined}
           />
         ) : (
           <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-2">
             {config?.nombre ?? 'Catálogo'}
           </h1>
         )}
-        {config?.logo_url && config?.nombre && (
+        {(config?.logo_light_url || config?.logo_url) && config?.nombre && (
           <p className="text-white/70 text-sm font-medium tracking-wide uppercase">
             {config.nombre}
           </p>

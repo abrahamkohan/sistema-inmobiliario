@@ -1,6 +1,7 @@
 import { Theme } from '@radix-ui/themes'
 import { RouterProvider } from 'react-router'
 import { router } from './router'
+import { BrandProvider } from '@/context/BrandContext'
 
 export function App() {
   return (
@@ -12,7 +13,9 @@ export function App() {
       appearance="light"
       hasBackground={false}
     >
-      <RouterProvider router={router} />
+      <BrandProvider>
+        <RouterProvider router={router} />
+      </BrandProvider>
     </Theme>
   )
 }

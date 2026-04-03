@@ -21,7 +21,7 @@ async function fetchConsultora(): Promise<ConsultoraInfo> {
     const cfg = await getConsultoraConfig()
     return {
       nombre: cfg?.nombre ?? 'Consultora Inmobiliaria',
-      logoUrl: cfg?.logo_url ?? null,
+      logoUrl: cfg?.logo_light_url ?? cfg?.logo_url ?? null,
       telefono: cfg?.telefono ?? null,
       email: cfg?.email ?? null,
     }

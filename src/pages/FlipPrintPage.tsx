@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 import { Loader2, Printer, Building2 } from 'lucide-react'
 import { useFlipById } from '@/hooks/useFlips'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
+import { useBrand } from '@/context/BrandContext'
 import { calcFlip } from '@/simulator/engine'
 import { formatUsd } from '@/utils/money'
 
@@ -49,7 +50,8 @@ export function FlipPrintPage() {
 
   const r = calcFlip(flip)
   const date = new Date(flip.created_at).toLocaleDateString('es-PY', { day: '2-digit', month: 'long', year: 'numeric' })
-  const logoUrl = consultora?.logo_url ?? null
+  const { engine } = useBrand()
+  const logoUrl    = engine.getLogo('crm') || null
 
   return (
     <>

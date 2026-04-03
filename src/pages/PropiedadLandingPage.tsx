@@ -50,8 +50,8 @@ function NotAvailable({ config }: { config: ConsultoraRow | null }) {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="h-14 bg-white border-b border-gray-100 px-5 flex items-center">
-        {config?.logo_url ? (
-          <img src={config.logo_url} alt={config.nombre} className="h-7 w-auto object-contain" />
+        {(config?.logo_light_url || config?.logo_url) ? (
+          <img src={config.logo_light_url ?? config.logo_url!} alt={config.nombre} className="h-7 w-auto object-contain" />
         ) : (
           <span className="text-sm font-semibold text-gray-800">{config?.nombre ?? ''}</span>
         )}
@@ -176,7 +176,7 @@ export function PropiedadLandingPage() {
       : null
 
   const companyName = config?.nombre ?? ''
-  const logoUrl     = config?.logo_url ?? null
+  const logoUrl     = config?.logo_light_url ?? config?.logo_url ?? null
 
   function openLightbox(index: number) {
     setLightboxIndex(index)

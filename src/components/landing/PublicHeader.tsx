@@ -13,8 +13,13 @@ export function PublicHeader({ config, right }: PublicHeaderProps) {
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-20 px-5 h-14 flex items-center justify-between">
       <div className="flex items-center gap-3 min-w-0">
-        {config?.logo_url ? (
-          <img src={config.logo_url} alt={config.nombre} className="h-7 w-auto object-contain flex-shrink-0" />
+        {(config?.logo_light_url || config?.logo_url) ? (
+          <img
+            src={config.logo_light_url ?? config.logo_url!}
+            alt={config.nombre}
+            className="h-7 w-auto object-contain flex-shrink-0"
+            style={!config.logo_light_url && config.logo_url ? { filter: 'brightness(0) invert(1)' } : undefined}
+          />
         ) : config?.nombre ? (
           <span className="text-sm font-semibold text-gray-800 truncate">{config.nombre}</span>
         ) : null}

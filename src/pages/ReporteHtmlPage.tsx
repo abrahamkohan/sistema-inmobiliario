@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 import { Loader2, Printer, MapPin } from 'lucide-react'
 import { useSimulation } from '@/hooks/useSimulations'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
+import { useBrand } from '@/context/BrandContext'
 import type { AirbnbInputs, AirbnbResult, AlquilerInputs, AlquilerResult, PlusvaliaInputs, PlusvaliaResult } from '@/simulator/engine'
 
 type ScenarioData<I, R> = { inputs: I; result: R }
@@ -436,6 +437,8 @@ export function ReporteHtmlPage() {
   const { id } = useParams<{ id: string }>()
   const { data: sim, isLoading, error } = useSimulation(id ?? '')
   const { data: consultora } = useConsultoraConfig()
+  const { engine }           = useBrand()
+  const reportLogoUrl        = engine.getLogo('crm') || null
 
   if (isLoading) {
     return (
@@ -720,8 +723,8 @@ export function ReporteHtmlPage() {
             gap: 10,
             boxShadow: '0 2px 12px rgba(20,34,58,0.18)',
           }}>
-            {consultora?.logo_url ? (
-              <img src={consultora.logo_url} alt={consultora.nombre} style={{ height: 36, objectFit: 'contain' }} />
+            {reportLogoUrl ? (
+              <img src={reportLogoUrl} alt={consultora?.nombre} style={{ height: 36, objectFit: 'contain' }} />
             ) : (
               <span style={{ fontSize: 18, fontWeight: 700, color: KC.white, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
                 {consultora?.nombre ?? 'Consultora Inmobiliaria'}
@@ -739,8 +742,8 @@ export function ReporteHtmlPage() {
           </p>
 
           <div className="print-footer">
-            {consultora?.logo_url ? (
-              <img src={consultora.logo_url} alt={consultora.nombre} style={{ height: 28, objectFit: 'contain' }} />
+            {reportLogoUrl ? (
+              <img src={reportLogoUrl} alt={consultora?.nombre} style={{ height: 28, objectFit: 'contain' }} />
             ) : (
               <span style={{ fontSize: 15, fontWeight: 700, color: KC.white, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
                 {consultora?.nombre ?? 'Consultora Inmobiliaria'}

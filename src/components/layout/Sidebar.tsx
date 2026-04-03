@@ -5,7 +5,7 @@ import {
   BookMarked, LogOut, X, Receipt, MapPin, ClipboardList,
   NotebookPen, HandCoins, TrendingUp,
 } from 'lucide-react'
-import { useConsultoraConfig } from '@/hooks/useConsultora'
+import { useBrand } from '@/context/BrandContext'
 import { supabase } from '@/lib/supabase'
 import { useTasks } from '@/hooks/useTasks'
 import { getUrgency } from '@/lib/tasks'
@@ -96,7 +96,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onClose }: SidebarProps) {
-  const { data: consultora } = useConsultoraConfig()
+  const { engine, nombre } = useBrand()
   const { data: tasks = [] } = useTasks()
   const { data: notes = [] } = useNotes()
   const isAdmin = useIsAdmin()
@@ -104,8 +104,7 @@ export function Sidebar({ onClose }: SidebarProps) {
   const overdueCount = tasks.filter(t => getUrgency(t) === 'overdue').length
   const inboxCount   = notes.filter(n => n.location === 'inbox').length
 
-  const nombre  = consultora?.nombre  ?? 'Consultora Inmobiliaria'
-  const logoUrl = consultora?.logo_url ?? null
+  const logoUrl = engine.getLogo('crm')
 
   function badge(to: string) {
     if (to === '/tareas') return overdueCount

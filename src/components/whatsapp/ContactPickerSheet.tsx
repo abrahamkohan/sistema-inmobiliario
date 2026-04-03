@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react'
 import { MessageCircle, User, Search, AlertCircle } from 'lucide-react'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { useClients } from '@/hooks/useClients'
-import { useConsultoraConfig } from '@/hooks/useConsultora'
+import { useBrand } from '@/context/BrandContext'
 import { buildShareMessage, buildShareUrl } from '@/lib/whatsapp'
 import type { Database } from '@/types/database'
 
@@ -28,7 +28,7 @@ export function ContactPickerSheet({
   resourceContext,
 }: Props) {
   const { data: clients = [] } = useClients()
-  const { data: consultora }   = useConsultoraConfig()
+  const { nombre }             = useBrand()
 
   const [search,   setSearch]   = useState('')
   const [selected, setSelected] = useState<ClientRow | null>(null)
@@ -48,7 +48,7 @@ export function ContactPickerSheet({
         resourceUrl,
         resourceContext,
         contactName:     selected.full_name,
-        brandName:       consultora?.nombre ?? null,
+        brandName:       nombre || null,
       })
     : null
 

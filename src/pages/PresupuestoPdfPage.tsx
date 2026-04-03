@@ -4,6 +4,7 @@ import { useParams } from 'react-router'
 import { Loader2, Printer, Building2, MapPin, Calendar, DollarSign } from 'lucide-react'
 import { usePresupuestoById } from '@/hooks/usePresupuestos'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
+import { useBrand } from '@/context/BrandContext'
 import { getPublicUrl } from '@/lib/storage'
 
 function fmt(n: number | null | undefined) {
@@ -33,7 +34,8 @@ export function PresupuestoPdfPage() {
   }
 
   const floorPlanUrl = p.floor_plan_path ? getPublicUrl(p.floor_plan_path) : null
-  const logoUrl      = consultora?.logo_url ?? null
+  const { engine }   = useBrand()
+  const logoUrl      = engine.getLogo('crm') || null
   const date         = new Date(p.created_at).toLocaleDateString('es-PY', { day: '2-digit', month: 'long', year: 'numeric' })
 
   const totalUnidad = (p.precio_usd ?? 0) + (p.cochera_precio_usd ?? 0)

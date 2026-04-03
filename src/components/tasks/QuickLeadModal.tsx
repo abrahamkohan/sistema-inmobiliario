@@ -30,6 +30,31 @@ export function QuickLeadModal({ isOpen, onClose }: Props) {
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
 
+  // ── visualViewport: seguir el teclado en mobile ───────────────────────────
+  const [vpTop,    setVpTop]    = useState(0)
+  const [vpHeight, setVpHeight] = useState(0)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    function syncViewport() {
+      const vv = window.visualViewport
+      if (!vv) return
+      setVpTop(vv.offsetTop)
+      setVpHeight(vv.height)
+    }
+
+    syncViewport()
+    const vv = window.visualViewport
+    if (!vv) return
+    vv.addEventListener('resize', syncViewport)
+    vv.addEventListener('scroll', syncViewport)
+    return () => {
+      vv.removeEventListener('resize', syncViewport)
+      vv.removeEventListener('scroll', syncViewport)
+    }
+  }, [isOpen])
+
   useEffect(() => {
     if (!isOpen) return
     setName(''); setPhone(''); setNotes('')
@@ -67,8 +92,19 @@ export function QuickLeadModal({ isOpen, onClose }: Props) {
 
   if (!isOpen) return null
 
+  // Overlay anclado al viewport visual (se mueve con el teclado)
+  const overlayStyle = vpHeight > 0 ? {
+    top:    vpTop,
+    height: vpHeight,
+    position: 'fixed' as const,
+    left: 0, right: 0,
+  } : undefined
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-[top,height] duration-150"
+      style={overlayStyle}
+    >
 
       {/* Backdrop */}
       <div
@@ -76,8 +112,11 @@ export function QuickLeadModal({ isOpen, onClose }: Props) {
         onClick={onClose}
       />
 
-      {/* Card */}
-      <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      {/* Card — max-h para que no desborde el viewport con teclado abierto */}
+      <div
+        className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        style={{ maxHeight: vpHeight > 0 ? vpHeight - 32 : undefined }}
+      >
 
         {/* Header */}
         <div className="flex items-start justify-between px-6 pt-6 pb-5">
@@ -101,8 +140,8 @@ export function QuickLeadModal({ isOpen, onClose }: Props) {
         {/* Divider */}
         <div className="h-px bg-gray-100 mx-6" />
 
-        {/* Form */}
-        <div className="px-6 py-5 flex flex-col gap-4">
+        {/* Form — scrollable cuando el teclado reduce el espacio */}
+        <div className="px-6 py-5 flex flex-col gap-4 overflow-y-auto">
           <div>
             <label className={LABEL_CLS}>Nombre *</label>
             <input

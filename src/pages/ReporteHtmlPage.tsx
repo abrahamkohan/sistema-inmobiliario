@@ -703,8 +703,8 @@ export function ReporteHtmlPage() {
               <FiscalVentaBlock
                 precioVenta={plusvalia.inputs.precio_estimado_venta_usd}
                 inversionTotal={plusvalia.result.inversion_total}
-                comisionPct={plusvalia.inputs.comision_inmobiliaria_pct}
-                escribaniaUsd={plusvalia.inputs.escribania_usd}
+                comisionPct={plusvalia.inputs.comision_inmobiliaria_pct ?? 5.5}
+                escribaniaUsd={plusvalia.inputs.escribania_usd ?? 300}
               />
             </div>
           )}

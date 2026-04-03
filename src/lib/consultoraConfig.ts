@@ -2,7 +2,7 @@
 import { supabase } from './supabase'
 import type { Database } from '@/types/database'
 
-type ConsultoraRow = Database['public']['Tables']['consultora_config']['Row']
+type ConsultoraRow    = Database['public']['Tables']['consultora_config']['Row']
 type ConsultoraUpdate = Database['public']['Tables']['consultora_config']['Update']
 
 const ROW_ID = 1
@@ -17,12 +17,20 @@ export async function getConsultoraConfig(): Promise<ConsultoraRow | null> {
   return data as ConsultoraRow | null
 }
 
-export async function upsertConsultoraConfig(values: ConsultoraUpdate & { nombre: string }): Promise<ConsultoraRow> {
-  // Use upsert without .single() to avoid RLS SELECT failures after write
+export async function upsertConsultoraConfig(
+  values: ConsultoraUpdate & { nombre: string; version?: number },
+): Promise<ConsultoraRow> {
+  // Increment version on every save for cache busting (logos in PDFs and landing pages)
+  const currentVersion = values.version ?? 1
+  const nextVersion    = currentVersion + 1
+
+  const payload = { id: ROW_ID, ...values, version: nextVersion }
+
   const { error } = await supabase
     .from('consultora_config')
-    .upsert({ id: ROW_ID, ...values }, { onConflict: 'id' })
+    .upsert(payload, { onConflict: 'id' })
   if (error) throw error
-  // Return an optimistic row — React Query will refetch the real data via invalidateQueries
-  return { id: ROW_ID, updated_at: new Date().toISOString(), ...values } as ConsultoraRow
+
+  // Return optimistic row — React Query refetches real data via invalidateQueries
+  return { updated_at: new Date().toISOString(), ...payload } as ConsultoraRow
 }

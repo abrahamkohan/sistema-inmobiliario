@@ -230,6 +230,7 @@ export interface Database {
           estado: string | null
           converted_at: string | null
           assigned_to: string | null
+          campana: string | null
           created_at: string
           updated_at: string
         }
@@ -249,6 +250,7 @@ export interface Database {
           estado?: string | null
           converted_at?: string | null
           assigned_to?: string | null
+          campana?: string | null
         }
         Update: {
           full_name?: string
@@ -266,6 +268,7 @@ export interface Database {
           estado?: string | null
           converted_at?: string | null
           assigned_to?: string | null
+          campana?: string | null
         }
         Relationships: []
       }
@@ -337,6 +340,8 @@ export interface Database {
           id: number
           nombre: string
           logo_url: string | null
+          logo_light_url: string | null
+          slogan: string | null
           telefono: string | null
           email: string | null
           whatsapp: string | null
@@ -345,12 +350,18 @@ export interface Database {
           market_data: Record<string, unknown> | null
           simulador_publico: boolean
           pwa_icon_url: string | null
+          color_primary: string | null
+          color_secondary: string | null
+          color_accent: string | null
+          version: number
           updated_at: string
         }
         Insert: {
           id?: number
           nombre: string
           logo_url?: string | null
+          logo_light_url?: string | null
+          slogan?: string | null
           telefono?: string | null
           email?: string | null
           whatsapp?: string | null
@@ -359,10 +370,16 @@ export interface Database {
           market_data?: Record<string, unknown> | null
           simulador_publico?: boolean
           pwa_icon_url?: string | null
+          color_primary?: string | null
+          color_secondary?: string | null
+          color_accent?: string | null
+          version?: number
         }
         Update: {
           nombre?: string
           logo_url?: string | null
+          logo_light_url?: string | null
+          slogan?: string | null
           telefono?: string | null
           email?: string | null
           whatsapp?: string | null
@@ -371,6 +388,10 @@ export interface Database {
           market_data?: Record<string, unknown> | null
           simulador_publico?: boolean
           pwa_icon_url?: string | null
+          color_primary?: string | null
+          color_secondary?: string | null
+          color_accent?: string | null
+          version?: number
         }
         Relationships: []
       }

@@ -119,6 +119,7 @@ export function SimuladorPublicoPage() {
       precio_estimado_venta_usd:    price * 1.30,  // +30% estimado
       anios_tenencia:               MARKET_DEFAULTS.plusvalia_anios,
       comision_inmobiliaria_pct:    MARKET_DEFAULTS.plusvalia_comision_pct,
+      escribania_usd:               MARKET_DEFAULTS.plusvalia_escribania_usd,
     })
   }, [price])
 

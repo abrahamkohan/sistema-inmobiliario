@@ -90,6 +90,15 @@ export function ScenarioPlusvalia() {
           suffix="%"
         />
 
+        <NumInput
+          label="Gastos de Escribanía (USD)"
+          value={inputs.escribania_usd}
+          onChange={(v) => setOverride('plusvalia_escribania_usd', v)}
+          step={50}
+          min={0}
+          prefix="$"
+        />
+
         {inputs.precio_estimado_venta_usd > inputs.precio_compra_propiedad_usd && inputs.precio_compra_propiedad_usd > 0 && (
           <p className="text-xs text-gray-400 bg-gray-50 rounded px-3 py-2 border">
             Apreciación implícita:{' '}

@@ -86,9 +86,11 @@ export function SimEditDialog({ sim, onClose }: Props) {
 
   // ── Plusvalía inputs ──
   const pv = sim.scenario_plusvalia as unknown as ScenarioData<PlusvaliaInputs, unknown> | null
-  const [pvPrecio,  setPvPrecio]  = useState(String(pv?.inputs.precio_compra_propiedad_usd  ?? 0))
-  const [pvVenta,   setPvVenta]   = useState(String(pv?.inputs.precio_estimado_venta_usd    ?? 0))
-  const [pvAnios,   setPvAnios]   = useState(String(pv?.inputs.anios_tenencia               ?? 3))
+  const [pvPrecio,     setPvPrecio]     = useState(String(pv?.inputs.precio_compra_propiedad_usd  ?? 0))
+  const [pvVenta,      setPvVenta]      = useState(String(pv?.inputs.precio_estimado_venta_usd    ?? 0))
+  const [pvAnios,      setPvAnios]      = useState(String(pv?.inputs.anios_tenencia               ?? 3))
+  const [pvComision,   setPvComision]   = useState(String(pv?.inputs.comision_inmobiliaria_pct    ?? MARKET_DEFAULTS.plusvalia_comision_pct))
+  const [pvEscribania, setPvEscribania] = useState(String(pv?.inputs.escribania_usd               ?? MARKET_DEFAULTS.plusvalia_escribania_usd))
 
   const n = (v: string) => parseFloat(v) || 0
 
@@ -117,7 +119,8 @@ export function SimEditDialog({ sim, onClose }: Props) {
       precio_compra_propiedad_usd:  n(pvPrecio),
       precio_estimado_venta_usd:    n(pvVenta),
       anios_tenencia:               n(pvAnios),
-      comision_inmobiliaria_pct:    pv?.inputs.comision_inmobiliaria_pct ?? MARKET_DEFAULTS.plusvalia_comision_pct,
+      comision_inmobiliaria_pct:    n(pvComision),
+      escribania_usd:               n(pvEscribania),
     }
 
     const newSnap    = { ...snap,    name: proyecto, ...(isCasual ? { _cliente: cliente } : {}) }
@@ -191,9 +194,11 @@ export function SimEditDialog({ sim, onClose }: Props) {
           {pv && <>
             <Section title="Plusvalía en Obra" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Precio de compra"       value={pvPrecio} onChange={setPvPrecio} suffix="USD" />
-              <Field label="Precio estimado venta"  value={pvVenta}  onChange={setPvVenta}  suffix="USD" />
-              <Field label="Años de tenencia"       value={pvAnios}  onChange={setPvAnios}  suffix="años" />
+              <Field label="Precio de compra"       value={pvPrecio}     onChange={setPvPrecio}     suffix="USD" />
+              <Field label="Precio estimado venta"  value={pvVenta}      onChange={setPvVenta}      suffix="USD" />
+              <Field label="Años de tenencia"       value={pvAnios}      onChange={setPvAnios}      suffix="años" />
+              <Field label="Comisión inmobiliaria"  value={pvComision}   onChange={setPvComision}   suffix="%" />
+              <Field label="Gastos de Escribanía"   value={pvEscribania} onChange={setPvEscribania} suffix="USD" />
             </div>
           </>}
         </div>

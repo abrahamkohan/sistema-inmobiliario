@@ -349,21 +349,21 @@ function FiscalBlock({ ingresoBruto, gananciaNeta, inversionTotal }: {
 const TASA_FISCAL_RES = 0.024
 const TASA_FISCAL_NR  = 0.06
 
-function FiscalVentaBlock({ precioVenta, inversionTotal, comisionPct }: {
+function FiscalVentaBlock({ precioVenta, inversionTotal, comisionPct, escribaniaUsd }: {
   precioVenta: number
   inversionTotal: number
   comisionPct: number
+  escribaniaUsd: number
 }) {
-  const ESCRIBANIA = 300
-  const comision   = precioVenta * (comisionPct / 100)
+  const comision = precioVenta * (comisionPct / 100)
 
   const impRes  = precioVenta * TASA_FISCAL_RES
-  const netoRes = precioVenta - impRes - comision - ESCRIBANIA
+  const netoRes = precioVenta - impRes - comision - escribaniaUsd
   const plusRes = netoRes - inversionTotal
   const roiRes  = inversionTotal > 0 ? (plusRes / inversionTotal) * 100 : 0
 
   const impNr   = precioVenta * TASA_FISCAL_NR
-  const netoNr  = precioVenta - impNr - comision - ESCRIBANIA
+  const netoNr  = precioVenta - impNr - comision - escribaniaUsd
   const plusNr  = netoNr - inversionTotal
   const roiNr   = inversionTotal > 0 ? (plusNr / inversionTotal) * 100 : 0
 
@@ -400,7 +400,7 @@ function FiscalVentaBlock({ precioVenta, inversionTotal, comisionPct }: {
           items={[
             { label: 'Impuestos estimados (2.4%)', value: fmt(impRes) },
             { label: `Comisión inmobiliaria (${comisionPct}%)`, value: fmt(comision) },
-            { label: 'Gasto Escribanía',            value: fmt(ESCRIBANIA) },
+            { label: 'Gasto Escribanía',            value: fmt(escribaniaUsd) },
             { label: 'Precio neto de venta',        value: fmt(netoRes) },
             { label: 'Plusvalía neta',               value: fmt(plusRes), highlight: true },
             { label: 'ROI final',                    value: pct1(roiRes), highlight: true },
@@ -411,7 +411,7 @@ function FiscalVentaBlock({ precioVenta, inversionTotal, comisionPct }: {
           items={[
             { label: 'Impuestos estimados (6%)',    value: fmt(impNr) },
             { label: `Comisión inmobiliaria (${comisionPct}%)`, value: fmt(comision) },
-            { label: 'Gasto Escribanía',            value: fmt(ESCRIBANIA) },
+            { label: 'Gasto Escribanía',            value: fmt(escribaniaUsd) },
             { label: 'Precio neto de venta',        value: fmt(netoNr) },
             { label: 'Plusvalía neta',               value: fmt(plusNr), highlight: true },
             { label: 'ROI final',                    value: pct1(roiNr),  highlight: true },
@@ -704,6 +704,7 @@ export function ReporteHtmlPage() {
                 precioVenta={plusvalia.inputs.precio_estimado_venta_usd}
                 inversionTotal={plusvalia.result.inversion_total}
                 comisionPct={plusvalia.inputs.comision_inmobiliaria_pct}
+                escribaniaUsd={plusvalia.inputs.escribania_usd}
               />
             </div>
           )}

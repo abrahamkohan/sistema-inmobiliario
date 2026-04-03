@@ -81,23 +81,23 @@ export function ScenarioAirbnb() {
       <div className="flex flex-col gap-1">
         <GroupLabel>Inversión inicial</GroupLabel>
         <div className="grid gap-1.5">
-          <Label className="text-xs text-gray-500">Precio de compra (USD)</Label>
+          <Label className="text-xs text-gray-500">Precio de compra</Label>
           <div className="relative flex items-center">
-            <span className="absolute left-3 text-xs text-gray-400 pointer-events-none">$</span>
             <Input
               type="number"
               value={inputs.precio_compra_propiedad_usd}
               readOnly
-              className="pl-9 text-sm bg-gray-50 cursor-not-allowed text-gray-500"
+              className="pr-14 text-sm bg-gray-50 cursor-not-allowed text-gray-500"
             />
+            <span className="absolute right-3 text-xs text-gray-400 pointer-events-none">USD</span>
           </div>
           <p className="text-xs text-gray-400">Pre-cargado desde la tipología</p>
         </div>
         <NumInput
-          label="Amoblamiento y preparación STR (USD)"
+          label="Amoblamiento y preparación STR"
           value={inputs.amoblamiento_preparacion_str_usd}
           onChange={(v) => setOverride('airbnb_amoblamiento', v)}
-          prefix="$"
+          suffix="USD"
           step={500}
         />
 
@@ -111,10 +111,10 @@ export function ScenarioAirbnb() {
           suffix="noches"
         />
         <NumInput
-          label="Tarifa diaria promedio (USD)"
+          label="Tarifa diaria promedio"
           value={inputs.tarifa_diaria_promedio_usd}
           onChange={(v) => setOverride('airbnb_tarifa_diaria', v)}
-          prefix="$"
+          suffix="USD"
           step={5}
         />
         <NumInput
@@ -128,10 +128,10 @@ export function ScenarioAirbnb() {
 
         <GroupLabel>Costos operativos / mes</GroupLabel>
         <div className="grid grid-cols-2 gap-3">
-          <NumInput label="Expensas (USD)" value={inputs.expensas_usd_mes} onChange={(v) => setOverride('expensas', v)} prefix="$" />
-          <NumInput label="Electricidad (USD)" value={inputs.electricidad_usd_mes} onChange={(v) => setOverride('airbnb_electricidad', v)} prefix="$" />
-          <NumInput label="Internet (USD)" value={inputs.internet_usd_mes} onChange={(v) => setOverride('airbnb_internet', v)} prefix="$" />
-          <NumInput label="Cable / TV (USD)" value={inputs.cable_tv_usd_mes} onChange={(v) => setOverride('airbnb_cable_tv', v)} prefix="$" />
+          <NumInput label="Expensas" value={inputs.expensas_usd_mes} onChange={(v) => setOverride('expensas', v)} suffix="USD" />
+          <NumInput label="Electricidad" value={inputs.electricidad_usd_mes} onChange={(v) => setOverride('airbnb_electricidad', v)} suffix="USD" />
+          <NumInput label="Internet" value={inputs.internet_usd_mes} onChange={(v) => setOverride('airbnb_internet', v)} suffix="USD" />
+          <NumInput label="Cable / TV" value={inputs.cable_tv_usd_mes} onChange={(v) => setOverride('airbnb_cable_tv', v)} suffix="USD" />
         </div>
       </div>
 

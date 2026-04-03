@@ -60,11 +60,11 @@ export function ScenarioAlquiler() {
       <div className="flex flex-col gap-1">
         <GroupLabel>Inversión inicial</GroupLabel>
         <div className="grid gap-1.5">
-          <Label className="text-xs text-gray-500">Precio de compra (USD)</Label>
+          <Label className="text-xs text-gray-500">Precio de compra</Label>
           <div className="relative flex items-center">
-            <span className="absolute left-3 text-xs text-gray-400 pointer-events-none">$</span>
             <Input type="number" value={inputs.precio_compra_propiedad_usd} readOnly
-              className="pl-9 text-sm bg-gray-50 cursor-not-allowed text-gray-500" />
+              className="pr-14 text-sm bg-gray-50 cursor-not-allowed text-gray-500" />
+            <span className="absolute right-3 text-xs text-gray-400 pointer-events-none">USD</span>
           </div>
           <p className="text-xs text-gray-400">Pre-cargado desde la tipología</p>
         </div>
@@ -86,20 +86,20 @@ export function ScenarioAlquiler() {
         </div>
         {inputs.incluir_amoblamiento && (
           <NumInput
-            label="Amoblamiento (USD)"
+            label="Amoblamiento"
             value={inputs.amoblamiento_preparacion_str_usd}
             onChange={(v) => setOverride('alquiler_amoblamiento', v)}
-            prefix="$"
+            suffix="USD"
             step={500}
           />
         )}
 
         <GroupLabel>Rendimiento</GroupLabel>
         <NumInput
-          label="Alquiler mensual (USD)"
+          label="Alquiler mensual"
           value={inputs.alquiler_mensual_usd}
           onChange={(v) => setOverride('alquiler_mensual', v)}
-          prefix="$"
+          suffix="USD"
           step={50}
         />
         <NumInput
@@ -113,8 +113,8 @@ export function ScenarioAlquiler() {
 
         <GroupLabel>Costos mensuales</GroupLabel>
         <div className="grid grid-cols-2 gap-3">
-          <NumInput label="Expensas (USD)" value={inputs.expensas_usd_mes} onChange={(v) => setOverride('expensas', v)} prefix="$" />
-          <NumInput label="Otros (USD)" value={inputs.otros_usd_mes} onChange={(v) => setOverride('alquiler_otros', v)} prefix="$" />
+          <NumInput label="Expensas" value={inputs.expensas_usd_mes} onChange={(v) => setOverride('expensas', v)} suffix="USD" />
+          <NumInput label="Otros" value={inputs.otros_usd_mes} onChange={(v) => setOverride('alquiler_otros', v)} suffix="USD" />
         </div>
       </div>
 

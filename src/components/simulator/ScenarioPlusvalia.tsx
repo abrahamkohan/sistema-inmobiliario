@@ -55,20 +55,20 @@ export function ScenarioPlusvalia() {
       {/* ── Inputs ── */}
       <div className="flex flex-col gap-3">
         <div className="grid gap-1.5">
-          <Label className="text-xs text-gray-500">Precio de compra (USD)</Label>
+          <Label className="text-xs text-gray-500">Precio de compra</Label>
           <div className="relative flex items-center">
-            <span className="absolute left-3 text-xs text-gray-400 pointer-events-none">$</span>
             <Input type="number" value={inputs.precio_compra_propiedad_usd} readOnly
-              className="pl-9 text-sm bg-gray-50 cursor-not-allowed text-gray-500" />
+              className="pr-14 text-sm bg-gray-50 cursor-not-allowed text-gray-500" />
+            <span className="absolute right-3 text-xs text-gray-400 pointer-events-none">USD</span>
           </div>
           <p className="text-xs text-gray-400">Pre-cargado desde la tipología</p>
         </div>
 
         <NumInput
-          label="Precio estimado de venta (USD)"
+          label="Precio estimado de venta"
           value={inputs.precio_estimado_venta_usd}
           onChange={(v) => setOverride('plusvalia_precio_venta', v)}
-          prefix="$"
+          suffix="USD"
           step={1000}
         />
 
@@ -91,12 +91,12 @@ export function ScenarioPlusvalia() {
         />
 
         <NumInput
-          label="Gastos de Escribanía (USD)"
+          label="Gastos de Escribanía"
           value={inputs.escribania_usd}
           onChange={(v) => setOverride('plusvalia_escribania_usd', v)}
           step={50}
           min={0}
-          prefix="$"
+          suffix="USD"
         />
 
         {inputs.precio_estimado_venta_usd > inputs.precio_compra_propiedad_usd && inputs.precio_compra_propiedad_usd > 0 && (

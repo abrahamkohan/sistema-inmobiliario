@@ -131,3 +131,53 @@ export function useDeleteAsset() {
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })
 }
+
+// ── useUpdateAsset ─────────────────────────────────────────────────────────────
+
+interface UpdateAssetInput {
+  id:      string
+  nombre:  string
+  alt_text: string
+  type:    AssetType
+  subtipo: AssetSubtipo
+  // Para edición, solo se actualiza la URL si el usuario elige cambiarla
+  newFile?:      File
+  newExternalUrl?: string
+}
+
+export function useUpdateAsset() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: UpdateAssetInput): Promise<AssetRow> => {
+      const updates: Partial<AssetRow> = {
+        nombre:   input.nombre,
+        alt_text: input.alt_text,
+        type:     input.type,
+        subtipo:  input.subtipo,
+        updated_at: new Date().toISOString(),
+      }
+
+      // Si hay nuevo archivo, subirlo
+      if (input.newFile) {
+        const { path, url } = await uploadAsset(input.newFile)
+        updates.url = url
+        updates.storage_type = 'supabase'
+        updates.external_url = path
+      } else if (input.newExternalUrl) {
+        updates.url = input.newExternalUrl
+        updates.storage_type = 'external'
+        updates.external_url = input.newExternalUrl
+      }
+
+      const { data, error } = await supabase
+        .from('assets')
+        .update(updates)
+        .eq('id', input.id)
+        .select()
+        .single()
+      if (error) throw error
+      return data as unknown as AssetRow
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
+  })
+}

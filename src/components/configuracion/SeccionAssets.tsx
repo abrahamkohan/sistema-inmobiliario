@@ -1,12 +1,12 @@
 // src/components/configuracion/SeccionAssets.tsx
 import { useRef, useState } from 'react'
-import { ImageIcon, Loader2, Plus, Trash2, X, Upload, Link as LinkIcon, ExternalLink } from 'lucide-react'
+import { ImageIcon, Loader2, Plus, Pencil, Trash2, X, Upload, Link as LinkIcon, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-  useAssets, useCreateAsset, useDeleteAsset,
+  useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset,
   type AssetWithUsages, type AssetType, type AssetSubtipo,
 } from '@/hooks/useAssets'
 
@@ -69,7 +69,11 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 // ── Tarjeta de asset ───────────────────────────────────────────────────────────
 
-function AssetCard({ asset, onDelete }: { asset: AssetWithUsages; onDelete: (a: AssetWithUsages) => void }) {
+function AssetCard({ asset, onDelete, onEdit }: { 
+  asset: AssetWithUsages
+  onDelete: (a: AssetWithUsages) => void
+  onEdit: (a: AssetWithUsages) => void
+}) {
   const usageCount = asset.asset_usages.length
   const isUsed     = usageCount > 0
   const isDoc      = ['brochure', 'contract'].includes(asset.subtipo)
@@ -130,19 +134,29 @@ function AssetCard({ asset, onDelete }: { asset: AssetWithUsages; onDelete: (a: 
         >
           <ExternalLink className="w-3 h-3" />Ver
         </a>
-        <button
-          type="button"
-          disabled={isUsed}
-          onClick={() => onDelete(asset)}
-          title={isUsed ? 'No se puede eliminar: asset en uso' : 'Eliminar'}
-          className={`p-1.5 rounded-lg transition-colors ${
-            isUsed
-              ? 'text-gray-200 cursor-not-allowed'
-              : 'text-gray-300 hover:text-red-500 hover:bg-red-50'
-          }`}
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit(asset)}
+            title="Editar"
+            className="p-1.5 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            disabled={isUsed}
+            onClick={() => onDelete(asset)}
+            title={isUsed ? 'No se puede eliminar: asset en uso' : 'Eliminar'}
+            className={`p-1.5 rounded-lg transition-colors ${
+              isUsed
+                ? 'text-gray-200 cursor-not-allowed'
+                : 'text-gray-300 hover:text-red-500 hover:bg-red-50'
+            }`}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -160,15 +174,31 @@ interface FormState {
   file:        File | null
 }
 
-const EMPTY_FORM: FormState = {
-  nombre: '', alt_text: '', type: 'brand', subtipo: 'logo',
-  mode: 'upload', externalUrl: '', file: null,
+function buildEmptyForm(): FormState {
+  return {
+    nombre: '', alt_text: '', type: 'brand', subtipo: 'logo',
+    mode: 'upload', externalUrl: '', file: null,
+  }
 }
 
-function NuevoAssetForm({ onClose }: { onClose: () => void }) {
-  const [form, setForm] = useState<FormState>(EMPTY_FORM)
+function buildFormFromAsset(asset: AssetWithUsages): FormState {
+  return {
+    nombre: asset.nombre,
+    alt_text: asset.alt_text ?? '',
+    type: asset.type,
+    subtipo: asset.subtipo,
+    mode: 'url', // Al editar, usar URL existente
+    externalUrl: asset.url,
+    file: null,
+  }
+}
+
+function AssetForm({ asset, onClose }: { asset?: AssetWithUsages; onClose: () => void }) {
+  const [form, setForm] = useState<FormState>(asset ? buildFormFromAsset(asset) : buildEmptyForm())
   const fileRef         = useRef<HTMLInputElement>(null)
   const create          = useCreateAsset()
+  const update          = useUpdateAsset()
+  const isEditing       = !!asset
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm(p => {
@@ -188,19 +218,31 @@ function NuevoAssetForm({ onClose }: { onClose: () => void }) {
     e.preventDefault()
     if (!form.nombre.trim()) { toast.error('El nombre es obligatorio'); return }
     if (!form.alt_text.trim()) { toast.error('El alt text es obligatorio (SEO)'); return }
-    if (form.mode === 'upload' && !form.file) { toast.error('Seleccioná un archivo'); return }
+    if (form.mode === 'upload' && !form.file && !isEditing) { toast.error('Seleccioná un archivo'); return }
     if (form.mode === 'url' && !form.externalUrl.trim()) { toast.error('Ingresá una URL'); return }
 
     try {
-      await create.mutateAsync({
-        nombre:      form.nombre.trim(),
-        alt_text:    form.alt_text.trim(),
-        type:        form.type,
-        subtipo:     form.subtipo,
-        file:        form.mode === 'upload' ? form.file ?? undefined : undefined,
-        externalUrl: form.mode === 'url'    ? form.externalUrl.trim() : undefined,
-      })
-      toast.success('Asset guardado')
+      if (isEditing && asset) {
+        await update.mutateAsync({
+          id:        asset.id,
+          nombre:    form.nombre.trim(),
+          alt_text:  form.alt_text.trim(),
+          type:      form.type,
+          subtipo:   form.subtipo,
+          newFile:        form.mode === 'upload' ? form.file ?? undefined : undefined,
+          newExternalUrl: form.mode === 'url'    ? form.externalUrl.trim() : undefined,
+        })
+      } else {
+        await create.mutateAsync({
+          nombre:      form.nombre.trim(),
+          alt_text:    form.alt_text.trim(),
+          type:        form.type,
+          subtipo:     form.subtipo,
+          file:        form.mode === 'upload' ? form.file ?? undefined : undefined,
+          externalUrl: form.mode === 'url'    ? form.externalUrl.trim() : undefined,
+        })
+      }
+      toast.success(isEditing ? 'Asset actualizado' : 'Asset guardado')
       onClose()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al guardar')
@@ -212,7 +254,7 @@ function NuevoAssetForm({ onClose }: { onClose: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="border border-gray-200 rounded-xl bg-gray-50 p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-gray-800">Nuevo asset</p>
+        <p className="text-sm font-semibold text-gray-800">{isEditing ? 'Editar asset' : 'Nuevo asset'}</p>
         <button type="button" onClick={onClose} className="p-1 text-gray-400 hover:text-gray-700 rounded-md">
           <X className="w-4 h-4" />
         </button>
@@ -336,8 +378,8 @@ function NuevoAssetForm({ onClose }: { onClose: () => void }) {
         <Button type="button" variant="outline" size="sm" onClick={onClose}>
           Cancelar
         </Button>
-        <Button type="submit" size="sm" disabled={create.isPending}>
-          {create.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar'}
+        <Button type="submit" size="sm" disabled={create.isPending || update.isPending}>
+          {create.isPending || update.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : isEditing ? 'Actualizar' : 'Guardar'}
         </Button>
       </div>
     </form>
@@ -350,6 +392,7 @@ export function SeccionAssets() {
   const [filterType,    setFilterType]    = useState<AssetType | null>(null)
   const [filterSubtipo, setFilterSubtipo] = useState<AssetSubtipo | null>(null)
   const [showForm,      setShowForm]      = useState(false)
+  const [editingAsset,  setEditingAsset]  = useState<AssetWithUsages | null>(null)
 
   const { data: assets = [], isLoading } = useAssets({ type: filterType ?? undefined, subtipo: filterSubtipo ?? undefined })
   const deleteAsset = useDeleteAsset()
@@ -362,6 +405,11 @@ export function SeccionAssets() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al eliminar')
     }
+  }
+
+  function handleEdit(asset: AssetWithUsages) {
+    setEditingAsset(asset)
+    setShowForm(true)
   }
 
   // Si filtramos por type, mostramos subtipos relevantes; si no, todos
@@ -381,7 +429,7 @@ export function SeccionAssets() {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => setShowForm(v => !v)}
+          onClick={() => { setShowForm(v => !v); setEditingAsset(null) }}
           className="gap-1.5 flex-shrink-0"
         >
           {showForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
@@ -390,7 +438,12 @@ export function SeccionAssets() {
       </div>
 
       {/* Formulario colapsable */}
-      {showForm && <NuevoAssetForm onClose={() => setShowForm(false)} />}
+      {showForm && (
+        <AssetForm 
+          asset={editingAsset ?? undefined} 
+          onClose={() => { setShowForm(false); setEditingAsset(null) }} 
+        />
+      )}
 
       {/* Filtros */}
       <div className="flex flex-col gap-2">
@@ -440,7 +493,7 @@ export function SeccionAssets() {
           <p className="text-sm text-gray-400">No hay assets todavía</p>
           <button
             type="button"
-            onClick={() => setShowForm(true)}
+            onClick={() => { setShowForm(true); setEditingAsset(null) }}
             className="text-xs text-gray-400 underline underline-offset-2 hover:text-gray-700 transition-colors"
           >
             Subir el primero
@@ -449,7 +502,7 @@ export function SeccionAssets() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {assets.map(asset => (
-            <AssetCard key={asset.id} asset={asset} onDelete={handleDelete} />
+            <AssetCard key={asset.id} asset={asset} onDelete={handleDelete} onEdit={handleEdit} />
           ))}
         </div>
       )}

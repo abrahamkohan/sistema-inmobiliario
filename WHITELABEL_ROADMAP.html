@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roadmap Marca Blanca — CRM Inmobiliario</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f4f4f5;
+      color: #18181b;
+      padding: 40px 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.08);
+    }
+
+    /* Header */
+    .header {
+      background: #18181b;
+      padding: 40px 48px;
+      color: white;
+    }
+    .header-label {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 8px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .header h1 span { color: #a3e635; }
+    .header p {
+      color: rgba(255,255,255,0.5);
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .header-meta {
+      margin-top: 20px;
+      display: flex;
+      gap: 24px;
+    }
+    .meta-item {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px 16px;
+    }
+    .meta-item .label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; }
+    .meta-item .value { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); margin-top: 2px; }
+
+    /* Body */
+    .body { padding: 40px 48px; }
+
+    /* Phase */
+    .phase {
+      margin-bottom: 40px;
+    }
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .phase-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .phase-0 .phase-badge { background: #fef9c3; color: #854d0e; }
+    .phase-1 .phase-badge { background: #dbeafe; color: #1e40af; }
+    .phase-2 .phase-badge { background: #dcfce7; color: #166534; }
+    .phase-3 .phase-badge { background: #fae8ff; color: #7e22ce; }
+    .phase-backlog .phase-badge { background: #fee2e2; color: #991b1b; }
+
+    .phase-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #18181b;
+    }
+    .phase-subtitle {
+      font-size: 12px;
+      color: #71717a;
+      margin-top: 1px;
+    }
+
+    /* Section inside phase */
+    .section {
+      margin-bottom: 20px;
+    }
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #a1a1aa;
+      margin-bottom: 10px;
+      padding-left: 4px;
+    }
+
+    /* Checklist */
+    .checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: #fafafa;
+      border: 1px solid #f0f0f0;
+      font-size: 13px;
+      color: #3f3f46;
+    }
+    .checklist li:hover { background: #f4f4f5; }
+    .checkbox {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #d4d4d8;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .checklist li .note {
+      font-size: 11px;
+      color: #a1a1aa;
+      display: block;
+      margin-top: 2px;
+    }
+    .tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .tag-auto { background: #dcfce7; color: #166534; }
+    .tag-manual { background: #fef3c7; color: #92400e; }
+    .tag-client { background: #ede9fe; color: #5b21b6; }
+
+    /* Table */
+    .table-wrap {
+      border: 1px solid #e4e4e7;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #f4f4f5;
+    }
+    th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #71717a;
+    }
+    td {
+      padding: 10px 14px;
+      border-top: 1px solid #f0f0f0;
+      color: #3f3f46;
+    }
+    .effort { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .effort-low { background: #dcfce7; color: #166534; }
+    .effort-med { background: #fef3c7; color: #92400e; }
+    .impact-high { font-weight: 700; color: #18181b; }
+    .impact-med { color: #52525b; }
+
+    /* Time table */
+    .time-row td:first-child { font-weight: 600; color: #18181b; }
+    .time-row.total { background: #fafafa; }
+    .time-row.total td { font-weight: 700; color: #18181b; border-top: 2px solid #e4e4e7; }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid #f0f0f0;
+      margin: 32px 0;
+    }
+
+    /* Footer */
+    .footer {
+      background: #fafafa;
+      border-top: 1px solid #f0f0f0;
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer p { font-size: 12px; color: #a1a1aa; }
+    .footer strong { color: #52525b; }
+
+    /* Print */
+    .no-print { }
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print" style="text-align:center; margin-bottom: 24px;">
+    <button onclick="window.print()" style="background:#18181b; color:white; border:none; padding:10px 24px; border-radius:50px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;">
+      🖨️ Imprimir / Guardar PDF
+    </button>
+  </div>
+
+  <div class="page">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-label">CRM Inmobiliario</div>
+      <h1>Roadmap <span>Marca Blanca</span></h1>
+      <p>Guía completa para duplicar y vender el producto a nuevos clientes</p>
+      <div class="header-meta">
+        <div class="meta-item">
+          <div class="label">Stack</div>
+          <div class="value">Vite · React · Supabase · Vercel</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Tiempo de setup por cliente</div>
+          <div class="value">~12 minutos (con scripts listos)</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Fecha</div>
+          <div class="value">Marzo 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+
+      <!-- FASE 0 -->
+      <div class="phase phase-0">
+        <div class="phase-header">
+          <span class="phase-badge">Fase 0</span>
+          <div>
+            <div class="phase-title">Preparar el producto</div>
+            <div class="phase-subtitle">Se hace UNA sola vez — antes de vender el primer cliente</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Código</div>
+          <ul class="checklist">
+            <li><span class="checkbox"></span><span>Crear archivo <code>.env.example</code> con todas las variables documentadas</span><span class="tag tag-manual">manual</span></li>
+            <li><span class="checkbox"></span><span>Crear <code>scripts/setup.sql</code> — todas las migrations en un solo archivo ordenado<span class="note">Permite inicializar la base de datos con un solo copy-paste en Supabase SQL Editor</span></span><span class="tag tag-auto">automatizable</span></li>
+            <li><span class="checkbox"></span><span>Crear <code>scripts/create-buckets.ts</code> — crea los storage buckets automáticamente<span class="note">Buckets: project-media, property-photos</span></span><span class="tag tag-auto">automatizable</span></li>
+            <li><span class="checkbox"></span><span>Auditar el código: sacar cualquier dato hardcodeado (nombre, logo, textos) y moverlo a <code>consultora_config</code></span><span class="tag tag-manual">manual</span></li>
+            <li><span class="checkbox"></span><span>Verificar que ningún archivo mencione "Kohan & Campos" de forma hardcodeada</span><span class="tag tag-manual">manual</span></li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Pantalla de Configuración — mejoras a implementar</div>
+          <ul class="checklist">
+            <li><span class="checkbox"></span><span>Agregar panel <strong>Verificar conexión</strong> — testea que Supabase responde y muestra estado</span><span class="tag tag-auto">automatizable</span></li>
+            <li><span class="checkbox"></span><span>Agregar <strong>checklist de setup inicial</strong> — verifica tablas, buckets y usuario admin existentes</span><span class="tag tag-auto">automatizable</span></li>
+            <li><span class="checkbox"></span><span>Agregar <strong>Gestión de usuarios</strong> — invitar por email, asignar rol, desactivar desde la app</span><span class="tag tag-auto">automatizable</span></li>
+            <li><span class="checkbox"></span><span>Agregar campo <strong>primary_color</strong> en consultora_config para cambiar el color de acento de la app</span><span class="tag tag-manual">manual</span></li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Documentación interna</div>
+          <ul class="checklist">
+            <li><span class="checkbox"></span><span>Crear <code>DEPLOY.md</code> — los pasos exactos de deploy en orden</span></li>
+            <li><span class="checkbox"></span><span>Listar todos los buckets de storage que necesita la app</span></li>
+            <li><span class="checkbox"></span><span>Listar todas las variables de entorno necesarias con descripción</span></li>
+            <li><span class="checkbox"></span><span>Definir esquema de versionado del producto (v1.0, v1.1…)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- FASE 1 -->
+      <div class="phase phase-1">
+        <div class="phase-header">
+          <span class="phase-badge">Fase 1</span>
+          <div>
+            <div class="phase-title">Setup por cliente nuevo</div>
+            <div class="phase-subtitle">Se repite por cada venta — objetivo: menos de 15 minutos</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">GitHub</div>
+          <ul class="checklist">
+            <li><span class="checkbox"></span><span>Crear repo nuevo desde el template (o mirror del repo base)<span class="note">No usar Fork — queda vinculado al repo original públicamente</span></span></li>
+            <li><span class="checkbox"></span><span>Nombrar el repo con el nombre del cliente: ej. <code>crm-nombre-cliente</code></span></li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Supabase</div>
+          <ul class="checklist">
+            <li><span class="checkbox"></span><span>Crear proyecto nuevo en supabase.com</span></li>
+            <li><span class="checkbox"></span><span>Copiar <strong>Project URL</strong> y <strong>anon key</strong> → Settings → API</span></li>
+            <li><span class="checkbox"></span><span>Ejecutar <code>scripts/setup.sql</code> completo en el SQL Editor</span></li>
+            <li><span class="checkbox"></span><span>Crear storage buckets: <code>project-media</code>, <code>property-photos</code></span></li>
+            <li><span class="checkbox"></span><span>Auth → URL Configuration → agregar la URL del cliente como redirect URL</span></li>
+            <li><span class="checkbox"></span><span>Auth → Users → crear primer usuario admin con email del cliente</span></li>
+            <li><span class="checkbox"></span><span>Asignar rol <code>admin</code> al usuario en tabla <code>user_roles</code></span></li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Vercel</div>
+          <ul class="checklist">
+            <li><span class="checkbox"></span><span>Importar el repo nuevo del cliente en Vercel</span></li>
+            <li><span class="checkbox"></span><span>Agregar env vars: <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_ANON_KEY</code></span></li>
+            <li><span class="checkbox"></span><span>Ejecutar deploy y verificar que levanta sin errores</span></li>
+            <li><span class="checkbox"></span><span>(Opcional) Conectar dominio personalizado del cliente → Settings → Domains</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- FASE 2 -->
+      <div class="phase phase-2">
+        <div class="phase-header">
+          <span class="phase-badge">Fase 2</span>
+          <div>
+            <div class="phase-title">Onboarding del cliente</div>
+            <div class="phase-subtitle">Lo hace el cliente — o vos como parte del servicio de implementación</div>
+          </div>
+        </div>
+
+        <ul class="checklist">
+          <li><span class="checkbox"></span><span>Entrar con el usuario admin<span class="note">Usar el email y contraseña creados en la Fase 1</span></span><span class="tag tag-client">cliente</span></li>
+          <li><span class="checkbox"></span><span>Ir a Configuración → subir logo de la consultora</span><span class="tag tag-client">cliente</span></li>
+          <li><span class="checkbox"></span><span>Completar nombre consultora, teléfono, email, WhatsApp, Instagram</span><span class="tag tag-client">cliente</span></li>
+          <li><span class="checkbox"></span><span>Elegir color de marca principal (cuando esté implementado)</span><span class="tag tag-client">cliente</span></li>
+          <li><span class="checkbox"></span><span>Invitar a su equipo desde Configuración → Usuarios</span><span class="tag tag-client">cliente</span></li>
+          <li><span class="checkbox"></span><span>Activar o desactivar el simulador público según necesidad</span><span class="tag tag-client">cliente</span></li>
+          <li><span class="checkbox"></span><span>Cargar primeros proyectos y propiedades</span><span class="tag tag-client">cliente</span></li>
+        </ul>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- FASE 3 -->
+      <div class="phase phase-3">
+        <div class="phase-header">
+          <span class="phase-badge">Fase 3</span>
+          <div>
+            <div class="phase-title">Mantenimiento y actualizaciones</div>
+            <div class="phase-subtitle">Proceso continuo para todos los clientes activos</div>
+          </div>
+        </div>
+
+        <ul class="checklist">
+          <li><span class="checkbox"></span><span>Definir estrategia de updates: ¿push a todos los clientes o manual por cliente?</span></li>
+          <li><span class="checkbox"></span><span>Cuando hay migrations nuevas → documentarlas en <code>DEPLOY.md</code> con instrucciones de update</span></li>
+          <li><span class="checkbox"></span><span>Versionar el producto (v1.0, v1.1) para saber qué versión tiene cada cliente</span></li>
+          <li><span class="checkbox"></span><span>Mantener un registro: cliente → URL → proyecto Supabase → fecha de deploy</span></li>
+        </ul>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- BACKLOG TÉCNICO -->
+      <div class="phase phase-backlog">
+        <div class="phase-header">
+          <span class="phase-badge">Backlog</span>
+          <div>
+            <div class="phase-title">Tareas técnicas pendientes</div>
+            <div class="phase-subtitle">Ordenadas por impacto vs esfuerzo</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tarea</th>
+                <th>Esfuerzo</th>
+                <th>Impacto</th>
+                <th>Prioridad</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>scripts/setup.sql</code> unificado con todas las migrations</td>
+                <td><span class="effort effort-low">Bajo</span></td>
+                <td class="impact-high">Alto</td>
+                <td>⭐⭐⭐</td>
+              </tr>
+              <tr>
+                <td>Checklist de setup inicial en pantalla Configuración</td>
+                <td><span class="effort effort-med">Medio</span></td>
+                <td class="impact-high">Alto</td>
+                <td>⭐⭐⭐</td>
+              </tr>
+              <tr>
+                <td>Gestión de usuarios desde Configuración (invitar, rol, desactivar)</td>
+                <td><span class="effort effort-med">Medio</span></td>
+                <td class="impact-high">Alto</td>
+                <td>⭐⭐⭐</td>
+              </tr>
+              <tr>
+                <td><code>scripts/create-buckets.ts</code> automatizado</td>
+                <td><span class="effort effort-low">Bajo</span></td>
+                <td class="impact-high">Alto</td>
+                <td>⭐⭐⭐</td>
+              </tr>
+              <tr>
+                <td>Panel "Verificar conexión" en Configuración</td>
+                <td><span class="effort effort-low">Bajo</span></td>
+                <td class="impact-med">Medio</td>
+                <td>⭐⭐</td>
+              </tr>
+              <tr>
+                <td>Soporte <code>primary_color</code> en consultora_config</td>
+                <td><span class="effort effort-med">Medio</span></td>
+                <td class="impact-med">Medio</td>
+                <td>⭐⭐</td>
+              </tr>
+              <tr>
+                <td><code>.env.example</code> documentado</td>
+                <td><span class="effort effort-low">Bajo</span></td>
+                <td class="impact-med">Medio</td>
+                <td>⭐⭐</td>
+              </tr>
+              <tr>
+                <td>Auditar hardcoded strings (nombre, textos)</td>
+                <td><span class="effort effort-low">Bajo</span></td>
+                <td class="impact-high">Alto</td>
+                <td>⭐⭐⭐</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- TIEMPO ESTIMADO -->
+      <div>
+        <div class="section-label" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#a1a1aa; margin-bottom:12px;">Tiempo estimado de setup por cliente (con scripts listos)</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Paso</th>
+                <th>Responsable</th>
+                <th>Tiempo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="time-row"><td>Crear repo GitHub + proyecto Supabase + Vercel</td><td>Vos</td><td>5 min</td></tr>
+              <tr class="time-row"><td>Correr setup.sql completo</td><td>Vos</td><td>2 min</td></tr>
+              <tr class="time-row"><td>Configurar env vars + deploy</td><td>Vos</td><td>3 min</td></tr>
+              <tr class="time-row"><td>Crear usuario admin + asignar rol</td><td>Vos</td><td>2 min</td></tr>
+              <tr class="time-row total"><td>Total (tu tiempo)</td><td>—</td><td>~12 min</td></tr>
+              <tr class="time-row"><td>Onboarding del cliente (logo, config, usuarios)</td><td>Cliente</td><td>15–20 min</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- NOTA IMPORTANTE -->
+      <div style="margin-top: 32px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px 20px;">
+        <div style="font-size: 12px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">⚠️ Limitación importante — leer antes de implementar</div>
+        <p style="font-size: 13px; color: #78350f; line-height: 1.6;">
+          Las variables <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_ANON_KEY</code> son compiladas por Vite en tiempo de build y quedan incrustadas en el JavaScript. <strong>No se pueden cambiar desde el frontend en runtime.</strong> Cada cliente necesita su propio deploy en Vercel con sus propias variables de entorno. No hay forma de apuntar a otra base de datos sin hacer un redeploy.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>CRM Inmobiliario — <strong>Documento interno</strong></p>
+      <p>Generado: Marzo 2026 · Versión 1.0</p>
+    </div>
+
+  </div>
+
+</body>
+</html>

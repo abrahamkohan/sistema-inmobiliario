@@ -602,7 +602,7 @@ export function TaskModal({
 
   // ── Footer mobile — fijo fuera del scroll, siempre visible ───────────────
   const mobileFooter = (
-    <div className="flex flex-col gap-1 px-4 pt-3 pb-[env(safe-area-inset-bottom,24px)]">
+    <div className="flex flex-col gap-1 px-4 pt-3 pb-6">
     {!canSave && disabledHint && (
       <p className="text-[11px] text-gray-400 text-center pb-1">{disabledHint}</p>
     )}

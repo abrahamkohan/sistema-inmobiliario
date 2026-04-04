@@ -38,9 +38,10 @@ interface Props {
   onConvert?: (id: string) => void
   onChangeEstado?: (id: string, estado: string) => void
   onView?: (c: ClientRow) => void
+  puedeEditar?: boolean
 }
 
-export function ClientCardMobile({ client, onEdit, onDelete, onConvert, onChangeEstado, onView }: Props) {
+export function ClientCardMobile({ client, onEdit, onDelete, onConvert, onChangeEstado, onView, puedeEditar = true }: Props) {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [taskOpen,    setTaskOpen]    = useState(false)
   const [showEstados, setShowEstados] = useState(false)
@@ -149,16 +150,20 @@ export function ClientCardMobile({ client, onEdit, onDelete, onConvert, onChange
               <UserCheck className="w-3.5 h-3.5" />
             </button>
           )}
-          <button onClick={() => onEdit(client)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-            title="Editar">
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={handleDelete}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-            title="Eliminar">
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {puedeEditar && (
+            <>
+              <button onClick={() => onEdit(client)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                title="Editar">
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={handleDelete}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                title="Eliminar">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
         </div>
       </div>
 

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import { createProperty } from '@/lib/properties'
+import { useCreateProperty } from '@/hooks/useProperties'
 import {
   PropertyForm,
   PropertyFormState,
@@ -15,6 +15,7 @@ export function PropiedadNuevaPage() {
   const navigate = useNavigate()
   const [state, setState] = useState<PropertyFormState>(INITIAL_FORM_STATE)
   const [isSaving, setIsSaving] = useState(false)
+  const createProperty = useCreateProperty()
 
   function handleChange(patch: Partial<PropertyFormState>) {
     setState(prev => ({ ...prev, ...patch }))
@@ -30,7 +31,7 @@ export function PropiedadNuevaPage() {
       const titulo = state.titulo || generateTitle(state)
       const descripcion = state.descripcion || generateDescription(state)
 
-      const property = await createProperty({
+      const property = await createProperty.mutateAsync({
         operacion: state.operacion,
         tipo: state.tipo,
         titulo: titulo || null,

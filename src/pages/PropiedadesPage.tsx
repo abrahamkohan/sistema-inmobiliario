@@ -4,6 +4,7 @@ import { Search, Plus, Building2 } from 'lucide-react'
 import { useProperties } from '@/hooks/useProperties'
 import { PropertyCard } from '@/components/properties/PropertyCard'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { usePermiso } from '@/hooks/usePermiso'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -29,6 +30,7 @@ const FILTROS_TIPO = [
 export function PropiedadesPage() {
   const navigate = useNavigate()
   const { data: properties = [], isLoading } = useProperties()
+  const puedeCrear = usePermiso('propiedades', 'write')
   const [search, setSearch] = useState('')
   const [filterOp, setFilterOp] = useState('')
   const [filterTipo, setFilterTipo] = useState('')
@@ -69,7 +71,8 @@ export function PropiedadesPage() {
         </div>
         <button
           onClick={() => navigate('/propiedades/nueva')}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!puedeCrear}
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Nueva propiedad</span>

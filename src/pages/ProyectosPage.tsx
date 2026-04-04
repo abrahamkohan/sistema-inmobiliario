@@ -9,6 +9,7 @@ import { ProjectList } from '@/components/projects/ProjectList'
 import { type FilterState } from '@/components/projects/ProyectoFilters'
 import { toast } from 'sonner'
 import { useProjects, useDeleteProject } from '@/hooks/useProjects'
+import { usePermiso } from '@/hooks/usePermiso'
 import type { Database } from '@/types/database'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
@@ -19,6 +20,7 @@ export function ProyectosPage() {
   const navigate = useNavigate()
   const { data: projects = [], isLoading } = useProjects()
   const deleteProject = useDeleteProject()
+  const puedeCrear = usePermiso('proyectos', 'write')
 
   const [search,  setSearch]  = useState('')
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS)
@@ -42,10 +44,12 @@ export function ProyectosPage() {
     <div className="p-4 md:p-6 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Proyectos</h1>
-        <Button size="sm" onClick={() => navigate('/proyectos/nueva')}>
-          <Plus className="h-3.5 w-3.5 mr-1.5" />
-          Nuevo proyecto
-        </Button>
+        {puedeCrear && (
+          <Button size="sm" onClick={() => navigate('/proyectos/nueva')}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            Nuevo proyecto
+          </Button>
+        )}
       </div>
 
       {isLoading && (

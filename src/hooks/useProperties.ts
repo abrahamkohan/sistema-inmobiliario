@@ -6,6 +6,7 @@ import {
 } from '@/lib/properties'
 import type { PropertyInsert, PropertyUpdate, PropertyPhotoRow } from '@/lib/properties'
 import { useAuth } from '@/context/AuthContext'
+import { useBrand } from '@/context/BrandContext'
 
 export function useProperties() {
   return useQuery({ queryKey: ['properties'], queryFn: getProperties })
@@ -30,9 +31,23 @@ export function usePropertyPhotos(propertyId: string) {
 export function useCreateProperty() {
   const qc = useQueryClient()
   const { session } = useAuth()
+  const { consultant } = useBrand()
   return useMutation({
-    mutationFn: (input: PropertyInsert) =>
-      createProperty({ ...input, assigned_to: session?.user?.id ?? null }),
+    mutationFn: (input: PropertyInsert) => {
+      const dataWithConsultant = {
+        ...input,
+        assigned_to: session?.user?.id ?? null,
+        assigned_agent_id: session?.user?.id ?? null,
+        consultant_id: consultant.uuid as any
+      }
+      console.log('[useCreateProperty] Payload:', {
+        consultant_id: dataWithConsultant.consultant_id,
+        assigned_agent_id: dataWithConsultant.assigned_agent_id,
+        assigned_to: dataWithConsultant.assigned_to,
+        titulo: dataWithConsultant.titulo
+      })
+      return createProperty(dataWithConsultant)
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['properties'] }),
   })
 }

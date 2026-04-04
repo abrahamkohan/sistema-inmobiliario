@@ -15,6 +15,7 @@ import {
   useChangeEstado,
 } from '@/hooks/useClients'
 import { useIsAdmin } from '@/hooks/useUserRole'
+import { usePermiso } from '@/hooks/usePermiso'
 import { useAuth } from '@/context/AuthContext'
 import type { Database } from '@/types/database'
 
@@ -28,6 +29,8 @@ export function ClientesPage() {
   const convertLead   = useConvertToCliente()
   const changeEstado  = useChangeEstado()
   const isAdmin = useIsAdmin()
+  const puedeCrear = usePermiso('crm', 'write')
+  const puedeEditar = usePermiso('crm', 'write')
   const { session } = useAuth()
 
   const [search, setSearch]       = useState('')
@@ -112,10 +115,12 @@ export function ClientesPage() {
               </button>
             </div>
           )}
-          <Button size="sm" onClick={openCreate}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
-            Nuevo
-          </Button>
+          {puedeCrear && (
+            <Button size="sm" onClick={openCreate}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              Nuevo
+            </Button>
+          )}
         </div>
       </div>
 
@@ -178,6 +183,7 @@ export function ClientesPage() {
               onConvert={handleConvert}
               onChangeEstado={handleChangeEstado}
               onView={c => navigate(`/clientes/${c.id}`)}
+              puedeEditar={puedeEditar}
             />
           </div>
           {/* Mobile: cards compactas */}
@@ -191,6 +197,7 @@ export function ClientesPage() {
                 onConvert={handleConvert}
                 onChangeEstado={handleChangeEstado}
                 onView={c => navigate(`/clientes/${c.id}`)}
+                puedeEditar={puedeEditar}
               />
             ))}
           </div>

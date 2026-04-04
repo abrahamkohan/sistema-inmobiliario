@@ -42,11 +42,12 @@ interface Props {
   onConvert?: (id: string) => void
   onChangeEstado?: (id: string, estado: string) => void
   onView?: (c: ClientRow) => void
+  puedeEditar?: boolean
 }
 
 // ─── Fila individual ──────────────────────────────────────────────────────────
 
-function ClientRow({ client, onEdit, onDelete, onConvert, onChangeEstado, onView }: Omit<Props, 'clients'> & { client: ClientRow }) {
+function ClientRow({ client, onEdit, onDelete, onConvert, onChangeEstado, onView, puedeEditar = true }: Omit<Props, 'clients'> & { client: ClientRow }) {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [taskOpen,    setTaskOpen]    = useState(false)
   const [showEstados, setShowEstados] = useState(false)
@@ -167,17 +168,21 @@ function ClientRow({ client, onEdit, onDelete, onConvert, onChangeEstado, onView
                 <UserCheck className="w-3.5 h-3.5" />
               </button>
             )}
-            {/* Edit + Delete: solo visibles en hover */}
-            <button onClick={() => onEdit(client)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
-              title="Editar">
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={handleDelete}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-              title="Eliminar">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            {/* Edit + Delete: solo visibles en hover si puedeEditar */}
+            {puedeEditar && (
+              <>
+                <button onClick={() => onEdit(client)}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
+                  title="Editar">
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={handleDelete}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                  title="Eliminar">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
           </div>
         </td>
       </tr>
@@ -198,7 +203,7 @@ function ClientRow({ client, onEdit, onDelete, onConvert, onChangeEstado, onView
 
 // ─── Tabla ────────────────────────────────────────────────────────────────────
 
-export function ClientTableDesktop({ clients, onEdit, onDelete, onConvert, onChangeEstado, onView }: Props) {
+export function ClientTableDesktop({ clients, onEdit, onDelete, onConvert, onChangeEstado, onView, puedeEditar = true }: Props) {
   return (
     <div className="rounded-xl border border-border overflow-hidden">
       <table className="w-full text-sm">
@@ -221,6 +226,7 @@ export function ClientTableDesktop({ clients, onEdit, onDelete, onConvert, onCha
               onConvert={onConvert}
               onChangeEstado={onChangeEstado}
               onView={onView}
+              puedeEditar={puedeEditar}
             />
           ))}
           {clients.length === 0 && (

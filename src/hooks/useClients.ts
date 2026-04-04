@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getClients, getClient, createClient, updateClient, deleteClient } from '@/lib/clients'
 import { createTask } from '@/lib/tasks'
 import { useAuth } from '@/context/AuthContext'
+import { useBrand } from '@/context/BrandContext'
 import { toast } from 'sonner'
 import type { Database } from '@/types/database'
 
@@ -27,9 +28,16 @@ export function useClient(id: string) {
 export function useCreateClient() {
   const qc = useQueryClient()
   const { session } = useAuth()
+  const { consultant } = useBrand()
   return useMutation({
-    mutationFn: (input: ClientInsert) =>
-      createClient({ ...input, assigned_to: session?.user?.id ?? null }),
+    mutationFn: (input: ClientInsert) => {
+      const dataWithConsultant = {
+        ...input,
+        assigned_to: session?.user?.id ?? null,
+        consultant_id: consultant.uuid as any
+      }
+      return createClient(dataWithConsultant)
+    },
     onSuccess: (newClient) => {
       qc.invalidateQueries({ queryKey: ['clients'] })
       if ((newClient.tipo ?? 'lead') === 'lead' && session?.user?.id) {

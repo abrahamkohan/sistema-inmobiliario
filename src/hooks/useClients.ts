@@ -89,3 +89,12 @@ export function useChangeEstado() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['clients'] }),
   })
 }
+
+export function useReassignClient() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ clientId, agentId }: { clientId: string; agentId: string }) =>
+      updateClient(clientId, { assigned_to: agentId }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['clients'] }),
+  })
+}

@@ -15,6 +15,16 @@ export async function getAgentes(): Promise<AgenteRow[]> {
   return data as unknown as AgenteRow[]
 }
 
+export async function getAgentesActivos(): Promise<AgenteRow[]> {
+  const { data, error } = await supabase
+    .from('agentes')
+    .select('*')
+    .eq('activo', true)
+    .order('nombre', { ascending: true })
+  if (error) throw error
+  return data as unknown as AgenteRow[]
+}
+
 export async function createAgente(input: AgenteInsert): Promise<AgenteRow> {
   const { data, error } = await supabase
     .from('agentes')

@@ -6,9 +6,9 @@ import {
   ChevronLeft, Phone, Mail, Edit2, NotebookPen, ClipboardList,
   MessageCircle, CheckCircle2, Clock, AlertCircle, BarChart2,
   FileText, Download, Loader2, Plus, Send, User,
-  Star,
+  Star, Users,
 } from 'lucide-react'
-import { useClient } from '@/hooks/useClients'
+import { useClient, useReassignClient } from '@/hooks/useClients'
 import { useNotesByClient, useDeleteNote, useCreateNote } from '@/hooks/useNotes'
 import { useTasksByLead } from '@/hooks/useTasks'
 import { useSimulationsByClient, useDeleteSimulation, useGenerateReport } from '@/hooks/useSimulations'
@@ -16,12 +16,15 @@ import { usePresupuestosByClient } from '@/hooks/usePresupuestos'
 import { NoteEditor } from '@/components/notes/NoteEditor'
 import { useProjects } from '@/hooks/useProjects'
 import { TaskModal } from '@/components/tasks/TaskModal'
+import { useIsAdmin } from '@/hooks/useUserRole'
+import { getAgentesActivos } from '@/lib/agentes'
 
 import { extractTitle } from '@/lib/notes'
 import { getUrgency } from '@/lib/tasks'
 import { getReportUrl } from '@/lib/pdfService'
 
 import type { Database } from '@/types/database'
+import { useQuery } from '@tanstack/react-query'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -522,6 +525,67 @@ function StatusBar({ activity, tasks }: { activity: ActivityItem[]; tasks: TaskR
   )
 }
 
+// ─── Admin Reassignment Component ───────────────────────────────────────────
+
+function AdminReassignment({
+  clientId,
+  currentAgentId,
+  agentes,
+  onReassign,
+  isReassigning,
+}: {
+  clientId: string
+  currentAgentId: string | null
+  agentes: { id: string; nombre: string }[]
+  onReassign: (vars: { clientId: string; agentId: string }) => void
+  isReassigning: boolean
+}) {
+  const [selectedAgentId, setSelectedAgentId] = useState<string>(
+    currentAgentId ?? ''
+  )
+
+  const currentAgent = agentes.find(a => a.id === currentAgentId)
+  const hasChanges = selectedAgentId !== (currentAgentId ?? '')
+
+  function handleSave() {
+    if (!selectedAgentId || !hasChanges) return
+    onReassign({ clientId, agentId: selectedAgentId })
+  }
+
+  return (
+    <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+      <div className="flex items-center gap-2 mb-2">
+        <Users className="w-4 h-4 text-gray-500" />
+        <span className="text-xs font-semibold text-gray-600">Asignado a:</span>
+        <span className="text-sm font-medium text-gray-900">
+          {currentAgent?.nombre ?? 'Sin asignar'}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <select
+          value={selectedAgentId}
+          onChange={(e) => setSelectedAgentId(e.target.value)}
+          className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400"
+        >
+          <option value="">Seleccionar agente...</option>
+          {agentes.map((agente) => (
+            <option key={agente.id} value={agente.id}>
+              {agente.nombre}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={handleSave}
+          disabled={!hasChanges || isReassigning}
+          className="px-3 py-1.5 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {isReassigning ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Guardar'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function ClientDetailPage() {
@@ -536,6 +600,9 @@ export function ClientDetailPage() {
 
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  // ── Role check ─────────────────────────────────────────────────────────────
+  const isAdmin = useIsAdmin()
+
   // ── Data ──────────────────────────────────────────────────────────────────
   const { data: client, isLoading } = useClient(id)
   const { data: notes    = []     } = useNotesByClient(id)
@@ -543,10 +610,16 @@ export function ClientDetailPage() {
   const { data: sims     = []     } = useSimulationsByClient(id)
   const { data: budgets  = []     } = usePresupuestosByClient(id)
   const { data: projects = []     } = useProjects()
+  const { data: agentes = [] } = useQuery({
+    queryKey: ['agentes-activos'],
+    queryFn: getAgentesActivos,
+    enabled: isAdmin,
+  })
 
   // ── Mutations ─────────────────────────────────────────────────────────────
   const createNote  = useCreateNote()
   const deleteNote  = useDeleteNote()
+  const reassignClient = useReassignClient()
   // updateClient no longer used - editing moved to separate page
 
   // ── All activity, sorted DESC ──────────────────────────────────────────────
@@ -694,6 +767,17 @@ export function ClientDetailPage() {
               </div>
             )}
           </div>
+
+          {/* ── Admin: Agent Reassignment ─────────────────────────────────────── */}
+          {isAdmin && (
+            <AdminReassignment
+              clientId={client.id}
+              currentAgentId={client.assigned_to}
+              agentes={agentes}
+              onReassign={reassignClient.mutate}
+              isReassigning={reassignClient.isPending}
+            />
+          )}
 
           {/* Observaciones */}
           {client.notes && (

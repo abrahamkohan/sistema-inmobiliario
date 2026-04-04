@@ -9,6 +9,7 @@ import { InformesPage } from '@/pages/InformesPage'
 import { ReporteHtmlPage } from '@/pages/ReporteHtmlPage'
 import { ConfiguracionPage } from '@/pages/ConfiguracionPage'
 import { RecursosPage } from '@/pages/RecursosPage'
+import { MarketingPage } from '@/pages/MarketingPage'
 import { PresupuestosPage } from '@/pages/PresupuestosPage'
 import { PresupuestoPdfPage } from '@/pages/PresupuestoPdfPage'
 import { PresupuestoFormPage } from '@/pages/PresupuestoFormPage'
@@ -72,6 +73,7 @@ export const router = createBrowserRouter([
       { path: 'propiedades/:id/editar', element: <PropiedadEditarPage /> },
       { path: 'tareas',        element: <TareasPage /> },
       { path: 'notas',         element: <NotasPage /> },
+      { path: 'marketing',     element: <MarketingPage /> },
       { path: 'comisiones',            element: <RequireRole role="admin"><ComisionesPage /></RequireRole> },
       { path: 'comisiones/nueva',      element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
       { path: 'comisiones/:id/editar', element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },

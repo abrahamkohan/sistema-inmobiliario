@@ -164,47 +164,6 @@ export function useDashboardStats() {
     staleTime: 30_000,
   })
 }
-      })
-
-      // Group sims by month
-      const monthMap: Record<string, number> = {}
-      for (let i = 5; i >= 0; i--) {
-        const d = new Date()
-        d.setMonth(d.getMonth() - i)
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-        monthMap[key] = 0
-      }
-      for (const sim of simsForChart ?? []) {
-        const d = new Date(sim.created_at)
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-        if (key in monthMap) monthMap[key]++
-      }
-      const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-      const simsByMonth = Object.entries(monthMap).map(([key, total]) => {
-        const [, month] = key.split('-')
-        return { month: MONTHS_ES[parseInt(month) - 1], total }
-      })
-
-      return {
-        counts: {
-          clients: clients ?? 0,
-          projects: projects ?? 0,
-          projects_active: projects_active ?? 0,
-          simulations: simulations ?? 0,
-          typologies: typologies ?? 0,
-          units_available,
-        },
-        recent: {
-          simulations: (recentSims ?? []) as DashboardStats['recent']['simulations'],
-          projects: (recentProjects ?? []) as DashboardStats['recent']['projects'],
-        },
-        radar: radar ?? [],
-        simsByMonth: simsByMonth ?? [],
-      }
-    },
-    staleTime: 30_000,
-  })
-}
 
 // ─── useExchangeRates ─────────────────────────────────────────────────────────
 

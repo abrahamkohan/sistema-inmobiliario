@@ -10,45 +10,58 @@ export type TeamMember = {
   role: 'admin' | 'agente' | null
   is_owner: boolean
   permisos: Record<string, string> | null
-  consultant_id: string | null  // UUID del tenant
-  email?: string // Add email for fallback
+  consultant_id: string | null
+  email?: string
 }
 
 export async function getTeam(): Promise<TeamMember[]> {
-  const [{ data: profiles, error: e1 }, { data: roles, error: e2 }] = await Promise.all([
-    supabase.from('profiles').select('*').order('created_at', { ascending: true }),
-    supabase.from('user_roles').select('user_id, role, is_owner, permisos, consultant_id'),
-  ])
-  if (e1) console.error('[getTeam] profiles error:', e1)
-  if (e2) console.error('[getTeam] roles error:', e2)
+  const profilesRes = await supabase.from('profiles').select('*').order('created_at', { ascending: true })
+  const rolesRes = await supabase.from('user_roles').select('user_id, role, is_owner, permisos')
 
-  const roleMap = Object.fromEntries((roles ?? []).map(r => [r.user_id, r]))
+  const roleMap = new Map<string, { role: string; is_owner: boolean; permisos: Record<string, string> | null }>()
+  
+  if (rolesRes.data) {
+    rolesRes.data.forEach(r => {
+      roleMap.set(r.user_id, { role: r.role, is_owner: r.is_owner, permisos: r.permisos })
+    })
+  }
 
-  return (profiles ?? []).map(p => {
-    const row     = p as { id: string; full_name: string | null; phone: string | null; avatar_url: string | null; created_at: string }
-    const roleRow = roleMap[row.id] as { role: string; is_owner: boolean; permisos?: Record<string, string>; consultant_id?: string } | undefined
+  return (profilesRes.data ?? []).map(p => {
+    const roleRow = roleMap.get(p.id)
     return {
-      id:         row.id,
-      full_name:  row.full_name,
-      phone:      row.phone,
-      avatar_url: row.avatar_url,
-      created_at: row.created_at,
-      role:       (roleRow?.role as 'admin' | 'agente') ?? null,
-      is_owner:   roleRow?.is_owner ?? false,
-      permisos:   roleRow?.permisos ?? null,
-      consultant_id: roleRow?.consultant_id ?? null,
+      id: p.id,
+      full_name: p.full_name,
+      phone: p.phone,
+      avatar_url: p.avatar_url,
+      created_at: p.created_at,
+      role: (roleRow?.role as 'admin' | 'agente') ?? null,
+      is_owner: roleRow?.is_owner ?? false,
+      permisos: roleRow?.permisos ?? null,
+      consultant_id: null,
     }
   })
+}
+
+export async function getTeamMembers(): Promise<TeamMember[]> {
+  return getTeam()
 }
 
 export async function setRole(userId: string, role: 'admin' | 'agente'): Promise<void> {
   const { error } = await supabase
     .from('user_roles')
-    .upsert({ user_id: userId, role }, { onConflict: 'user_id' })
+    .upsert({ user_id: userId, role, is_owner: false })
   if (error) throw error
 }
 
-export async function removeRole(userId: string): Promise<void> {
+export async function setPermisos(userId: string, permisos: Record<string, string> | null): Promise<void> {
+  const { error } = await supabase
+    .from('user_roles')
+    .update({ permisos })
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
+export async function removeUser(userId: string): Promise<void> {
   const { error } = await supabase
     .from('user_roles')
     .delete()
@@ -56,23 +69,12 @@ export async function removeRole(userId: string): Promise<void> {
   if (error) throw error
 }
 
-export async function inviteUser(email: string): Promise<void> {
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: true },
-  })
-  if (error) throw error
+export async function removeRole(userId: string): Promise<void> {
+  return removeUser(userId)
 }
 
-/**
- * Updates the JSONB permisos column for a user role.
- * @param userId - ID of the user.
- * @param permisos - Object mapping module names to permission levels, or null to clear.
- */
-export async function setPermisos(userId: string, permisos: Record<string, string> | null): Promise<void> {
-  const { error } = await supabase
-    .from('user_roles')
-    .update({ permisos })
-    .eq('user_id', userId)
+export async function inviteUser(email: string): Promise<void> {
+  // Implementación básica - crear usuario en espera de invitación
+  const { error } = await supabase.auth.inviteUser(email)
   if (error) throw error
 }

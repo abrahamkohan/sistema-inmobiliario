@@ -8,8 +8,29 @@ import { PermisosModal } from './PermisosModal'
 import { DEFAULT_PERMISSIONS } from '@/lib/roleDefaults'
 import type { TeamMember } from '@/lib/team'
 
-// Módulos a mostrar en el resumen
-const SUMMARY_MODULES = ['crm', 'propiedades', 'marketing_media', 'finanzas', 'configuracion']
+// Todos los módulos en orden consistente
+const SUMMARY_MODULES = [
+  'crm',
+  'propiedades', 
+  'proyectos',
+  'marketing_media',
+  'finanzas',
+  'tareas',
+  'reportes',
+  'configuracion',
+]
+
+// Nombres completos de módulos
+const MODULE_LABELS: Record<string, string> = {
+  crm: 'CRM',
+  propiedades: 'Propiedades',
+  proyectos: 'Proyectos',
+  marketing_media: 'Marketing',
+  finanzas: 'Finanzas',
+  tareas: 'Tareas',
+  reportes: 'Reportes',
+  configuracion: 'Configuración',
+}
 
 // Obtiene permisos efectivos (override o default del rol)
 function getEffectivePerm(member: TeamMember, module: string): string {
@@ -18,37 +39,40 @@ function getEffectivePerm(member: TeamMember, module: string): string {
   return override ?? defaults[module] ?? 'none'
 }
 
+// Obtiene tooltip para cada nivel
+function getPermTooltip(perm: string): string {
+  switch (perm) {
+    case 'full': return 'Total (puede editar y eliminar)'
+    case 'write': return 'Editar (puede crear y editar)'
+    case 'read': return 'Lectura (solo ver)'
+    default: return 'Sin acceso'
+  }
+}
+
 // Renderiza el resumen de permisos
 function renderPermSummary(member: TeamMember) {
   return (
-    <div className="flex flex-wrap gap-1.5 mt-1">
+    <div className="flex flex-wrap gap-1 mt-1">
       {SUMMARY_MODULES.map(mod => {
         const perm = getEffectivePerm(member, mod)
-        const hasAccess = perm !== 'none'
-        const isFull = perm === 'full'
         
-        // Nombre corto del módulo
-        const modLabel: Record<string, string> = {
-          crm: 'CRM',
-          propiedades: 'Prop',
-          marketing_media: 'Mkt',
-          finanzas: 'Fin',
-          configuracion: 'Cfg',
+        // Estilos por nivel de acceso
+        const permStyles: Record<string, { bg: string; text: string; dot: string }> = {
+          full:   { bg: 'bg-green-100', text: 'text-green-700', dot: '●' },
+          write:  { bg: 'bg-blue-100',  text: 'text-blue-700',  dot: '●' },
+          read:   { bg: 'bg-purple-100', text: 'text-purple-700', dot: '●' },
+          none:   { bg: 'bg-gray-100',  text: 'text-gray-400',  dot: '○' },
         }
+        
+        const style = permStyles[perm] ?? permStyles.none
         
         return (
           <span
             key={mod}
-            className={`text-[10px] px-1.5 py-0.5 rounded ${
-              isFull 
-                ? 'bg-green-100 text-green-700' 
-                : hasAccess 
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-gray-100 text-gray-400'
-            }`}
-            title={mod}
+            className={`text-[10px] px-1.5 py-0.5 rounded cursor-default ${style.bg} ${style.text}`}
+            title={`${MODULE_LABELS[mod]}: ${getPermTooltip(perm)}`}
           >
-            {modLabel[mod]} {hasAccess ? '✓' : '✖'}
+            {style.dot}
           </span>
         )
       })}

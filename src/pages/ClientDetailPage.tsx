@@ -17,14 +17,13 @@ import { NoteEditor } from '@/components/notes/NoteEditor'
 import { useProjects } from '@/hooks/useProjects'
 import { TaskModal } from '@/components/tasks/TaskModal'
 import { useIsAdmin } from '@/hooks/useUserRole'
-import { getAgentesActivos } from '@/lib/agentes'
+import { useTeam } from '@/hooks/useTeam'
 
 import { extractTitle } from '@/lib/notes'
 import { getUrgency } from '@/lib/tasks'
 import { getReportUrl } from '@/lib/pdfService'
 
 import type { Database } from '@/types/database'
-import { useQuery } from '@tanstack/react-query'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -536,7 +535,7 @@ function AdminReassignment({
 }: {
   clientId: string
   currentAgentId: string | null
-  agentes: { id: string; nombre: string }[]
+  agentes: { id: string; full_name: string | null }[]
   onReassign: (vars: { clientId: string; agentId: string }) => void
   isReassigning: boolean
 }) {
@@ -558,7 +557,7 @@ function AdminReassignment({
         <Users className="w-4 h-4 text-gray-500" />
         <span className="text-xs font-semibold text-gray-600">Asignado a:</span>
         <span className="text-sm font-medium text-gray-900">
-          {currentAgent?.nombre ?? 'Sin asignar'}
+          {currentAgent?.full_name ?? 'Sin asignar'}
         </span>
       </div>
       <div className="flex items-center gap-2">
@@ -570,7 +569,7 @@ function AdminReassignment({
           <option value="">Seleccionar agente...</option>
           {agentes.map((agente) => (
             <option key={agente.id} value={agente.id}>
-              {agente.nombre}
+              {agente.full_name ?? 'Sin nombre'}
             </option>
           ))}
         </select>
@@ -610,11 +609,8 @@ export function ClientDetailPage() {
   const { data: sims     = []     } = useSimulationsByClient(id)
   const { data: budgets  = []     } = usePresupuestosByClient(id)
   const { data: projects = []     } = useProjects()
-  const { data: agentes = [] } = useQuery({
-    queryKey: ['agentes-activos'],
-    queryFn: getAgentesActivos,
-    enabled: isAdmin,
-  })
+  const { data: team = [] } = useTeam()
+  const agentes = team // Use team members (profiles) instead of agentes table
 
   // ── Mutations ─────────────────────────────────────────────────────────────
   const createNote  = useCreateNote()

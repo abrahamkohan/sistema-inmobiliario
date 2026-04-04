@@ -65,6 +65,7 @@ export function DayView() {
 
   const leads = useMemo<Record<string, TaskLead>>(() => {
     const map: Record<string, TaskLead> = {}
+    if (!allClients) return map
     for (const c of allClients) {
       map[c.id] = { id: c.id, full_name: c.full_name, phone: c.phone ?? null }
     }
@@ -72,17 +73,24 @@ export function DayView() {
   }, [allClients])
 
   // ── Clasificación de tareas ────────────────────────────────────────────
-  const overdue  = useMemo(() => allTasks.filter(t => getUrgency(t) === 'overdue')
-    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()), [allTasks])
+  const overdue  = useMemo(() => {
+    if (!allTasks) return []
+    return allTasks.filter(t => getUrgency(t) === 'overdue')
+      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+  }, [allTasks])
 
-  const today    = useMemo(() => sortByPriorityDesc(
-    allTasks.filter(t => getUrgency(t) === 'today')
-  ), [allTasks])
+  const today    = useMemo(() => {
+    if (!allTasks) return []
+    return sortByPriorityDesc(allTasks.filter(t => getUrgency(t) === 'today'))
+  }, [allTasks])
 
-  const upcoming = useMemo(() => allTasks
-    .filter(t => getUrgency(t) === 'upcoming')
-    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
-    .slice(0, 3), [allTasks])
+  const upcoming = useMemo(() => {
+    if (!allTasks) return []
+    return allTasks
+      .filter(t => getUrgency(t) === 'upcoming')
+      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+      .slice(0, 3)
+  }, [allTasks])
 
   const isEmpty  = !loadingTasks && overdue.length === 0 && today.length === 0
 

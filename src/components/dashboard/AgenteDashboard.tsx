@@ -17,10 +17,10 @@ export function AgenteDashboard() {
 
   const nombre = session?.user?.email?.split('@')[0] ?? 'Agente'
 
-  const leads    = useMemo(() => clients.filter(c => (c.tipo ?? 'lead') === 'lead'),  [clients])
-  const clientes = useMemo(() => clients.filter(c => c.tipo === 'cliente'),           [clients])
-  const overdue  = useMemo(() => tasks.filter(t => getUrgency(t) === 'overdue'),      [tasks])
-  const pending  = useMemo(() => tasks.filter(t => t.status === 'pending'),           [tasks])
+  const leads    = useMemo(() => (clients ?? []).filter(c => (c.tipo ?? 'lead') === 'lead'),  [clients])
+  const clientes = useMemo(() => (clients ?? []).filter(c => c.tipo === 'cliente'),           [clients])
+  const overdue  = useMemo(() => (tasks ?? []).filter(t => getUrgency(t) === 'overdue'),      [tasks])
+  const pending  = useMemo(() => (tasks ?? []).filter(t => t.status === 'pending'),           [tasks])
 
   const stats = [
     { label: 'Leads',    value: leads.length,    icon: Users,         color: '#f59e0b', onClick: () => navigate('/clientes') },

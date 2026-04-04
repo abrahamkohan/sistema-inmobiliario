@@ -11,9 +11,10 @@ type ClientInsert = Database['public']['Tables']['clients']['Insert']
 type ClientUpdate = Database['public']['Tables']['clients']['Update']
 
 export function useClients() {
-  return useQuery({
+  return useQuery<ClientRow[]>({
     queryKey: ['clients'],
     queryFn: getClients,
+    initialData: [],
   })
 }
 

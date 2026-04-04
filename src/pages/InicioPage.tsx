@@ -210,47 +210,43 @@ function RadarWidget({ stats, isLoading, compact }: {
   const puedeVerProyectos = usePermiso('proyectos', 'read') ?? false
   const rows = stats?.radar ?? []
 
-  // Si no tiene permiso, no mostrar nada
-  if (!puedeVerProyectos) {
-    return (
-      <Flex align="center" justify="center" style={{ height: '100%' }}>
-        <Text size="1" color="gray">Sin acceso a proyectos</Text>
-      </Flex>
-    )
-  }
+  // Sin permiso - mensaje (renderizado condicional, NO early return)
+  const sinPermisoContent = (
+    <Flex align="center" justify="center" style={{ height: '100%' }}>
+      <Text size="1" color="gray">Sin acceso a proyectos</Text>
+    </Flex>
+  )
 
   // Mobile: card list
-  if (compact) {
-    return (
-      <Flex direction="column" gap="2" style={{ height: '100%', overflow: 'auto' }}>
-        {isLoading ? (
-          <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Cargando...</Text></Flex>
-        ) : (rows ?? []).length === 0 ? (
-          <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Sin proyectos</Text></Flex>
-        ) : (rows ?? []).map((p) => {
-          const sb = STATUS_BADGE[p.status]
-          return (
-            <Card key={p.id} size="2" style={{ borderRadius: 12 }} onClick={() => navigate('/')}>
-              <Flex justify="between" align="center">
-                <Box>
-                  <Text size="2" weight="bold">{p.name}</Text>
-                  {p.avg_price_m2 ? (
-                    <Text as="p" size="1" color="gray">USD {p.avg_price_m2.toLocaleString('es-PY')} / m²</Text>
-                  ) : null}
-                </Box>
-                {sb
-                  ? <Badge color={sb.color} variant="soft" radius="full">{sb.label}</Badge>
-                  : <Badge color="gray" variant="soft" radius="full">{p.status}</Badge>}
-              </Flex>
-            </Card>
-          )
-        })}
-      </Flex>
-    )
-  }
+  const mobileContent = (
+    <Flex direction="column" gap="2" style={{ height: '100%', overflow: 'auto' }}>
+      {isLoading ? (
+        <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Cargando...</Text></Flex>
+      ) : (rows ?? []).length === 0 ? (
+        <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Sin proyectos</Text></Flex>
+      ) : (rows ?? []).map((p) => {
+        const sb = STATUS_BADGE[p.status]
+        return (
+          <Card key={p.id} size="2" style={{ borderRadius: 12 }} onClick={() => navigate('/')}>
+            <Flex justify="between" align="center">
+              <Box>
+                <Text size="2" weight="bold">{p.name}</Text>
+                {p.avg_price_m2 ? (
+                  <Text as="p" size="1" color="gray">USD {p.avg_price_m2.toLocaleString('es-PY')} / m²</Text>
+                ) : null}
+              </Box>
+              {sb
+                ? <Badge color={sb.color} variant="soft" radius="full">{sb.label}</Badge>
+                : <Badge color="gray" variant="soft" radius="full">{p.status}</Badge>}
+            </Flex>
+          </Card>
+        )
+      })}
+    </Flex>
+  )
 
   // Desktop: tabla limpia sin sombra ni divisores de fila
-  return (
+  const desktopContent = (
     <div style={{ height: '100%', overflow: 'auto', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--card)' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
@@ -290,6 +286,11 @@ function RadarWidget({ stats, isLoading, compact }: {
       </table>
     </div>
   )
+
+  // Renderizado condicional SIN early returns
+  if (!puedeVerProyectos) return sinPermisoContent
+  if (compact) return mobileContent
+  return desktopContent
 }
 
 function MercadoWidget({ compact }: { compact?: boolean }) {

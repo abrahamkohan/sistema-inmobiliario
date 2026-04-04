@@ -23,9 +23,10 @@ type TaskUpdate = Database['public']['Tables']['tasks']['Update']
 // ── Queries ───────────────────────────────────────────────────────────────
 
 export function useTasks() {
-  return useQuery({
+  return useQuery<TaskRow[]>({
     queryKey: ['tasks'],
     queryFn:  getTasks,
+    initialData: [],
   })
 }
 

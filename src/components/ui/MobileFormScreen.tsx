@@ -59,7 +59,7 @@ export function MobileFormScreen({ open, onClose, title, children, footer }: Mob
 
       {/* ── FOOTER (fijo, fuera del scroll, nunca lo tapa el teclado) ────────── */}
       {footer && (
-        <div className="flex-shrink-0 bg-white border-t border-gray-100"
+        <div className="flex-shrink-0 bg-white border-t border-gray-100 pb-6"
           style={{ boxShadow: '0 -2px 16px rgba(0,0,0,0.06)' }}>
           {footer}
         </div>

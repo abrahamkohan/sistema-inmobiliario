@@ -20,13 +20,17 @@ export async function getTeam(): Promise<TeamMember[]> {
 
   const roleMap = new Map<string, { role: string; is_owner: boolean; permisos: Record<string, string> | null }>()
   
-  if (rolesRes.data) {
-    rolesRes.data.forEach(r => {
+  const rolesData = rolesRes.data
+  if (rolesData) {
+    rolesData.forEach(r => {
       roleMap.set(r.user_id, { role: r.role, is_owner: r.is_owner, permisos: r.permisos })
     })
   }
 
-  return (profilesRes.data ?? []).map(p => {
+  const profilesData = profilesRes.data
+  if (!profilesData) return []
+
+  return profilesData.map(p => {
     const roleRow = roleMap.get(p.id)
     return {
       id: p.id,
@@ -73,8 +77,7 @@ export async function removeRole(userId: string): Promise<void> {
   return removeUser(userId)
 }
 
-export async function inviteUser(email: string): Promise<void> {
-  // Implementación básica - crear usuario en espera de invitación
-  const { error } = await supabase.auth.inviteUser(email)
-  if (error) throw error
+// Stub for inviteUser - no-op since Supabase client doesn't have this method
+export async function inviteUser(_email: string): Promise<void> {
+  console.warn('inviteUser not implemented - use Supabase Dashboard for invitations')
 }

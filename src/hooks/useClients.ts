@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getClients, getClient, createClient, updateClient, deleteClient } from '@/lib/clients'
 import { createTask } from '@/lib/tasks'
 import { useAuth } from '@/context/AuthContext'
+import { toast } from 'sonner'
 import type { Database } from '@/types/database'
 
 type ClientInsert = Database['public']['Tables']['clients']['Insert']
@@ -93,8 +94,20 @@ export function useChangeEstado() {
 export function useReassignClient() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ clientId, agentId }: { clientId: string; agentId: string }) =>
-      updateClient(clientId, { assigned_to: agentId }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['clients'] }),
+    mutationFn: async ({ clientId, agentId }: { clientId: string; agentId: string }) => {
+      console.log('[Reassign] Updating client:', clientId, 'to agent:', agentId)
+      const result = await updateClient(clientId, { assigned_to: agentId })
+      console.log('[Reassign] Success:', result)
+      return result
+    },
+    onSuccess: () => {
+      console.log('[Reassign] Query invalidated')
+      toast.success('Cliente asignado correctamente')
+      qc.invalidateQueries({ queryKey: ['clients'] })
+    },
+    onError: (error) => {
+      console.error('[Reassign] Error:', error)
+      toast.error('Error al asignar cliente: ' + (error instanceof Error ? error.message : 'Error desconocido'))
+    },
   })
 }

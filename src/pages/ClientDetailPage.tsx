@@ -546,9 +546,12 @@ function AdminReassignment({
   const currentAgent = agentes.find(a => a.id === currentAgentId)
   const hasChanges = selectedAgentId !== (currentAgentId ?? '')
 
-  function handleSave() {
-    if (!selectedAgentId || !hasChanges) return
-    onReassign({ clientId, agentId: selectedAgentId })
+  function handleChange(agentId: string) {
+    setSelectedAgentId(agentId)
+    if (agentId && hasChanges) {
+      // Auto-save on selection change
+      onReassign({ clientId, agentId })
+    }
   }
 
   return (
@@ -557,30 +560,28 @@ function AdminReassignment({
         <Users className="w-4 h-4 text-gray-500" />
         <span className="text-xs font-semibold text-gray-600">Asignado a:</span>
         <span className="text-sm font-medium text-gray-900">
-          {currentAgent?.full_name ?? 'Sin asignar'}
+          {isReassigning ? (
+            <span className="flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin" /> Guardando...
+            </span>
+          ) : (
+            currentAgent?.full_name ?? 'Sin asignar'
+          )}
         </span>
       </div>
-      <div className="flex items-center gap-2">
-        <select
-          value={selectedAgentId}
-          onChange={(e) => setSelectedAgentId(e.target.value)}
-          className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400"
-        >
-          <option value="">Seleccionar agente...</option>
-          {agentes.map((agente) => (
-            <option key={agente.id} value={agente.id}>
-              {agente.full_name ?? 'Sin nombre'}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={handleSave}
-          disabled={!hasChanges || isReassigning}
-          className="px-3 py-1.5 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {isReassigning ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Guardar'}
-        </button>
-      </div>
+      <select
+        value={selectedAgentId}
+        onChange={(e) => handleChange(e.target.value)}
+        disabled={isReassigning}
+        className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400 disabled:opacity-50"
+      >
+        <option value="">Seleccionar agente...</option>
+        {agentes.map((agente) => (
+          <option key={agente.id} value={agente.id}>
+            {agente.full_name ?? 'Sin nombre'}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }

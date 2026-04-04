@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTeam, useSetRole, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
-import { useSetPermisos } from '@/hooks/useSetPermisos'
 import { useAuth } from '@/context/AuthContext'
+import { PermisosModal } from './PermisosModal'
 
 // Roles disponibles para asignar
 const ROLES = [
@@ -15,41 +15,19 @@ const ROLES = [
   { value: 'viewer', label: 'Viewer' },
 ]
 
-// Módulos que pueden tener permisos personalizados (clave -> label)
-const PERM_MODULES: Record<string, string> = {
-  crm: 'CRM',
-  propiedades: 'Propiedades',
-  proyectos: 'Proyectos',
-  media_props: 'Media (Prop/Proj)',
-  marketing_media: 'Marketing',
-  finanzas: 'Finanzas',
-  tareas: 'Tareas',
-  reportes: 'Reportes',
-  configuracion: 'Configuración',
-}
-
-const PERM_OPTIONS = [
-  { value: 'none', label: '—' },
-  { value: 'read', label: '👁' },
-  { value: 'write', label: '✏️' },
-  { value: 'full', label: '🗑️' },
-]
-
 export function SeccionEquipo() {
   const { session } = useAuth()
   const { data: team = [] } = useTeam()
   const setRole = useSetRole()
   const removeRole = useRemoveRole()
   const inviteUser = useInviteUser()
-  const setPermisos = useSetPermisos()
 
   const [showInvite, setShowInvite] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('asesor')
 
-  // Estado para edición de permisos
-  const [editingUserId, setEditingUserId] = useState<string | null>(null)
-  const [permValues, setPermValues] = useState<Record<string, string>>({})
+  // Estado para modal de permisos
+  const [permModalUser, setPermModalUser] = useState<typeof team[0] | null>(null)
 
   async function handleInvite() {
     if (!inviteEmail.trim()) return
@@ -80,30 +58,6 @@ export function SeccionEquipo() {
     } catch {
       toast.error('Error al eliminar acceso')
     }
-  }
-
-  function openPermEdit(userId: string, currentPerms: Record<string, string> | null) {
-    setEditingUserId(userId)
-    setPermValues(currentPerms ?? {})
-  }
-
-  function closePermEdit() {
-    setEditingUserId(null)
-    setPermValues({})
-  }
-
-  async function savePerms(userId: string) {
-    try {
-      await setPermisos.mutateAsync({ userId, permisos: permValues })
-      toast.success('Permisos guardados')
-      closePermEdit()
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Error al guardar permisos')
-    }
-  }
-
-  function updatePerm(module: string, value: string) {
-    setPermValues(prev => ({ ...prev, [module]: value }))
   }
 
   return (
@@ -202,46 +156,13 @@ export function SeccionEquipo() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => openPermEdit(member.id, member.permisos)}
+                    onClick={() => setPermModalUser(member)}
                     className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Editar permisos"
                   >
-                    Permisos
+                    ⚙️
                   </button>
                 </div>
-                {editingUserId === member.id && (
-                  <div className="p-2 bg-gray-50 border border-gray-200 rounded">
-                    {Object.entries(PERM_MODULES).map(([key, label]) => (
-                      <div key={key} className="flex items-center gap-2 mb-1">
-                        <span className="w-32 text-sm">{label}</span>
-                        <select
-                          value={permValues[key] ?? 'none'}
-                          onChange={e => updatePerm(key, e.target.value)}
-                          className="h-8 px-2 text-xs border border-gray-200 rounded"
-                        >
-                          {PERM_OPTIONS.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                    ))}
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        onClick={() => savePerms(member.id)}
-                        className="px-3 py-1 bg-gray-900 text-white text-xs rounded disabled:opacity-40"
-                        disabled={setPermisos.isPending}
-                      >
-                        Guardar
-                      </button>
-                      <button
-                        onClick={closePermEdit}
-                        className="px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -250,6 +171,15 @@ export function SeccionEquipo() {
           <p className="text-xs text-gray-400 text-center py-4">No hay usuarios todavía</p>
         )}
       </div>
+
+      {/* Modal de permisos */}
+      {permModalUser && (
+        <PermisosModal
+          user={permModalUser}
+          open={!!permModalUser}
+          onClose={() => setPermModalUser(null)}
+        />
+      )}
     </div>
   )
 }

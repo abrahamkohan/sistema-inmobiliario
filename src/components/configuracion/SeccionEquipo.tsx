@@ -15,24 +15,24 @@ const ROLES = [
   { value: 'viewer', label: 'Viewer' },
 ]
 
-// Módulos que pueden tener permisos personalizados
-const PERM_MODULES = [
-  'CRM',
-  'Propiedades',
-  'Proyectos',
-  'Media',
-  'Finanzas',
-  'Marketing',
-  'Tareas',
-  'Reportes',
-  'Configuración',
-]
+// Módulos que pueden tener permisos personalizados (clave -> label)
+const PERM_MODULES: Record<string, string> = {
+  crm: 'CRM',
+  propiedades: 'Propiedades',
+  proyectos: 'Proyectos',
+  media_props: 'Media (Prop/Proj)',
+  marketing_media: 'Marketing',
+  finanzas: 'Finanzas',
+  tareas: 'Tareas',
+  reportes: 'Reportes',
+  configuracion: 'Configuración',
+}
 
 const PERM_OPTIONS = [
-  { value: '-', label: '—' },
-  { value: 'read', label: 'read' },
-  { value: 'write', label: 'write' },
-  { value: 'full', label: 'full' },
+  { value: 'none', label: '—' },
+  { value: 'read', label: '👁' },
+  { value: 'write', label: '✏️' },
+  { value: 'full', label: '🗑️' },
 ]
 
 export function SeccionEquipo() {
@@ -211,12 +211,12 @@ export function SeccionEquipo() {
                 </div>
                 {editingUserId === member.id && (
                   <div className="p-2 bg-gray-50 border border-gray-200 rounded">
-                    {PERM_MODULES.map(mod => (
-                      <div key={mod} className="flex items-center gap-2 mb-1">
-                        <span className="w-32 text-sm">{mod}</span>
+                    {Object.entries(PERM_MODULES).map(([key, label]) => (
+                      <div key={key} className="flex items-center gap-2 mb-1">
+                        <span className="w-32 text-sm">{label}</span>
                         <select
-                          value={permValues[mod] ?? '-'}
-                          onChange={e => updatePerm(mod, e.target.value)}
+                          value={permValues[key] ?? 'none'}
+                          onChange={e => updatePerm(key, e.target.value)}
                           className="h-8 px-2 text-xs border border-gray-200 rounded"
                         >
                           {PERM_OPTIONS.map(opt => (

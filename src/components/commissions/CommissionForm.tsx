@@ -1,7 +1,8 @@
 // src/components/commissions/CommissionForm.tsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useProjects } from '@/hooks/useProjects'
 import { useAgentes } from '@/hooks/useAgentes'
+import { useCommercialAlliesActive } from '@/hooks/useCommercialAllies'
 import { INPUT_CLS, LABEL_CLS } from '@/styles/design-system'
 import type { Database } from '@/types/database'
 
@@ -18,6 +19,9 @@ export interface CommissionFormValues {
   co_broker:           boolean
   co_broker_nombre:    string
   propietario:         string
+  has_ally:            boolean
+  ally_id:             string
+  ally_percentage:     string
 }
 
 interface Props {
@@ -39,6 +43,7 @@ export function CommissionForm({
 }: Props) {
   const { data: projects = [] } = useProjects()
   const { data: agentes = [] }  = useAgentes()
+  const { data: allies = [] }    = useCommercialAlliesActive()
 
   const [form, setForm] = useState<CommissionFormValues>({
     proyecto_vendido:    defaultValues?.proyecto_vendido    ?? '',
@@ -51,7 +56,33 @@ export function CommissionForm({
     co_broker:           defaultValues?.co_broker     ?? false,
     co_broker_nombre:    defaultValues?.co_broker_nombre ?? '',
     propietario:         defaultValues?.propietario   ?? '',
+    has_ally:            defaultValues?.has_ally      ?? false,
+    ally_id:             defaultValues?.ally_id       ?? '',
+    ally_percentage:     defaultValues?.ally_percentage?.toString() ?? '',
   })
+
+  // Sync has_ally with co_broker (mutually exclusive)
+  useEffect(() => {
+    if (form.has_ally && form.co_broker) {
+      setForm(prev => ({ ...prev, co_broker: false }))
+    }
+  }, [form.has_ally])
+
+  useEffect(() => {
+    if (form.co_broker && form.has_ally) {
+      setForm(prev => ({ ...prev, has_ally: false, ally_id: '', ally_percentage: '' }))
+    }
+  }, [form.co_broker])
+
+  // Auto-fill percentage from ally's default
+  useEffect(() => {
+    if (form.has_ally && form.ally_id && allies.length > 0) {
+      const ally = allies.find(a => a.id === form.ally_id)
+      if (ally && !form.ally_percentage) {
+        setForm(prev => ({ ...prev, ally_percentage: ally.porcentaje_default.toString() }))
+      }
+    }
+  }, [form.has_ally, form.ally_id, allies])
 
   function set<K extends keyof CommissionFormValues>(key: K, val: CommissionFormValues[K]) {
     setForm(prev => ({ ...prev, [key]: val }))
@@ -61,6 +92,7 @@ export function CommissionForm({
   // Venta:   importe = valor × (pct / 100)   |  pct = (importe / valor) × 100
   // Alquiler: importe = valor × meses         |  meses = importe / valor
   const isAlquiler = form.tipo === 'alquiler'
+  const isVenta = form.tipo === 'venta'
 
   function calcImporte(valor: number, pct: number): string {
     return isAlquiler ? (valor * pct).toFixed(2) : ((valor * pct) / 100).toFixed(2)
@@ -119,8 +151,25 @@ export function CommissionForm({
   const canSubmit = form.proyecto_vendido.trim().length > 0 && parseFloat(form.importe_comision) > 0
 
   // Preview splits
-  const comisionTotal  = parseFloat(form.importe_comision) || 0
-  const miComision     = form.co_broker ? comisionTotal * 0.5 : comisionTotal
+  const comisionTotal     = parseFloat(form.importe_comision) || 0
+  const allyPct           = parseFloat(form.ally_percentage) || 0
+  const selectedAlly     = allies.find(a => a.id === form.ally_id)
+  
+  // Cálculos según el escenario
+  let miComision = comisionTotal
+  let otherAmount = 0
+  let otherLabel = ''
+
+  if (form.co_broker) {
+    miComision = comisionTotal * 0.5
+    otherAmount = comisionTotal * 0.5
+    otherLabel = form.co_broker_nombre || 'Co-broker'
+  } else if (form.has_ally && allyPct > 0) {
+    otherAmount = comisionTotal * (allyPct / 100)
+    miComision = comisionTotal - otherAmount
+    otherLabel = selectedAlly?.nombre || 'Aliado'
+  }
+
   const agentesActivos = agentes.filter(a => a.activo)
   const totalPct       = agentesActivos.reduce((s, a) => s + a.porcentaje_comision, 0)
 
@@ -270,38 +319,117 @@ export function CommissionForm({
         </div>
       </div>
 
-      {/* ── Co-broker ── */}
-      <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-gray-800">Co-broker</p>
-            <p className="text-xs text-gray-400 mt-0.5">Un colega trajo al comprador — la comisión se divide al 50%</p>
+      {/* ── Co-broker (solo en venta) ── */}
+      {isVenta && (
+        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Co-broker</p>
+              <p className="text-xs text-gray-400 mt-0.5">Un colega trajo al comprador — la comisión se divide al 50%</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => set('co_broker', !form.co_broker)}
+              disabled={form.has_ally}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                form.co_broker ? 'bg-gray-900' : 'bg-gray-200'
+              } ${form.has_ally ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                form.co_broker ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => set('co_broker', !form.co_broker)}
-            className={`relative w-11 h-6 rounded-full transition-colors ${
-              form.co_broker ? 'bg-gray-900' : 'bg-gray-200'
-            }`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-              form.co_broker ? 'translate-x-5' : 'translate-x-0'
-            }`} />
-          </button>
+          {form.co_broker && (
+            <div className="mt-3">
+              <label className={LABEL_CLS}>NOMBRE DEL COLEGA / INMOBILIARIA</label>
+              <input
+                type="text"
+                placeholder="Ej: García Propiedades"
+                value={form.co_broker_nombre}
+                onChange={e => set('co_broker_nombre', e.target.value)}
+                className={INPUT_CLS}
+              />
+            </div>
+          )}
         </div>
-        {form.co_broker && (
-          <div className="mt-3">
-            <label className={LABEL_CLS}>NOMBRE DEL COLEGA / INMOBILIARIA</label>
-            <input
-              type="text"
-              placeholder="Ej: García Propiedades"
-              value={form.co_broker_nombre}
-              onChange={e => set('co_broker_nombre', e.target.value)}
-              className={INPUT_CLS}
-            />
+      )}
+
+      {/* ── Aliado comercial (solo en venta) ── */}
+      {isVenta && (
+        <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Aliado comercial</p>
+              <p className="text-xs text-gray-400 mt-0.5">Un aliado externo que recibe porcentaje de la comisión</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (form.has_ally) {
+                  set('has_ally', false)
+                  set('ally_id', '')
+                  set('ally_percentage', '')
+                } else {
+                  set('has_ally', true)
+                }
+              }}
+              disabled={form.co_broker}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                form.has_ally ? 'bg-amber-500' : 'bg-gray-200'
+              } ${form.co_broker ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                form.has_ally ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
           </div>
-        )}
-      </div>
+          {form.has_ally && (
+            <div className="mt-3 flex flex-col gap-3">
+              <div>
+                <label className={LABEL_CLS}>SELECCIONAR ALIADO</label>
+                <select
+                  value={form.ally_id}
+                  onChange={e => set('ally_id', e.target.value)}
+                  className={INPUT_CLS}
+                >
+                  <option value="">— Elegir aliado —</option>
+                  {allies.map(ally => (
+                    <option key={ally.id} value={ally.id}>
+                      {ally.nombre} ({ally.porcentaje_default}% por defecto)
+                    </option>
+                  ))}
+                </select>
+                {allies.length === 0 && (
+                  <p className="text-[11px] text-amber-600 mt-1">
+                    No hay aliados activos. Agregalos en Configuración.
+                  </p>
+                )}
+              </div>
+              {form.ally_id && (
+                <div>
+                  <label className={LABEL_CLS}>% COMISIÓN PARA EL ALIADO</label>
+                  <input
+                    type="number"
+                    placeholder={selectedAlly?.porcentaje_default.toString() || '20'}
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={form.ally_percentage}
+                    onChange={e => set('ally_percentage', e.target.value)}
+                    className={INPUT_CLS}
+                  />
+                  {selectedAlly && (
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Por defecto: {selectedAlly.porcentaje_default}%
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Preview de splits ── */}
       {comisionTotal > 0 && (
@@ -313,16 +441,17 @@ export function CommissionForm({
               <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider">Comisión total</p>
               <p className="text-base font-bold text-blue-900 mt-0.5">{fmt(comisionTotal)}</p>
             </div>
-            {form.co_broker && (
+            {(form.co_broker || (form.has_ally && allyPct > 0)) && (
               <>
-                <span className="text-blue-300 font-bold">÷ 2</span>
+                {form.co_broker && <span className="text-blue-300 font-bold">÷ 2</span>}
+                {form.has_ally && allyPct > 0 && <span className="text-blue-300 font-bold">- {allyPct}%</span>}
                 <div className="flex-1 bg-white/70 rounded-lg px-3 py-2 text-center">
                   <p className="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">Mi comisión</p>
                   <p className="text-base font-bold text-emerald-700 mt-0.5">{fmt(miComision)}</p>
                 </div>
                 <div className="flex-1 bg-white/70 rounded-lg px-3 py-2 text-center">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{form.co_broker_nombre || 'Co-broker'}</p>
-                  <p className="text-base font-bold text-gray-600 mt-0.5">{fmt(comisionTotal * 0.5)}</p>
+                  <p className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider">{otherLabel}</p>
+                  <p className="text-base font-bold text-amber-700 mt-0.5">{fmt(otherAmount)}</p>
                 </div>
               </>
             )}

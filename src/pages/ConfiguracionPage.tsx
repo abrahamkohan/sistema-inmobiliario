@@ -15,6 +15,7 @@ import { SeccionColores }       from '@/components/configuracion/SeccionColores'
 import { SeccionContacto }      from '@/components/configuracion/SeccionContacto'
 import { SeccionIntegraciones } from '@/components/configuracion/SeccionIntegraciones'
 import { SeccionEquipo }        from '@/components/configuracion/SeccionEquipo'
+import { SeccionAliados }       from '@/components/configuracion/SeccionAliados'
 
 // ─── Referidos ────────────────────────────────────────────────────────────────
 
@@ -310,6 +311,9 @@ export function ConfiguracionPage() {
 
       {/* 5. Equipo — solo admin */}
       {isAdmin && <SeccionEquipo />}
+
+      {/* Aliados comerciales */}
+      <SeccionAliados />
 
       {/* 6. Seguridad */}
       <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">

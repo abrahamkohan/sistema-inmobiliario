@@ -799,6 +799,9 @@ export interface Database {
           co_broker_nombre: string | null
           propietario: string | null
           assigned_to: string | null
+          has_ally: boolean
+          ally_id: string | null
+          ally_percentage: number | null
           created_at: string
           updated_at: string
         }
@@ -814,6 +817,9 @@ export interface Database {
           co_broker_nombre?: string | null
           propietario?: string | null
           assigned_to?: string | null
+          has_ally?: boolean
+          ally_id?: string | null
+          ally_percentage?: number | null
         }
         Update: {
           proyecto_vendido?: string
@@ -827,6 +833,9 @@ export interface Database {
           co_broker_nombre?: string | null
           propietario?: string | null
           assigned_to?: string | null
+          has_ally?: boolean
+          ally_id?: string | null
+          ally_percentage?: number | null
         }
         Relationships: [
           { foreignKeyName: "commissions_project_id_fkey"; columns: ["project_id"]; referencedRelation: "projects"; referencedColumns: ["id"] }
@@ -912,6 +921,34 @@ export interface Database {
         Relationships: [
           { foreignKeyName: "commission_incomes_commission_id_fkey"; columns: ["commission_id"]; referencedRelation: "commissions"; referencedColumns: ["id"] }
         ]
+      }
+      commercial_allies: {
+        Row: {
+          id: string
+          nombre: string
+          porcentaje_default: number
+          telefono: string | null
+          email: string | null
+          activo: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          nombre: string
+          porcentaje_default: number
+          telefono?: string | null
+          email?: string | null
+          activo?: boolean
+        }
+        Update: {
+          nombre?: string
+          porcentaje_default?: number
+          telefono?: string | null
+          email?: string | null
+          activo?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       push_subscriptions: {
         Row: {

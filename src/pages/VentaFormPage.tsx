@@ -35,6 +35,9 @@ export function VentaFormPage() {
       co_broker:           values.co_broker,
       co_broker_nombre:    values.co_broker_nombre || null,
       propietario:         values.propietario || null,
+      has_ally:            values.has_ally,
+      ally_id:             values.ally_id || null,
+      ally_percentage:     values.ally_percentage ? parseFloat(values.ally_percentage) : null,
     }
     try {
       if (isEdit && id) {

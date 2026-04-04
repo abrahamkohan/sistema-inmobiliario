@@ -5,7 +5,56 @@ import { toast } from 'sonner'
 import { useTeam, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
 import { useIsAdmin } from '@/hooks/useUserRole'
 import { PermisosModal } from './PermisosModal'
+import { DEFAULT_PERMISSIONS } from '@/lib/roleDefaults'
 import type { TeamMember } from '@/lib/team'
+
+// Módulos a mostrar en el resumen
+const SUMMARY_MODULES = ['crm', 'propiedades', 'marketing_media', 'finanzas', 'configuracion']
+
+// Obtiene permisos efectivos (override o default del rol)
+function getEffectivePerm(member: TeamMember, module: string): string {
+  const defaults = DEFAULT_PERMISSIONS[member.role ?? 'agente'] ?? {}
+  const override = (member.permisos as Record<string, string>)?.[module]
+  return override ?? defaults[module] ?? 'none'
+}
+
+// Renderiza el resumen de permisos
+function renderPermSummary(member: TeamMember) {
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-1">
+      {SUMMARY_MODULES.map(mod => {
+        const perm = getEffectivePerm(member, mod)
+        const hasAccess = perm !== 'none'
+        const isFull = perm === 'full'
+        
+        // Nombre corto del módulo
+        const modLabel: Record<string, string> = {
+          crm: 'CRM',
+          propiedades: 'Prop',
+          marketing_media: 'Mkt',
+          finanzas: 'Fin',
+          configuracion: 'Cfg',
+        }
+        
+        return (
+          <span
+            key={mod}
+            className={`text-[10px] px-1.5 py-0.5 rounded ${
+              isFull 
+                ? 'bg-green-100 text-green-700' 
+                : hasAccess 
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-400'
+            }`}
+            title={mod}
+          >
+            {modLabel[mod]} {hasAccess ? '✓' : '✖'}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
 
 export function SeccionEquipo() {
   const isAdmin = useIsAdmin()
@@ -102,9 +151,8 @@ export function SeccionEquipo() {
                 <p className="text-sm font-medium text-gray-900">
                   {member.full_name ?? 'Sin nombre'}
                 </p>
-                {member.role && (
-                  <p className="text-xs text-gray-500 capitalize">{member.role}</p>
-                )}
+                {/* Resumen de permisos por módulo */}
+                {renderPermSummary(member)}
               </div>
             </div>
             <div className="flex items-center gap-2">

@@ -65,9 +65,9 @@ export async function inviteUser(email: string): Promise<void> {
 /**
  * Updates the JSONB permisos column for a user role.
  * @param userId - ID of the user.
- * @param permisos - Object mapping module names to permission levels.
+ * @param permisos - Object mapping module names to permission levels, or null to clear.
  */
-export async function setPermisos(userId: string, permisos: Record<string, string>): Promise<void> {
+export async function setPermisos(userId: string, permisos: Record<string, string> | null): Promise<void> {
   const { error } = await supabase
     .from('user_roles')
     .update({ permisos })

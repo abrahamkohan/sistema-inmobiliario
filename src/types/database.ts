@@ -748,12 +748,12 @@ export interface Database {
             user_id: string
             role: 'admin' | 'agente'
             is_owner?: boolean
-            permisos?: Record<string, string>
+            permisos?: Record<string, string> | null
           }
           Update: {
             role?: 'admin' | 'agente'
             is_owner?: boolean
-            permisos?: Record<string, string>
+            permisos?: Record<string, string> | null
           }
           Relationships: [
             { foreignKeyName: "user_roles_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }

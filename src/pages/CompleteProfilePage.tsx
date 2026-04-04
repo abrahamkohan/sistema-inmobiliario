@@ -1,13 +1,11 @@
 // src/pages/CompleteProfilePage.tsx
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateProfile } from '@/lib/profile'
 import { useAuth } from '@/context/AuthContext'
 
 export function CompleteProfilePage() {
-  const navigate = useNavigate()
   const { session } = useAuth()
   const [fullName, setFullName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -33,8 +31,8 @@ export function CompleteProfilePage() {
     try {
       await updateProfile(session.user.id, { full_name: trimmed })
       toast.success('Perfil guardado correctamente')
-      // Redirect to home after saving
-      navigate('/inicio', { replace: true })
+      // Force reload to refresh all auth state and queries
+      window.location.href = '/inicio'
     } catch (e) {
       console.error('[CompleteProfile] error:', e)
       setError(e instanceof Error ? e.message : 'Error al guardar')

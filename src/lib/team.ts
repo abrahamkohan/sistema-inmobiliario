@@ -10,6 +10,7 @@ export type TeamMember = {
   role: 'admin' | 'agente' | null
   is_owner: boolean
   permisos: Record<string, string> | null
+  email?: string // Add email for fallback
 }
 
 export async function getTeam(): Promise<TeamMember[]> {
@@ -17,8 +18,8 @@ export async function getTeam(): Promise<TeamMember[]> {
     supabase.from('profiles').select('*').order('created_at', { ascending: true }),
     supabase.from('user_roles').select('user_id, role, is_owner, permisos'),
   ])
-  if (e1) throw e1
-  if (e2) throw e2
+  if (e1) console.error('[getTeam] profiles error:', e1)
+  if (e2) console.error('[getTeam] roles error:', e2)
 
   const roleMap = Object.fromEntries((roles ?? []).map(r => [r.user_id, r]))
 

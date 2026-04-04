@@ -6,7 +6,7 @@ import {
 } from '@/lib/properties'
 import type { PropertyInsert, PropertyUpdate, PropertyPhotoRow } from '@/lib/properties'
 import { useAuth } from '@/context/AuthContext'
-import { useBrand } from '@/context/BrandContext'
+import { useTeam } from '@/hooks/useTeam'
 
 export function useProperties() {
   return useQuery({ queryKey: ['properties'], queryFn: getProperties })
@@ -31,14 +31,19 @@ export function usePropertyPhotos(propertyId: string) {
 export function useCreateProperty() {
   const qc = useQueryClient()
   const { session } = useAuth()
-  const { consultant } = useBrand()
+  const { data: team = [] } = useTeam()
+  
+  // Obtener consultant_id del usuario desde user_roles
+  const currentUser = team.find(m => m.id === session?.user?.id)
+  const consultant_id = currentUser?.consultant_id
+
   return useMutation({
     mutationFn: (input: PropertyInsert) => {
       const dataWithConsultant = {
         ...input,
         assigned_to: session?.user?.id ?? null,
         assigned_agent_id: session?.user?.id ?? null,
-        consultant_id: consultant.uuid as any
+        consultant_id: consultant_id as any
       }
       console.log('[useCreateProperty] Payload:', JSON.stringify(dataWithConsultant, null, 2))
       return createProperty(dataWithConsultant)

@@ -1,5 +1,9 @@
 // src/lib/team.ts
 import { supabase } from './supabase'
+import type { Database } from '@/types/database'
+
+type ProfileRow = Database['public']['Tables']['profiles']['Row']
+type UserRoleRow = Database['public']['Tables']['user_roles']['Row']
 
 export type TeamMember = {
   id: string
@@ -20,14 +24,14 @@ export async function getTeam(): Promise<TeamMember[]> {
 
   const roleMap = new Map<string, { role: string; is_owner: boolean; permisos: Record<string, string> | null }>()
   
-  const rolesData = rolesRes.data
+  const rolesData = rolesRes.data as UserRoleRow[] | null
   if (rolesData) {
     rolesData.forEach(r => {
       roleMap.set(r.user_id, { role: r.role, is_owner: r.is_owner, permisos: r.permisos })
     })
   }
 
-  const profilesData = profilesRes.data
+  const profilesData = profilesRes.data as ProfileRow[] | null
   if (!profilesData) return []
 
   return profilesData.map(p => {

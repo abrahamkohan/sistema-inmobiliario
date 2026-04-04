@@ -202,6 +202,13 @@ export function TaskModal({
     }
   }, [isOpen, isEdit, existingTask, defaultValues])
 
+  // Suggest default reminder for WhatsApp type (5 minutes)
+  useEffect(() => {
+    if (form.type === 'whatsapp' && form.reminder_minutes === null) {
+      set('reminder_minutes', 5)
+    }
+  }, [form.type, form.reminder_minutes])
+
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm(prev => ({ ...prev, [key]: value }))
   }
@@ -354,29 +361,27 @@ export function TaskModal({
         </div>
       </div>
 
-      {/* ── Recordatorio Google Calendar — solo para call/meeting/visit ── */}
-      {['call', 'meeting', 'visit'].includes(form.type) && (
-        <div className="flex flex-col gap-1.5">
-          <label className={LABEL_CLS}>
-            <span className="flex items-center gap-1.5">
-              <AlarmClock className="w-3.5 h-3.5" />
-              RECORDATORIO (minutos antes)
-            </span>
-          </label>
-          <input
-            type="number"
-            min="0"
-            max="1440"
-            placeholder="Ej: 15"
-            value={form.reminder_minutes ?? ''}
-            onChange={e => set('reminder_minutes', e.target.value === '' ? null : Number(e.target.value))}
-            className={INPUT_CLS}
-          />
-          <p className="text-[11px] text-gray-400">
-            Google Calendar te avisará con este tiempo de anticipación. Dejalo vacío para usar el recordatorio por defecto de tu calendario.
-          </p>
-        </div>
-      )}
+      {/* ── Recordatorio Google Calendar — para todos los tipos ── */}
+      <div className="flex flex-col gap-1.5">
+        <label className={LABEL_CLS}>
+          <span className="flex items-center gap-1.5">
+            <AlarmClock className="w-3.5 h-3.5" />
+            RECORDATORIO (minutos antes)
+          </span>
+        </label>
+        <input
+          type="number"
+          min="0"
+          max="1440"
+          placeholder="Ej: 15"
+          value={form.reminder_minutes ?? ''}
+          onChange={e => set('reminder_minutes', e.target.value === '' ? null : Number(e.target.value))}
+          className={INPUT_CLS}
+        />
+        <p className="text-[11px] text-gray-400">
+          Google Calendar te avisará con este tiempo de anticipación. Dejalo vacío para usar el recordatorio por defecto de tu calendario.
+        </p>
+      </div>
 
       {/* Lead readonly (si viene fijo desde contexto externo) */}
       {lockedLeadId && lead && (

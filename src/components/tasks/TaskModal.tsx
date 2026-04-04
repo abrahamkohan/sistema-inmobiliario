@@ -11,6 +11,7 @@ import { useCreateTask, useUpdateTask, useTask, useDeleteTask } from '@/hooks/us
 import { useClient, useClients } from '@/hooks/useClients'
 import { useWhatsApp } from '@/hooks/useWhatsApp'
 import { useAuth } from '@/context/AuthContext'
+import { useBrand } from '@/context/BrandContext'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/types/database'
 
@@ -30,6 +31,24 @@ const TYPE_CHIPS: { value: TaskType; icon: React.ElementType; label: string }[] 
   { value: 'email',    icon: Mail,           label: 'Email'    },
   { value: 'meeting',  icon: Video,          label: 'Reunión'  },
 ]
+
+const TYPE_CHIP_COLOR: Record<TaskType, string> = {
+  whatsapp: '#22c55e',
+  call:     '#3b82f6',
+  visit:    '#a855f7',
+  email:    '#9ca3af',
+  meeting:  '#6b7280',
+}
+
+// Para armar la sugerencia de título: "{label} a {nombre}"
+// Excepción: meeting → "Reunión con {nombre}" (sin "a")
+const TYPE_SUGGESTION_PREFIX: Record<TaskType, string> = {
+  whatsapp: 'WhatsApp a',
+  call:     'Llamar a',
+  visit:    'Visitar a',
+  email:    'Email a',
+  meeting:  'Reunión con',
+}
 
 const CONTEXT_OPTIONS: { value: Context; label: string }[] = [
   { value: 'lead',      label: 'Lead'       },
@@ -130,6 +149,8 @@ export function TaskModal({
 }: TaskModalProps) {
   const { session }    = useAuth()
   const currentUserId  = session?.user?.id ?? ''
+  const { engine }     = useBrand()
+  const brandPrimary   = engine.getColors().primary
 
   const isEdit = !!taskId
   const { data: existingTask, isLoading: loadingTask } = useTask(taskId ?? '')
@@ -252,6 +273,19 @@ export function TaskModal({
   const canSave          = form.title.trim().length > 0 && form.due_date.length > 0
   const title            = isEdit ? 'Editar tarea' : 'Nueva tarea'
 
+  // Sugerencia de título: solo cuando hay lead seleccionado y el título actual no coincide
+  const titleSuggestion  = selectedLead && lead
+    ? `${TYPE_SUGGESTION_PREFIX[form.type]} ${lead.full_name}`
+    : null
+  const showSuggestion   = !!titleSuggestion && form.title !== titleSuggestion
+
+  // Hint para el botón disabled
+  const disabledHint = !form.title.trim()
+    ? 'Escribí un título para continuar'
+    : !form.due_date
+      ? 'Seleccioná fecha y hora'
+      : null
+
   if (isEdit && loadingTask) return null
 
   // ── Contenido del formulario (compartido mobile/desktop) ─────────────────
@@ -270,6 +304,15 @@ export function TaskModal({
           className={INPUT_CLS}
           autoFocus
         />
+        {showSuggestion && (
+          <button
+            type="button"
+            onClick={() => set('title', titleSuggestion!)}
+            className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-700 transition-colors self-start"
+          >
+            💡 Usar: &ldquo;{titleSuggestion}&rdquo;
+          </button>
+        )}
       </div>
 
       {/* ── Fecha y hora ── */}
@@ -289,22 +332,25 @@ export function TaskModal({
       <div className="flex flex-col gap-1.5">
         <label className={LABEL_CLS}>TIPO</label>
         <div className="w-full flex flex-wrap gap-2">
-          {TYPE_CHIPS.map(chip => (
-            <button
-              key={chip.value}
-              type="button"
-              onClick={() => set('type', chip.value)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-medium transition-all',
-                form.type === chip.value
-                  ? 'border-gray-900 bg-gray-900 text-white shadow-sm'
-                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
-              )}
-            >
-              <chip.icon className="w-4 h-4 flex-shrink-0" />
-              {chip.label}
-            </button>
-          ))}
+          {TYPE_CHIPS.map(chip => {
+            const isActive = form.type === chip.value
+            const color    = TYPE_CHIP_COLOR[chip.value]
+            return (
+              <button
+                key={chip.value}
+                type="button"
+                onClick={() => set('type', chip.value)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-medium transition-all',
+                  isActive ? 'text-white shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
+                )}
+                style={isActive ? { backgroundColor: color, borderColor: color } : undefined}
+              >
+                <chip.icon className="w-4 h-4 flex-shrink-0" />
+                {chip.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -502,48 +548,53 @@ export function TaskModal({
       )}
 
       {/* ── Botones desktop (ocultos en mobile, tienen su footer propio) ── */}
-      <div className="hidden md:flex items-center gap-2 pt-4 border-t border-gray-100 mt-2" style={{ position: 'sticky', bottom: 0, background: '#fff', paddingBottom: 4 }}>
-        {isEdit && (
+      <div className="hidden md:flex flex-col gap-1.5 pt-4 border-t border-gray-100 mt-2" style={{ position: 'sticky', bottom: 0, background: '#fff', paddingBottom: 4 }}>
+        {!canSave && disabledHint && (
+          <p className="text-[11px] text-gray-400 text-center">{disabledHint}</p>
+        )}
+        <div className="flex items-center gap-2">
+          {isEdit && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isSaving}
+              title="Eliminar tarea"
+              aria-label="Eliminar tarea"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors mr-auto flex-shrink-0"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={onClose}
             disabled={isSaving}
-            title="Eliminar tarea"
-            aria-label="Eliminar tarea"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors mr-auto flex-shrink-0"
+            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors"
           >
-            <Trash2 className="w-4 h-4" />
+            Cancelar
           </button>
-        )}
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isSaving}
-          className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors"
-        >
-          Cancelar
-        </button>
-        <Button
-          type="button"
-          disabled={!canSave || isSaving}
-          onClick={() => handleSave(false)}
-          className="flex-1 h-10 rounded-full text-[14px] font-semibold"
-          style={{ backgroundColor: '#0f172a', color: '#fff', borderColor: '#0f172a' }}
-        >
-          {isSaving && !hasLeadPhone ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-          {isEdit ? 'Guardar cambios' : 'Agregar tarea'}
-        </Button>
-        {hasLeadPhone && (
           <Button
             type="button"
             disabled={!canSave || isSaving}
-            onClick={() => handleSave(true)}
-            className="flex-[2] h-10 rounded-full text-[13px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5"
+            onClick={() => handleSave(false)}
+            className="flex-1 h-10 rounded-full text-[14px] font-semibold text-white border-0"
+            style={{ backgroundColor: canSave ? brandPrimary : undefined }}
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
-            Guardar + WhatsApp
+            {isSaving && !hasLeadPhone ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+            {isEdit ? 'Guardar cambios' : 'Agregar tarea'}
           </Button>
-        )}
+          {hasLeadPhone && (
+            <Button
+              type="button"
+              disabled={!canSave || isSaving}
+              onClick={() => handleSave(true)}
+              className="flex-[2] h-10 rounded-full text-[13px] font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
+              Guardar + WhatsApp
+            </Button>
+          )}
+        </div>
       </div>
 
     </div>
@@ -552,6 +603,9 @@ export function TaskModal({
   // ── Footer mobile — fijo fuera del scroll, siempre visible ───────────────
   const mobileFooter = (
     <div className="flex flex-col gap-1 px-4 py-3">
+    {!canSave && disabledHint && (
+      <p className="text-[11px] text-gray-400 text-center pb-1">{disabledHint}</p>
+    )}
     <div className="flex items-center gap-2">
       <button
         type="button"
@@ -568,7 +622,8 @@ export function TaskModal({
             type="button"
             disabled={!canSave || isSaving}
             onClick={() => handleSave(false)}
-            className="flex-1 h-11 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-30 transition-opacity flex items-center justify-center gap-2"
+            className="flex-1 h-11 rounded-xl text-sm font-semibold text-white disabled:opacity-30 transition-opacity flex items-center justify-center gap-2"
+            style={{ backgroundColor: canSave ? brandPrimary : '#0f172a' }}
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             {isEdit ? 'Guardar' : 'Agregar tarea'}
@@ -588,7 +643,8 @@ export function TaskModal({
           type="button"
           disabled={!canSave || isSaving}
           onClick={() => handleSave(false)}
-          className="flex-1 h-11 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-30 transition-opacity flex items-center justify-center gap-2"
+          className="flex-1 h-11 rounded-xl text-sm font-semibold text-white disabled:opacity-30 transition-opacity flex items-center justify-center gap-2"
+          style={{ backgroundColor: canSave ? brandPrimary : '#0f172a' }}
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
           {isEdit ? 'Guardar cambios' : 'Agregar tarea'}

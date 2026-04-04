@@ -44,11 +44,11 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 const TYPE_COLOR: Record<string, string> = {
-  whatsapp: '#397746',
+  whatsapp: '#22c55e',
   call:     '#3b82f6',
-  visit:    '#f97316',
-  email:    '#6366f1',
-  meeting:  '#8b5cf6',
+  visit:    '#a855f7',
+  email:    '#9ca3af',
+  meeting:  '#6b7280',
 }
 
 const CONTEXT_LABEL: Record<string, string> = {
@@ -141,6 +141,7 @@ export function TaskItem({
         'shadow-[0_4px_14px_rgba(0,0,0,0.07)]',
         isClosed && 'opacity-50',
       )}
+      style={{ borderLeft: `4px solid ${isClosed ? '#e5e7eb' : typeColor}` }}
     >
       {/* COLUMNA IZQUIERDA: todo el contenido */}
       <div className="flex flex-col gap-0.5 flex-1 min-w-0">

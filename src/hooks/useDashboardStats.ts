@@ -48,68 +48,122 @@ export interface WeatherData {
 
 // ─── useDashboardStats ────────────────────────────────────────────────────────
 
+const EMPTY_STATS: DashboardStats = {
+  counts: { clients: 0, projects: 0, projects_active: 0, simulations: 0, typologies: 0, units_available: 0 },
+  recent: { simulations: [], projects: [] },
+  radar: [],
+  simsByMonth: [],
+}
+
 export function useDashboardStats() {
   return useQuery<DashboardStats>({
     queryKey: ['dashboard_stats'],
     queryFn: async () => {
-      const sixMonthsAgo = new Date()
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+      try {
+        const sixMonthsAgo = new Date()
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
 
-      const [
-        { count: clients },
-        { count: projects },
-        { count: projects_active },
-        { count: simulations },
-        { count: typologies },
-        { data: unitsData },
-        { data: recentSims },
-        { data: recentProjects },
-        { data: radarRaw },
-        { data: simsForChart },
-      ] = await Promise.all([
-        supabase.from('clients').select('*', { count: 'exact', head: true }),
-        supabase.from('projects').select('*', { count: 'exact', head: true }),
-        supabase.from('projects').select('*', { count: 'exact', head: true }).in('status', ['en_pozo', 'en_construccion']),
-        supabase.from('simulations').select('*', { count: 'exact', head: true }),
-        supabase.from('typologies').select('*', { count: 'exact', head: true }).eq('category', 'unidad'),
-        supabase.from('typologies').select('units_available').eq('category', 'unidad'),
-        supabase
-          .from('simulations')
-          .select('id, created_at, snapshot_project, snapshot_typology, clients(full_name)')
-          .order('created_at', { ascending: false })
-          .limit(8),
-        supabase
-          .from('projects')
-          .select('id, name, status, created_at')
-          .order('created_at', { ascending: false })
-          .limit(5),
-        supabase
-          .from('projects')
-          .select('id, name, status, typologies(price_usd, area_m2, category)')
-          .order('created_at', { ascending: false })
-          .limit(10),
-        supabase
-          .from('simulations')
-          .select('created_at')
-          .gte('created_at', sixMonthsAgo.toISOString())
-          .order('created_at'),
-      ])
+        const [
+          { count: clients },
+          { count: projects },
+          { count: projects_active },
+          { count: simulations },
+          { count: typologies },
+          { data: unitsData },
+          { data: recentSims },
+          { data: recentProjects },
+          { data: radarRaw },
+          { data: simsForChart },
+        ] = await Promise.all([
+          supabase.from('clients').select('*', { count: 'exact', head: true }),
+          supabase.from('projects').select('*', { count: 'exact', head: true }),
+          supabase.from('projects').select('*', { count: 'exact', head: true }).in('status', ['en_pozo', 'en_construccion']),
+          supabase.from('simulations').select('*', { count: 'exact', head: true }),
+          supabase.from('typologies').select('*', { count: 'exact', head: true }).eq('category', 'unidad'),
+          supabase.from('typologies').select('units_available').eq('category', 'unidad'),
+          supabase
+            .from('simulations')
+            .select('id, created_at, snapshot_project, snapshot_typology, clients(full_name)')
+            .order('created_at', { ascending: false })
+            .limit(8),
+          supabase
+            .from('projects')
+            .select('id, name, status, created_at')
+            .order('created_at', { ascending: false })
+            .limit(5),
+          supabase
+            .from('projects')
+            .select('id, name, status, typologies(price_usd, area_m2, category)')
+            .order('created_at', { ascending: false })
+            .limit(10),
+          supabase
+            .from('simulations')
+            .select('created_at')
+            .gte('created_at', sixMonthsAgo.toISOString())
+            .order('created_at'),
+        ])
 
-      const units_available = (unitsData ?? []).reduce((sum, t) => sum + (t.units_available ?? 0), 0)
+        const units_available = (unitsData ?? []).reduce((sum, t) => sum + (t.units_available ?? 0), 0)
 
-      const radar = (radarRaw ?? []).map((p: Record<string, unknown>) => {
-        const typs = (p.typologies as Array<{ price_usd: number; area_m2: number; category: string }>) ?? []
-        const units = typs.filter((t) => t.category === 'unidad' && t.area_m2 > 0)
-        const avg = units.length > 0
-          ? units.reduce((sum, t) => sum + (t.price_usd / 100) / t.area_m2, 0) / units.length
-          : null
-        return {
-          id: p.id as string,
-          name: p.name as string,
-          status: p.status as string,
-          avg_price_m2: avg ? Math.round(avg) : null,
-          unit_count: units.length,
+        const radar = (radarRaw ?? []).map((p: Record<string, unknown>) => {
+          const typs = (p.typologies as Array<{ price_usd: number; area_m2: number; category: string }>) ?? []
+          const units = typs.filter((t) => t.category === 'unidad' && t.area_m2 > 0)
+          const avg = units.length > 0
+            ? units.reduce((sum, t) => sum + (t.price_usd / 100) / t.area_m2, 0) / units.length
+            : null
+          return {
+            id: p.id as string,
+            name: p.name as string,
+            status: p.status as string,
+            avg_price_m2: avg ? Math.round(avg) : null,
+            unit_count: units.length,
+          }
+        })
+
+        // Group sims by month
+        const monthMap: Record<string, number> = {}
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date()
+          d.setMonth(d.getMonth() - i)
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+          monthMap[key] = 0
         }
+        for (const sim of simsForChart ?? []) {
+          const d = new Date(sim.created_at)
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+          if (key in monthMap) monthMap[key]++
+        }
+        const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+        const simsByMonth = Object.entries(monthMap).map(([key, total]) => {
+          const [, month] = key.split('-')
+          return { month: MONTHS_ES[parseInt(month) - 1], total }
+        })
+
+        return {
+          counts: {
+            clients: clients ?? 0,
+            projects: projects ?? 0,
+            projects_active: projects_active ?? 0,
+            simulations: simulations ?? 0,
+            typologies: typologies ?? 0,
+            units_available,
+          },
+          recent: {
+            simulations: (recentSims ?? []) as DashboardStats['recent']['simulations'],
+            projects: (recentProjects ?? []) as DashboardStats['recent']['projects'],
+          },
+          radar: radar ?? [],
+          simsByMonth: simsByMonth ?? [],
+        }
+      } catch (err) {
+        console.error('[useDashboardStats] error:', err)
+        return EMPTY_STATS
+      }
+    },
+    initialData: EMPTY_STATS,
+    staleTime: 30_000,
+  })
+}
       })
 
       // Group sims by month

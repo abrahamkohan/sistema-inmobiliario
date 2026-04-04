@@ -11,7 +11,26 @@ import { useTasks } from '@/hooks/useTasks'
 import { getUrgency } from '@/lib/tasks'
 import { useNotes } from '@/hooks/useNotes'
 import { useIsAdmin } from '@/hooks/useUserRole'
+import { usePermiso } from '@/hooks/usePermiso'
 import { GlobalSearch } from '@/components/search/GlobalSearch'
+
+// ── Mapeo de módulos a permisos ────────────────────────────────────────────────────
+
+const MODULO_PERMISO: Record<string, string> = {
+  '/clientes': 'crm',
+  '/tareas': 'tareas',
+  '/notas': 'notas',
+  '/propiedades': 'propiedades',
+  '/proyectos': 'proyectos',
+  '/simulador': 'finanzas',
+  '/flip': 'finanzas',
+  '/presupuestos': 'finanzas',
+  '/informes': 'reportes',
+  '/marketing': 'marketing',
+  '/recursos': 'configuracion',
+  '/configuracion': 'configuracion',
+  '/comisiones': 'finanzas',
+}
 
 // ── Estructura de menú ────────────────────────────────────────────────────────
 
@@ -155,6 +174,16 @@ export function Sidebar({ onClose }: SidebarProps) {
         {NAV_GRUPOS.map((grupo, gi) => {
           // SISTEMA (último grupo): solo admin
           if (gi === NAV_GRUPOS.length - 1 && !isAdmin) return null
+          
+          // Filtrar items por permiso (solo si tiene mapping definido)
+          const filteredItems = grupo.items.filter(item => {
+            const permiso = MODULO_PERMISO[item.to]
+            if (!permiso) return true // Si no tiene mapeo, siempre mostrar
+            return usePermiso(permiso, 'read')
+          })
+          
+          if (filteredItems.length === 0) return null
+          
           return (
             <div key={gi} className="flex flex-col gap-0.5">
               {grupo.label && (
@@ -162,11 +191,11 @@ export function Sidebar({ onClose }: SidebarProps) {
                   {grupo.label}
                 </p>
               )}
-              {grupo.items.map(({ to, label, icon }) => (
+              {filteredItems.map(({ to, label, icon }) => (
                 <NavItem key={to} to={to} label={label} icon={icon} onClick={onClose} badge={badge(to)} />
               ))}
               {/* Ventas: solo admin, al final de Inventario */}
-              {gi === 2 && isAdmin && (
+              {gi === 2 && isAdmin && usePermiso('finanzas', 'read') && (
                 <NavItem to="/comisiones" label="Ventas" icon={HandCoins} onClick={onClose} />
               )}
             </div>

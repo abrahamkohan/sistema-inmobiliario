@@ -175,10 +175,11 @@ export function Sidebar({ onClose }: SidebarProps) {
           // SISTEMA (último grupo): solo admin
           if (gi === NAV_GRUPOS.length - 1 && !isAdmin) return null
           
-          // Filtrar items por permiso (solo si tiene mapping definido)
+          // Filtrar items por permiso: mostrar si permiso !== 'none'
           const filteredItems = grupo.items.filter(item => {
             const permiso = MODULO_PERMISO[item.to]
             if (!permiso) return true // Si no tiene mapeo, siempre mostrar
+            // Mostrar si tiene cualquier permiso (read, write, full)
             return usePermiso(permiso, 'read')
           })
           

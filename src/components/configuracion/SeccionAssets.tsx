@@ -1,5 +1,7 @@
 // src/components/configuracion/SeccionAssets.tsx
-import { useRef, useState } from 'react'
+import type { BrandEngine } from '@/lib/brand/BrandEngine'
+import { useBrand } from '@/context/BrandContext'
+import { useState, useRef } from 'react'
 import { ImageIcon, Loader2, Plus, Pencil, Trash2, X, Upload, Link as LinkIcon, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -69,10 +71,11 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 // ── Tarjeta de asset ───────────────────────────────────────────────────────────
 
-function AssetCard({ asset, onDelete, onEdit }: { 
+function AssetCard({ asset, onDelete, onEdit, engine }: { 
   asset: AssetWithUsages
   onDelete: (a: AssetWithUsages) => void
   onEdit: (a: AssetWithUsages) => void
+  engine: BrandEngine
 }) {
   const usageCount = asset.asset_usages.length
   const isUsed     = usageCount > 0
@@ -126,14 +129,15 @@ function AssetCard({ asset, onDelete, onEdit }: {
 
       {/* Footer: acciones */}
       <div className="px-3 pb-3 flex items-center justify-between">
-        <a
-          href={asset.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1"
-        >
-          <ExternalLink className="w-3 h-3" />Ver
-        </a>
+          <a
+            href={engine.getAssetUrl(asset.url)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1"
+          >
+            <ExternalLink className="w-3 h-3" />Ver
+          </a>
+
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -389,6 +393,7 @@ function AssetForm({ asset, onClose }: { asset?: AssetWithUsages; onClose: () =>
 // ── Componente principal ───────────────────────────────────────────────────────
 
 export function SeccionAssets() {
+  const { engine } = useBrand()
   const [filterType,    setFilterType]    = useState<AssetType | null>(null)
   const [filterSubtipo, setFilterSubtipo] = useState<AssetSubtipo | null>(null)
   const [showForm,      setShowForm]      = useState(false)
@@ -502,7 +507,7 @@ export function SeccionAssets() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {assets.map(asset => (
-            <AssetCard key={asset.id} asset={asset} onDelete={handleDelete} onEdit={handleEdit} />
+            <AssetCard key={asset.id} asset={asset} onDelete={handleDelete} onEdit={handleEdit} engine={engine} />
           ))}
         </div>
       )}

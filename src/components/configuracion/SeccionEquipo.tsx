@@ -3,33 +3,61 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTeam, useSetRole, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
+import { useSetPermisos } from '@/hooks/useSetPermisos'
 import { useAuth } from '@/context/AuthContext'
 
+// Roles disponibles para asignar
 const ROLES = [
-  { value: 'admin',    label: 'Admin' },
-  { value: 'asesor',   label: 'Asesor' },
-  { value: 'cm',       label: 'CM' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'asesor', label: 'Asesor' },
+  { value: 'cm', label: 'CM' },
   { value: 'finanzas', label: 'Finanzas' },
-  { value: 'viewer',   label: 'Viewer' },
+  { value: 'viewer', label: 'Viewer' },
+]
+
+// Módulos que pueden tener permisos personalizados
+const PERM_MODULES = [
+  'CRM',
+  'Propiedades',
+  'Proyectos',
+  'Media',
+  'Finanzas',
+  'Marketing',
+  'Tareas',
+  'Reportes',
+  'Configuración',
+]
+
+const PERM_OPTIONS = [
+  { value: '-', label: '—' },
+  { value: 'read', label: 'read' },
+  { value: 'write', label: 'write' },
+  { value: 'full', label: 'full' },
 ]
 
 export function SeccionEquipo() {
-  const { session }  = useAuth()
+  const { session } = useAuth()
   const { data: team = [] } = useTeam()
-  const setRole    = useSetRole()
+  const setRole = useSetRole()
   const removeRole = useRemoveRole()
   const inviteUser = useInviteUser()
+  const setPermisos = useSetPermisos()
 
-  const [showInvite,  setShowInvite]  = useState(false)
+  const [showInvite, setShowInvite] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole,  setInviteRole]  = useState('asesor')
+  const [inviteRole, setInviteRole] = useState('asesor')
+
+  // Estado para edición de permisos
+  const [editingUserId, setEditingUserId] = useState<string | null>(null)
+  const [permValues, setPermValues] = useState<Record<string, string>>({})
 
   async function handleInvite() {
     if (!inviteEmail.trim()) return
     try {
       await inviteUser.mutateAsync(inviteEmail.trim())
       toast.success(`Invitación enviada a ${inviteEmail}`)
-      setInviteEmail(''); setShowInvite(false)
+      setInviteEmail('')
+      setShowInvite(false)
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Error al invitar')
     }
@@ -45,13 +73,37 @@ export function SeccionEquipo() {
   }
 
   async function handleRemoveUser(userId: string, name: string) {
-    if (!confirm(`¿Quitarle el acceso al sistema a "${name}"?`)) return
+    if (!confirm(`¿Quitar el acceso al sistema a "${name}"?`)) return
     try {
       await removeRole.mutateAsync(userId)
       toast.success('Acceso eliminado')
     } catch {
       toast.error('Error al eliminar acceso')
     }
+  }
+
+  function openPermEdit(userId: string, currentPerms: Record<string, string> | null) {
+    setEditingUserId(userId)
+    setPermValues(currentPerms ?? {})
+  }
+
+  function closePermEdit() {
+    setEditingUserId(null)
+    setPermValues({})
+  }
+
+  async function savePerms(userId: string) {
+    try {
+      await setPermisos.mutateAsync({ userId, permisos: permValues })
+      toast.success('Permisos guardados')
+      closePermEdit()
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Error al guardar permisos')
+    }
+  }
+
+  function updatePerm(module: string, value: string) {
+    setPermValues(prev => ({ ...prev, [module]: value }))
   }
 
   return (
@@ -118,39 +170,78 @@ export function SeccionEquipo() {
                 <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5 flex-wrap">
                   <span className="truncate">{member.full_name ?? '—'}</span>
                   {member.is_owner && (
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">
-                      Propietario
-                    </span>
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">Propietario</span>
                   )}
                   {!member.is_owner && member.id === session?.user.id && (
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 flex-shrink-0">
-                      Vos
-                    </span>
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 flex-shrink-0">Vos</span>
                   )}
                 </p>
                 <p className="text-xs text-gray-400">{member.role ?? 'Sin rol'}</p>
               </div>
             </div>
 
+            {/* Acciones del usuario */}
             {!member.is_owner && member.id !== session?.user.id && (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <select
-                  value={member.role ?? ''}
-                  onChange={e => handleSetRole(member.id, e.target.value)}
-                  className="h-8 px-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 bg-white"
-                >
-                  <option value="">Sin rol</option>
-                  {ROLES.map(r => (
-                    <option key={r.value} value={r.value}>{r.label}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => handleRemoveUser(member.id, member.full_name ?? member.id)}
-                  className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Quitar acceso"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              <div className="flex flex-col gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <select
+                    value={member.role ?? ''}
+                    onChange={e => handleSetRole(member.id, e.target.value)}
+                    className="h-8 px-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 bg-white"
+                  >
+                    <option value="">Sin rol</option>
+                    {ROLES.map(r => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => handleRemoveUser(member.id, member.full_name ?? member.id)}
+                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Quitar acceso"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => openPermEdit(member.id, member.permisos)}
+                    className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Editar permisos"
+                  >
+                    Permisos
+                  </button>
+                </div>
+                {editingUserId === member.id && (
+                  <div className="p-2 bg-gray-50 border border-gray-200 rounded">
+                    {PERM_MODULES.map(mod => (
+                      <div key={mod} className="flex items-center gap-2 mb-1">
+                        <span className="w-32 text-sm">{mod}</span>
+                        <select
+                          value={permValues[mod] ?? '-'}
+                          onChange={e => updatePerm(mod, e.target.value)}
+                          className="h-8 px-2 text-xs border border-gray-200 rounded"
+                        >
+                          {PERM_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => savePerms(member.id)}
+                        className="px-3 py-1 bg-gray-900 text-white text-xs rounded disabled:opacity-40"
+                        disabled={setPermisos.isPending}
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        onClick={closePermEdit}
+                        className="px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

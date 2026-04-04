@@ -42,6 +42,7 @@ import { PropiedadFichaPage } from '@/pages/PropiedadFichaPage'
 import { ProyectoFichaPage } from '@/pages/ProyectoFichaPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 import { RequireRole } from '@/components/auth/RequireRole'
+import { RequirePermiso } from '@/components/auth/RequirePermiso'
 
 export const router = createBrowserRouter([
   {
@@ -50,14 +51,14 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/inicio" replace /> },
       { path: 'inicio',     element: <InicioPage /> },
-      { path: 'proyectos',              element: <ProyectosPage /> },
-      { path: 'proyectos/nueva',        element: <ProyectoFormPage /> },
-      { path: 'proyectos/:id',          element: <ProjectDetailPage /> },
-      { path: 'proyectos/:id/editar',   element: <ProyectoFormPage /> },
-      { path: 'clientes', element: <ClientesPage /> },
-      { path: 'clientes/nuevo', element: <ClienteFormPage /> },
-      { path: 'clientes/:id', element: <ClientDetailPage /> },
-      { path: 'clientes/:id/editar', element: <ClienteFormPage /> },
+      { path: 'proyectos',              element: <RequirePermiso modulo="proyectos" nivel="read" fallback={<Navigate to="/inicio" replace />}><ProyectosPage /></RequirePermiso> },
+      { path: 'proyectos/nueva',        element: <RequirePermiso modulo="proyectos" nivel="write" fallback={<Navigate to="/inicio" replace />}><ProyectoFormPage /></RequirePermiso> },
+      { path: 'proyectos/:id',          element: <RequirePermiso modulo="proyectos" nivel="read" fallback={<Navigate to="/inicio" replace />}><ProjectDetailPage /></RequirePermiso> },
+      { path: 'proyectos/:id/editar',   element: <RequirePermiso modulo="proyectos" nivel="write" fallback={<Navigate to="/inicio" replace />}><ProyectoFormPage /></RequirePermiso> },
+      { path: 'clientes', element: <RequirePermiso modulo="crm" nivel="read" fallback={<Navigate to="/inicio" replace />}><ClientesPage /></RequirePermiso> },
+      { path: 'clientes/nuevo', element: <RequirePermiso modulo="crm" nivel="write" fallback={<Navigate to="/inicio" replace />}><ClienteFormPage /></RequirePermiso> },
+      { path: 'clientes/:id', element: <RequirePermiso modulo="crm" nivel="read" fallback={<Navigate to="/inicio" replace />}><ClientDetailPage /></RequirePermiso> },
+      { path: 'clientes/:id/editar', element: <RequirePermiso modulo="crm" nivel="write" fallback={<Navigate to="/inicio" replace />}><ClienteFormPage /></RequirePermiso> },
       { path: 'simulador', element: <SimuladorPage /> },
       { path: 'flip',              element: <FlipPage /> },
       { path: 'flip/nuevo',        element: <FlipFormPage /> },
@@ -67,13 +68,13 @@ export const router = createBrowserRouter([
       { path: 'presupuestos/nuevo',       element: <PresupuestoFormPage /> },
       { path: 'presupuestos/:id/editar',  element: <PresupuestoFormPage /> },
       { path: 'recursos',      element: <RequireRole role="admin" fallback={<Navigate to="/inicio" replace />}><RecursosPage /></RequireRole> },
-      { path: 'propiedades',        element: <PropiedadesPage /> },
-      { path: 'propiedades/nueva',  element: <PropiedadNuevaPage /> },
-      { path: 'propiedades/:id',         element: <PropiedadDetallePage /> },
-      { path: 'propiedades/:id/editar', element: <PropiedadEditarPage /> },
+      { path: 'propiedades',        element: <RequirePermiso modulo="propiedades" nivel="read" fallback={<Navigate to="/inicio" replace />}><PropiedadesPage /></RequirePermiso> },
+      { path: 'propiedades/nueva',  element: <RequirePermiso modulo="propiedades" nivel="write" fallback={<Navigate to="/inicio" replace />}><PropiedadNuevaPage /></RequirePermiso> },
+      { path: 'propiedades/:id',         element: <RequirePermiso modulo="propiedades" nivel="read" fallback={<Navigate to="/inicio" replace />}><PropiedadDetallePage /></RequirePermiso> },
+      { path: 'propiedades/:id/editar', element: <RequirePermiso modulo="propiedades" nivel="write" fallback={<Navigate to="/inicio" replace />}><PropiedadEditarPage /></RequirePermiso> },
       { path: 'tareas',        element: <TareasPage /> },
       { path: 'notas',         element: <NotasPage /> },
-      { path: 'marketing',     element: <MarketingPage /> },
+      { path: 'marketing',     element: <RequirePermiso modulo="marketing" nivel="read" fallback={<Navigate to="/inicio" replace />}><MarketingPage /></RequirePermiso> },
       { path: 'comisiones',            element: <RequireRole role="admin"><ComisionesPage /></RequireRole> },
       { path: 'comisiones/nueva',      element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
       { path: 'comisiones/:id/editar', element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },

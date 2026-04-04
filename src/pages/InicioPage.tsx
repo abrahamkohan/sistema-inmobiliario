@@ -20,6 +20,7 @@ import { DayView } from '@/components/tasks/DayView'
 import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { useAuth } from '@/context/AuthContext'
 import { useIsAdmin } from '@/hooks/useUserRole'
+import { usePermiso } from '@/hooks/usePermiso'
 import { AgenteDashboard } from '@/components/dashboard/AgenteDashboard'
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
@@ -165,17 +166,26 @@ function WidgetShell({ label, editMode, children }: {
 // ══════════════════════════════════════════════════════════════════════════════
 
 function KpisWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboardStats>['data']; isLoading: boolean }) {
+  const navigate = useNavigate()
+  
+  // Null safety - si no hay sesión, no mostrar nada
+  const puedeVerCRM = usePermiso('crm', 'read') ?? false
+  const puedeVerProyectos = usePermiso('proyectos', 'read') ?? false
+  const puedeVerPropiedades = usePermiso('propiedades', 'read') ?? false
+  const puedeVerFinanzas = usePermiso('finanzas', 'read') ?? false
+
   const metrics = [
-    { label: 'Clientes',          value: stats?.counts.clients ?? 0,         icon: Users,      accent: '#6366f1' },
-    { label: 'Proyectos activos', value: stats?.counts.projects_active ?? 0, icon: Activity,   accent: '#0ea5e9' },
-    { label: 'Unidades dispon.',  value: stats?.counts.units_available ?? 0, icon: Home,       accent: '#10b981' },
-    { label: 'Simulaciones',      value: stats?.counts.simulations ?? 0,     icon: Calculator, accent: '#f59e0b' },
+    { label: 'Clientes',          value: stats?.counts?.clients ?? 0,         icon: Users,      accent: '#6366f1', permiso: puedeVerCRM, ruta: '/clientes' },
+    { label: 'Proyectos activos', value: stats?.counts?.projects_active ?? 0, icon: Activity,   accent: '#0ea5e9', permiso: puedeVerProyectos, ruta: '/proyectos' },
+    { label: 'Unidades dispon.',  value: stats?.counts?.units_available ?? 0, icon: Home,       accent: '#10b981', permiso: puedeVerPropiedades, ruta: '/propiedades' },
+    { label: 'Simulaciones',      value: stats?.counts?.simulations ?? 0,     icon: Calculator, accent: '#f59e0b', permiso: puedeVerFinanzas, ruta: '/simulador' },
   ]
+
   return (
     // Single container divided by 1px gaps — no individual card boxes
     <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 1, background: 'var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-      {metrics.map(({ label, value, icon: Icon, accent }) => (
-        <div key={label} style={{ background: 'var(--card)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      {(metrics ?? []).filter(m => m.permiso).map(({ label, value, icon: Icon, accent, ruta }) => (
+        <div key={label} onClick={() => navigate(ruta)} style={{ background: 'var(--card)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
           <Box style={{ color: accent, flexShrink: 0 }}>
             <Icon size={15} />
           </Box>
@@ -197,7 +207,17 @@ function RadarWidget({ stats, isLoading, compact }: {
   compact?: boolean
 }) {
   const navigate = useNavigate()
+  const puedeVerProyectos = usePermiso('proyectos', 'read') ?? false
   const rows = stats?.radar ?? []
+
+  // Si no tiene permiso, no mostrar nada
+  if (!puedeVerProyectos) {
+    return (
+      <Flex align="center" justify="center" style={{ height: '100%' }}>
+        <Text size="1" color="gray">Sin acceso a proyectos</Text>
+      </Flex>
+    )
+  }
 
   // Mobile: card list
   if (compact) {
@@ -205,9 +225,9 @@ function RadarWidget({ stats, isLoading, compact }: {
       <Flex direction="column" gap="2" style={{ height: '100%', overflow: 'auto' }}>
         {isLoading ? (
           <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Cargando...</Text></Flex>
-        ) : rows.length === 0 ? (
+        ) : (rows ?? []).length === 0 ? (
           <Flex align="center" justify="center" py="5"><Text size="1" color="gray">Sin proyectos</Text></Flex>
-        ) : rows.map((p) => {
+        ) : (rows ?? []).map((p) => {
           const sb = STATUS_BADGE[p.status]
           return (
             <Card key={p.id} size="2" style={{ borderRadius: 12 }} onClick={() => navigate('/')}>
@@ -245,9 +265,9 @@ function RadarWidget({ stats, isLoading, compact }: {
         <tbody>
           {isLoading ? (
             <tr><td colSpan={4} style={{ textAlign: 'center', padding: 32, color: 'var(--muted-foreground)', fontSize: 13 }}>Cargando...</td></tr>
-          ) : rows.length === 0 ? (
+          ) : (rows ?? []).length === 0 ? (
             <tr><td colSpan={4} style={{ textAlign: 'center', padding: 32, color: 'var(--muted-foreground)', fontSize: 13 }}>Sin proyectos aún.</td></tr>
-          ) : rows.map((p, i) => {
+          ) : (rows ?? []).map((p, i) => {
             const sb = STATUS_BADGE[p.status]
             return (
               <tr key={p.id} onClick={() => navigate('/')}
@@ -319,7 +339,7 @@ function MercadoWidget({ compact }: { compact?: boolean }) {
 
 function GraficoWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboardStats>['data']; isLoading: boolean }) {
   const data = stats?.simsByMonth ?? []
-  const maxVal = Math.max(...data.map((d) => d.total), 1)
+  const maxVal = data.length > 0 ? Math.max(...data.map((d) => d.total), 1) : 1
   return (
     <div style={{ height: '100%', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--card)', padding: '12px 4px 8px' }}>
       {isLoading ? (
@@ -349,6 +369,17 @@ function GraficoWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashb
 
 function ActividadWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboardStats>['data']; isLoading: boolean }) {
   const navigate = useNavigate()
+  const puedeVerReportes = usePermiso('reportes', 'read') ?? false
+
+  // Si no tiene permiso, no mostrar
+  if (!puedeVerReportes) {
+    return (
+      <Flex align="center" justify="center" style={{ height: '100%' }}>
+        <Text size="1" color="gray">Sin acceso a informes</Text>
+      </Flex>
+    )
+  }
+
   return (
     <div style={{ overflow: 'auto', height: '100%', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--card)' }}>
       {isLoading ? (
@@ -391,6 +422,16 @@ function ActividadWidget({ stats, isLoading }: { stats: ReturnType<typeof useDas
 
 function ProyectosWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboardStats>['data']; isLoading: boolean }) {
   const navigate = useNavigate()
+  const puedeVerProyectos = usePermiso('proyectos', 'read') ?? false
+
+  if (!puedeVerProyectos) {
+    return (
+      <Flex align="center" justify="center" style={{ height: '100%' }}>
+        <Text size="1" color="gray">Sin acceso a proyectos</Text>
+      </Flex>
+    )
+  }
+
   return (
     <Card size="1" style={{ overflow: 'auto', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box', borderRadius: 14 }}>
       {isLoading ? (
@@ -601,7 +642,14 @@ function RecursosWidget({ config, editMode }: { config: ReturnType<typeof useCon
 
 function QuickActionsBar() {
   const navigate = useNavigate()
-  const actions = [
+  
+  // Verificar permisos para cada acción
+  const puedeCrearProyecto = usePermiso('proyectos', 'write')
+  const puedeVerCRM = usePermiso('crm', 'read')
+  const puedeVerFinanzas = usePermiso('finanzas', 'read')
+  const puedeVerReportes = usePermiso('reportes', 'read')
+
+  const allActions = [
     {
       label: 'Nuevo proyecto',
       icon: Plus,
@@ -610,6 +658,7 @@ function QuickActionsBar() {
       border: 'rgba(180,140,60,0.18)',
       iconColor: '#b45309',
       primary: true,
+      permiso: puedeCrearProyecto,
     },
     {
       label: 'Nuevo cliente',
@@ -619,6 +668,7 @@ function QuickActionsBar() {
       border: 'rgba(0,0,0,0.07)',
       iconColor: '#6366f1',
       primary: false,
+      permiso: puedeVerCRM,
     },
     {
       label: 'Simulador',
@@ -628,6 +678,7 @@ function QuickActionsBar() {
       border: 'rgba(0,0,0,0.07)',
       iconColor: '#0ea5e9',
       primary: false,
+      permiso: puedeVerFinanzas,
     },
     {
       label: 'Informes',
@@ -637,8 +688,11 @@ function QuickActionsBar() {
       border: 'rgba(0,0,0,0.07)',
       iconColor: '#10b981',
       primary: false,
+      permiso: puedeVerReportes,
     },
   ]
+  
+  const actions = allActions.filter(a => a.permiso)
   return (
     <div style={{
       display: 'grid',
@@ -658,7 +712,10 @@ function QuickActionsBar() {
           box-shadow: 0 3px 10px rgba(0,0,0,0.08);
         }
       `}</style>
-      {actions.map(({ label, icon: Icon, path, bg, border, iconColor, primary }) => (
+      {actions.map((action, idx) => {
+        const { label, icon: Icon, path, bg, border, iconColor } = action
+        const isPrimary = idx === 0
+        return (
         <button
           key={label}
           onClick={() => navigate(path)}
@@ -673,7 +730,7 @@ function QuickActionsBar() {
             alignItems: 'center',
             gap: 10,
             transition: 'transform 0.15s, box-shadow 0.15s, border-color 0.15s',
-            boxShadow: primary ? '0 2px 8px rgba(180,140,60,0.12)' : '0 1px 3px rgba(0,0,0,0.04)',
+            boxShadow: isPrimary ? '0 2px 8px rgba(180,140,60,0.12)' : '0 1px 3px rgba(0,0,0,0.04)',
             textAlign: 'left',
             width: '100%',
           }}
@@ -681,11 +738,11 @@ function QuickActionsBar() {
           <div style={{ background: `${iconColor}14`, borderRadius: 8, padding: 6, flexShrink: 0 }}>
             <Icon size={14} style={{ color: iconColor, display: 'block' }} />
           </div>
-          <span style={{ fontSize: 13, fontWeight: primary ? 600 : 500, color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span style={{ fontSize: 13, fontWeight: isPrimary ? 600 : 500, color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {label}
           </span>
         </button>
-      ))}
+      )})}
     </div>
   )
 }

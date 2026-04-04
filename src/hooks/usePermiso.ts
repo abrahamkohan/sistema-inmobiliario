@@ -13,7 +13,10 @@ export function usePermiso(module: string, level: string): boolean {
   const { session } = useAuth()
   const { data: team = [] } = useTeam()
 
+  // Si no hay sesión o el equipo no ha cargado, retornar false
   if (!session?.user?.id) return false
+  if (!team || team.length === 0) return false
+
   const current = team.find(m => m.id === session.user.id)
   if (!current) return false
 

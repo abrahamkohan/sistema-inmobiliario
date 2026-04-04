@@ -144,8 +144,8 @@ export function useDashboardStats() {
           simulations: (recentSims ?? []) as DashboardStats['recent']['simulations'],
           projects: (recentProjects ?? []) as DashboardStats['recent']['projects'],
         },
-        radar,
-        simsByMonth,
+        radar: radar ?? [],
+        simsByMonth: simsByMonth ?? [],
       }
     },
     staleTime: 30_000,

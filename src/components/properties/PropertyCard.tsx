@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Bed, Bath, Maximize2, MapPin, Trash2 } from 'lucide-react'
-import { useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties'
-import { getPhotoUrl, formatPrice } from '@/lib/properties'
+import { Bed, Bath, Maximize2, MapPin } from 'lucide-react'
+import { useDeleteProperty } from '@/hooks/useProperties'
+import { getPhotoUrl } from '@/lib/properties'
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog'
 import type { PropertyRow } from '@/lib/properties'
 
@@ -24,23 +24,19 @@ interface Props {
 
 export function PropertyCard({ property }: Props) {
   const navigate = useNavigate()
-  const updateProperty = useUpdateProperty()
   const deleteProperty = useDeleteProperty()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
+  // Safe access - handle null/undefined
+  const safeString = (val: unknown): string => {
+    if (val === null || val === undefined) return ''
+    return String(val)
+  }
+
   const coverUrl = property.foto_portada ? getPhotoUrl(property.foto_portada) : null
-  const ubicacion = property.barrio ?? property.zona ?? property.ciudad ?? 'Sin ubicación'
-  const title = property.titulo || `${TIPO_LABEL[property.tipo] ?? property.tipo} en ${ubicacion}`
-
-  function togglePublicado(e: React.MouseEvent) {
-    e.stopPropagation()
-    updateProperty.mutate({ id: property.id, input: { publicado_en_web: !property.publicado_en_web } })
-  }
-
-  function handleDeleteClick(e: React.MouseEvent) {
-    e.stopPropagation()
-    setShowDeleteModal(true)
-  }
+  const ubicacion = property.barrio || property.zona || property.ciudad || 'Sin ubicación'
+  const tipoLabel = safeString(property.tipo)
+  const title = property.titulo || `${TIPO_LABEL[tipoLabel] ?? tipoLabel} en ${ubicacion}`
 
   return (
     <>
@@ -62,10 +58,10 @@ export function PropertyCard({ property }: Props) {
         {/* Badges */}
         <div className="absolute top-2 left-2 flex gap-1">
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-900/70 text-white backdrop-blur-sm">
-            {OP_LABEL[property.operacion] ?? property.operacion}
+            {OP_LABEL[property.operacion ?? ''] ?? property.operacion ?? 'Venta'}
           </span>
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
-            {TIPO_LABEL[property.tipo] ?? property.tipo}
+            {TIPO_LABEL[property.tipo ?? ''] ?? property.tipo ?? 'Propiedad'}
           </span>
         </div>
         {/* Inactivo overlay */}
@@ -102,42 +98,18 @@ export function PropertyCard({ property }: Props) {
 
         {/* Precio */}
         {property.precio != null && (
-          <p className="text-sm font-bold text-gray-800">{formatPrice(property.precio, property.moneda)}</p>
+          <p className="text-sm font-bold text-gray-900 mt-auto pt-1">
+            {property.moneda === 'USD' ? '$' : '₲'}{property.precio.toLocaleString()}
+          </p>
         )}
-
-        {/* Acciones CRM */}
-        <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-gray-50">
-          <button
-            onClick={togglePublicado}
-            disabled={updateProperty.isPending}
-            title={property.publicado_en_web ? 'Publicado en web' : 'No publicado'}
-            className="flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="text-[10px] text-gray-400">Web</span>
-            <div className={`relative w-8 h-4 rounded-full transition-colors duration-200 ${
-              property.publicado_en_web ? 'bg-emerald-500' : 'bg-gray-200'
-            }`}>
-              <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform duration-200 ${
-                property.publicado_en_web ? 'translate-x-4' : 'translate-x-0.5'
-              }`} />
-            </div>
-          </button>
-          <button
-            onClick={handleDeleteClick}
-            className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 active:bg-red-50 active:text-red-500 transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
       </div>
     </div>
 
     <DeleteConfirmDialog
       open={showDeleteModal}
-      mode="keyword"
+      mode="name"
       entityName={title}
-      isPending={deleteProperty.isPending}
-      onConfirm={() => deleteProperty.mutate(property.id, { onSuccess: () => setShowDeleteModal(false) })}
+      onConfirm={() => { deleteProperty.mutate(property.id); setShowDeleteModal(false) }}
       onCancel={() => setShowDeleteModal(false)}
     />
     </>

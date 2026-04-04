@@ -40,12 +40,7 @@ export function useCreateProperty() {
         assigned_agent_id: session?.user?.id ?? null,
         consultant_id: consultant.uuid as any
       }
-      console.log('[useCreateProperty] Payload:', {
-        consultant_id: dataWithConsultant.consultant_id,
-        assigned_agent_id: dataWithConsultant.assigned_agent_id,
-        assigned_to: dataWithConsultant.assigned_to,
-        titulo: dataWithConsultant.titulo
-      })
+      console.log('[useCreateProperty] Payload:', JSON.stringify(dataWithConsultant, null, 2))
       return createProperty(dataWithConsultant)
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['properties'] }),

@@ -36,14 +36,19 @@ export async function getPropertyPhotos(propertyId: string): Promise<PropertyPho
 }
 
 export async function createProperty(input: PropertyInsert): Promise<PropertyRow> {
-  console.log('[createProperty] Input received:', input)
+  console.log('[createProperty] Input received:', JSON.stringify(input, null, 2))
   const { data, error } = await supabase
     .from('properties')
     .insert(input)
     .select()
     .single()
   if (error) {
-    console.error('[createProperty] Error:', error)
+    console.error('[createProperty] Error:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    })
     throw error
   }
   return data as unknown as PropertyRow

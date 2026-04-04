@@ -7,6 +7,7 @@ import { useBrand } from '@/context/BrandContext'
 import { toast } from 'sonner'
 import type { Database } from '@/types/database'
 
+type ClientRow    = Database['public']['Tables']['clients']['Row']
 type ClientInsert = Database['public']['Tables']['clients']['Insert']
 type ClientUpdate = Database['public']['Tables']['clients']['Update']
 

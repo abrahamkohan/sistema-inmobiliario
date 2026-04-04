@@ -2,8 +2,8 @@
 import { NavLink } from 'react-router'
 import {
   Home, Building2, Users, Calculator, FileText, Settings,
-  BookMarked, LogOut, X, Receipt, MapPin, ClipboardList,
-  NotebookPen, HandCoins, TrendingUp,
+  LogOut, X, Receipt, MapPin, ClipboardList,
+  NotebookPen, HandCoins, TrendingUp, Megaphone,
 } from 'lucide-react'
 import { useBrand } from '@/context/BrandContext'
 import { supabase } from '@/lib/supabase'
@@ -53,7 +53,8 @@ const NAV_GRUPOS: {
   {
     label: 'Sistema',
     items: [
-      { to: '/recursos',     label: 'Recursos',     icon: BookMarked },
+      { to: '/marketing',    label: 'Marketing',    icon: Megaphone },
+      { to: '/recursos',     label: 'Recursos',     icon: Receipt },
       { to: '/configuracion', label: 'Configuración', icon: Settings },
     ],
   },

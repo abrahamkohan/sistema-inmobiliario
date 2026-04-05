@@ -74,7 +74,7 @@ export async function setPermisos(userId: string, permisos: Record<string, boole
   // Usa RPC para garantizar upsert seguro:
   // - si no existe la fila → la crea con role='agente'
   // - si existe → solo actualiza permisos (no toca role ni is_owner)
-  const { error } = await supabase.rpc('upsert_user_permisos', {
+  const { error } = await (supabase.rpc as any)('upsert_user_permisos', {
     p_user_id: userId,
     p_permisos: permisos ?? {},
   })

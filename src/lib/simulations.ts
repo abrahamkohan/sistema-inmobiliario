@@ -21,7 +21,7 @@ export async function getSimulationById(id: string): Promise<SimRow> {
   const { data, error } = await supabase
     .from('simulations')
     .select('*')
-    .eq('id', id)
+    .eq('id', id as any)
     .single()
   if (error) throw error
   return data as unknown as SimRow
@@ -31,7 +31,7 @@ export async function getSimulationsByClient(clientId: string): Promise<SimRow[]
   const { data, error } = await supabase
     .from('simulations')
     .select('*')
-    .eq('client_id', clientId)
+    .eq('client_id', clientId as any)
     .order('created_at', { ascending: false })
   if (error) throw error
   return data as unknown as SimRow[]
@@ -40,7 +40,7 @@ export async function getSimulationsByClient(clientId: string): Promise<SimRow[]
 export async function createSimulation(input: SimInsert): Promise<SimRow> {
   const { data, error } = await supabase
     .from('simulations')
-    .insert(input)
+    .insert(input as any)
     .select()
     .single()
   if (error) throw error
@@ -51,15 +51,15 @@ export async function deleteSimulation(id: string): Promise<void> {
   const { error } = await supabase
     .from('simulations')
     .delete()
-    .eq('id', id)
+    .eq('id', id as any)
   if (error) throw error
 }
 
 export async function updateSimulation(id: string, input: Database['public']['Tables']['simulations']['Update']): Promise<SimRow> {
   const { data, error } = await supabase
     .from('simulations')
-    .update(input)
-    .eq('id', id)
+    .update(input as any)
+    .eq('id', id as any)
     .select()
     .single()
   if (error) throw error
@@ -69,8 +69,8 @@ export async function updateSimulation(id: string, input: Database['public']['Ta
 export async function updateSimulationReportPath(id: string, reportPath: string): Promise<SimRow> {
   const { data, error } = await supabase
     .from('simulations')
-    .update({ report_path: reportPath })
-    .eq('id', id)
+    .update({ report_path: reportPath } as any)
+    .eq('id', id as any)
     .select()
     .single()
   if (error) throw error

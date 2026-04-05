@@ -35,8 +35,8 @@ export async function getPublicProperty(id: string): Promise<PropertyRow | null>
   const { data, error } = await supabase
     .from('properties')
     .select('*')
-    .eq('id', id)
-    .eq('publicado_en_web', true)
+    .eq('id', id as any)
+    .eq('publicado_en_web', true as any)
     .single()
   if (error) return null
   return data as unknown as PropertyRow
@@ -46,7 +46,7 @@ export async function getPublicPropertyPhotos(propertyId: string): Promise<Prope
   const { data, error } = await supabase
     .from('property_photos')
     .select('*')
-    .eq('property_id', propertyId)
+    .eq('property_id', propertyId as any)
     .order('sort_order')
   if (error) return []
   return data as unknown as PropertyPhotoRow[]
@@ -56,8 +56,8 @@ export async function getPublicProject(id: string): Promise<ProjectRow | null> {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .eq('id', id)
-    .eq('publicado_en_web', true)
+    .eq('id', id as any)
+    .eq('publicado_en_web', true as any)
     .single()
   if (error) return null
   return data as unknown as ProjectRow
@@ -67,7 +67,7 @@ export async function getPublicProjects(): Promise<ProjectRow[]> {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .eq('publicado_en_web', true)
+    .eq('publicado_en_web', true as any)
     .order('name')
   if (error) return []
   return data as unknown as ProjectRow[]
@@ -77,7 +77,7 @@ export async function getPublicProperties(): Promise<PropertyRow[]> {
   const { data, error } = await supabase
     .from('properties')
     .select('id, titulo, operacion, tipo, condicion, precio, moneda, dormitorios, banos, superficie_m2, barrio, zona, ciudad, foto_portada, publicado_en_web, created_at')
-    .eq('publicado_en_web', true)
+    .eq('publicado_en_web', true as any)
     .order('created_at', { ascending: false })
   if (error) return []
   return data as unknown as PropertyRow[]
@@ -87,7 +87,7 @@ export async function getPublicTypologies(projectId: string): Promise<TypologyRo
   const { data, error } = await supabase
     .from('typologies')
     .select('*')
-    .eq('project_id', projectId)
+    .eq('project_id', projectId as any)
     .order('price_usd')
   if (error) throw error
   return data as unknown as TypologyRow[]

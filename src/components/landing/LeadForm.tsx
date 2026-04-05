@@ -50,7 +50,7 @@ export function LeadForm({ propertyId, projectId, landingTipo, onSuccess }: Lead
       utm_source:   params.get('utm_source')   ?? null,
       utm_medium:   params.get('utm_medium')   ?? null,
       utm_campaign: params.get('utm_campaign') ?? null,
-    })
+    } as any)
 
     if (error) {
       setStatus('error')

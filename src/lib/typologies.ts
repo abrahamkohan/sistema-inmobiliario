@@ -10,7 +10,7 @@ export async function getTypologies(projectId: string): Promise<TypologyRow[]> {
   const { data, error } = await supabase
     .from('typologies')
     .select('*')
-    .eq('project_id', projectId)
+    .eq('project_id', projectId as any)
     .order('created_at', { ascending: true })
   if (error) throw error
   return data as unknown as TypologyRow[]
@@ -19,7 +19,7 @@ export async function getTypologies(projectId: string): Promise<TypologyRow[]> {
 export async function createTypology(input: TypologyInsert): Promise<TypologyRow> {
   const { data, error } = await supabase
     .from('typologies')
-    .insert(input)
+    .insert(input as any)
     .select()
     .single()
   if (error) throw error
@@ -29,8 +29,8 @@ export async function createTypology(input: TypologyInsert): Promise<TypologyRow
 export async function updateTypology(id: string, input: TypologyUpdate): Promise<TypologyRow> {
   const { data, error } = await supabase
     .from('typologies')
-    .update(input)
-    .eq('id', id)
+    .update(input as any)
+    .eq('id', id as any)
     .select()
     .single()
   if (error) throw error
@@ -41,6 +41,6 @@ export async function deleteTypology(id: string): Promise<void> {
   const { error } = await supabase
     .from('typologies')
     .delete()
-    .eq('id', id)
+    .eq('id', id as any)
   if (error) throw error
 }

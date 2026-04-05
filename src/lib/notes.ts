@@ -27,40 +27,40 @@ export async function getNotes(location?: string): Promise<NoteRow[]> {
     .order('updated_at', { ascending: false })
 
   if (location && location !== 'all' && location !== 'flagged') {
-    query = query.eq('location', location)
+    query = query.eq('location', location as unknown as never)
   }
   if (location === 'flagged') {
-    query = query.eq('is_flagged', true)
+    query = query.eq('is_flagged', true as unknown as never)
   }
 
   const { data, error } = await query
   if (error) throw error
-  return data as NoteRow[]
+  return data as unknown as NoteRow[]
 }
 
 export async function createNote(input: NoteInsert): Promise<NoteRow> {
   const { data, error } = await supabase
     .from('notes')
-    .insert({ content: '', location: 'inbox', ...input })
+    .insert({ content: '', location: 'inbox', ...input } as unknown as never)
     .select()
     .single()
   if (error) throw error
-  return data as NoteRow
+  return data as unknown as NoteRow
 }
 
 export async function updateNote(id: string, input: NoteUpdate): Promise<NoteRow> {
   const { data, error } = await supabase
     .from('notes')
-    .update(input)
-    .eq('id', id)
+    .update(input as unknown as never)
+    .eq('id', id as unknown as never)
     .select()
     .single()
   if (error) throw error
-  return data as NoteRow
+  return data as unknown as NoteRow
 }
 
 export async function deleteNote(id: string): Promise<void> {
-  const { error } = await supabase.from('notes').delete().eq('id', id)
+  const { error } = await supabase.from('notes').delete().eq('id', id as unknown as never)
   if (error) throw error
 }
 
@@ -68,8 +68,8 @@ export async function getNotesByClient(clientId: string): Promise<NoteRow[]> {
   const { data, error } = await supabase
     .from('notes')
     .select('*')
-    .eq('client_id', clientId)
+    .eq('client_id', clientId as unknown as never)
     .order('updated_at', { ascending: false })
   if (error) throw error
-  return data as NoteRow[]
+  return data as unknown as NoteRow[]
 }

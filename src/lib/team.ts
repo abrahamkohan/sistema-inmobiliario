@@ -57,15 +57,15 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 export async function setRole(userId: string, role: 'admin' | 'agente'): Promise<void> {
   const { error } = await supabase
     .from('user_roles')
-    .upsert({ user_id: userId, role, is_owner: false })
+    .upsert({ user_id: userId, role, is_owner: false } as any)
   if (error) throw error
 }
 
 export async function setPermisos(userId: string, permisos: Record<string, string> | null): Promise<void> {
   const { error } = await supabase
     .from('user_roles')
-    .update({ permisos })
-    .eq('user_id', userId)
+    .update({ permisos } as any)
+    .eq('user_id', userId as any)
   if (error) throw error
 }
 
@@ -73,7 +73,7 @@ export async function removeUser(userId: string): Promise<void> {
   const { error } = await supabase
     .from('user_roles')
     .delete()
-    .eq('user_id', userId)
+    .eq('user_id', userId as any)
   if (error) throw error
 }
 

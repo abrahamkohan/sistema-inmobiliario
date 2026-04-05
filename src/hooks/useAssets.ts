@@ -33,11 +33,11 @@ export function useAssets(filters: AssetFilters = {}) {
       let q = supabase
         .from('assets')
         .select('*, asset_usages(asset_id, usage_type, usage_id)')
-        .eq('activo', true)
+        .eq('activo', true as unknown as never)
         .order('created_at', { ascending: false })
 
-      if (filters.type)    q = q.eq('type',    filters.type)
-      if (filters.subtipo) q = q.eq('subtipo', filters.subtipo)
+      if (filters.type)    q = q.eq('type',    filters.type as unknown as never)
+      if (filters.subtipo) q = q.eq('subtipo', filters.subtipo as unknown as never)
 
       const { data, error } = await q
       if (error) throw error
@@ -91,7 +91,7 @@ export function useCreateAsset() {
 
       const { data, error } = await supabase
         .from('assets')
-        .insert(payload)
+        .insert(payload as any)
         .select()
         .single()
       if (error) throw error
@@ -111,7 +111,7 @@ export function useDeleteAsset() {
       const { count, error: countError } = await supabase
         .from('asset_usages')
         .select('*', { count: 'exact', head: true })
-        .eq('asset_id', asset.id)
+        .eq('asset_id', asset.id as unknown as never)
       if (countError) throw countError
       if ((count ?? 0) > 0) {
         throw new Error(`Este asset está en uso en ${count} lugar${count === 1 ? '' : 'es'} y no puede eliminarse`)
@@ -125,7 +125,7 @@ export function useDeleteAsset() {
       const { error } = await supabase
         .from('assets')
         .delete()
-        .eq('id', asset.id)
+        .eq('id', asset.id as unknown as never)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
@@ -171,8 +171,8 @@ export function useUpdateAsset() {
 
       const { data, error } = await supabase
         .from('assets')
-        .update(updates)
-        .eq('id', input.id)
+        .update(updates as unknown as never)
+        .eq('id', input.id as unknown as never)
         .select()
         .single()
       if (error) throw error

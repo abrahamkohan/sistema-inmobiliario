@@ -46,7 +46,7 @@ export function usePushNotifications() {
           })
           const json = newSub.toJSON()
           const { error } = await supabase.from('push_subscriptions').upsert(
-            { user_id: user.id, endpoint: json.endpoint!, p256dh: json.keys!.p256dh, auth_key: json.keys!.auth },
+            { user_id: user.id, endpoint: json.endpoint!, p256dh: json.keys!.p256dh, auth_key: json.keys!.auth } as any,
             { onConflict: 'user_id,endpoint' }
           )
           if (!error) setSubscribed(true)
@@ -79,7 +79,7 @@ export function usePushNotifications() {
         endpoint: json.endpoint!,
         p256dh:   json.keys!.p256dh,
         auth_key: json.keys!.auth,
-      },
+      } as any,
       { onConflict: 'user_id,endpoint' }
     )
 

@@ -8,25 +8,25 @@ export async function getProfile(userId: string): Promise<{ id: string; full_nam
   const { data, error } = await supabase
     .from('profiles')
     .select('id, full_name')
-    .eq('id', userId)
+    .eq('id', userId as unknown as never)
     .single()
   if (error) {
     console.error('[getProfile] error:', error)
     return null
   }
-  return data
+  return data as unknown as { id: string; full_name: string | null } | null
 }
 
 export async function updateProfile(userId: string, updates: ProfileUpdate): Promise<{ id: string; full_name: string | null }> {
   const { data, error } = await supabase
     .from('profiles')
-    .update(updates)
-    .eq('id', userId)
+    .update(updates as unknown as never)
+    .eq('id', userId as unknown as never)
     .select('id, full_name')
     .single()
   if (error) {
     console.error('[updateProfile] error:', error)
     throw error
   }
-  return data
+  return data as unknown as { id: string; full_name: string | null }
 }

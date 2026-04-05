@@ -171,7 +171,7 @@ export function ProyectoFormPage() {
       try {
         const projectId = id!
         const [proj, photos] = await Promise.all([
-          supabase.from('projects').select('*').eq('id', projectId).single().then(r => r.data as unknown as ProjectRow),
+          supabase.from('projects').select('*').eq('id', projectId as any).single().then(r => r.data as unknown as ProjectRow),
           getProjectPhotos(projectId),
         ])
         if (!proj) { navigate('/proyectos'); return }
@@ -314,7 +314,7 @@ export function ProyectoFormPage() {
     const reordered = [photo, ...sorted.filter(p => p.id !== photo.id)]
     setExistingPhotos(reordered.map((p, i) => ({ ...p, sort_order: i })))
     await Promise.all(
-      reordered.map((p, i) => supabase.from('project_photos').update({ sort_order: i }).eq('id', p.id))
+      reordered.map((p, i) => supabase.from('project_photos').update({ sort_order: i } as any).eq('id', p.id as any))
     )
   }
 
@@ -482,12 +482,12 @@ export function ProyectoFormPage() {
         for (let i = 0; i < s.amenityDrafts.length; i++) {
           const draft = s.amenityDrafts[i]
           if (!draft.name.trim()) continue
-          const { data: amenity } = await supabase.from('project_amenities').insert({ project_id: projectId, name: draft.name.trim(), sort_order: i, categoria: draft.categoria ?? 'edificio', icon: draft.icon || null }).select().single()
+          const { data: amenity } = await supabase.from('project_amenities').insert({ project_id: projectId, name: draft.name.trim(), sort_order: i, categoria: draft.categoria ?? 'edificio', icon: draft.icon || null } as any).select().single()
           if (draft.photo && amenity) {
             const ext = draft.photo.name.split('.').pop() ?? 'jpg'
-            const path = `${projectId}/amenities/${(amenity as { id: string }).id}/${Date.now()}.${ext}`
+            const path = `${projectId}/amenities/${(amenity as any).id}/${Date.now()}.${ext}`
             const { error: upErr } = await supabase.storage.from('project-media').upload(path, draft.photo)
-            if (!upErr) await supabase.from('project_amenity_images').insert({ amenity_id: (amenity as { id: string }).id, storage_path: path, sort_order: 0 })
+            if (!upErr) await supabase.from('project_amenity_images').insert({ amenity_id: (amenity as any).id, storage_path: path, sort_order: 0 } as any)
           }
         }
       }

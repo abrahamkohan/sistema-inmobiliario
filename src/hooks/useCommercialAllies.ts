@@ -20,7 +20,7 @@ export function useCommercialAllies() {
         .select('*')
         .order('nombre')
       if (error) throw error
-      return data as CommercialAlly[]
+      return data as unknown as CommercialAlly[]
     },
   })
 }
@@ -39,7 +39,7 @@ export function useCreateAlly() {
     mutationFn: async (ally: Omit<CommercialAlly, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('commercial_allies')
-        .insert(ally)
+        .insert(ally as unknown as never)
         .select()
         .single()
       if (error) throw error
@@ -55,8 +55,8 @@ export function useUpdateAlly() {
     mutationFn: async ({ id, ...updates }: Partial<CommercialAlly> & { id: string }) => {
       const { data, error } = await supabase
         .from('commercial_allies')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id)
+        .update({ ...updates, updated_at: new Date().toISOString() } as unknown as never)
+        .eq('id', id as any)
         .select()
         .single()
       if (error) throw error
@@ -73,7 +73,7 @@ export function useDeleteAlly() {
       const { error } = await supabase
         .from('commercial_allies')
         .delete()
-        .eq('id', id)
+        .eq('id', id as any)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['commercial_allies'] }),

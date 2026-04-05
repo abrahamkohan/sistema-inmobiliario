@@ -51,7 +51,7 @@ export async function getCommissionById(id: string): Promise<CommissionFull> {
   const { data, error } = await supabase
     .from('commissions')
     .select(SELECT_FULL)
-    .eq('id', id)
+    .eq('id', id as unknown as never)
     .single()
   if (error) throw error
   return data as unknown as CommissionFull
@@ -60,7 +60,7 @@ export async function getCommissionById(id: string): Promise<CommissionFull> {
 export async function createCommission(input: CommissionInsert): Promise<CommissionRow> {
   const { data, error } = await supabase
     .from('commissions')
-    .insert(input)
+    .insert(input as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -81,7 +81,7 @@ export async function createCommissionWithSplits(
       porcentaje:    a.porcentaje_comision,
       monto:         Math.round((commission.importe_comision * a.porcentaje_comision / 100) * 100) / 100,
     }))
-    const { error } = await supabase.from('commission_splits').insert(splits)
+    const { error } = await supabase.from('commission_splits').insert(splits as unknown as never)
     if (error) throw error
   }
 
@@ -91,8 +91,8 @@ export async function createCommissionWithSplits(
 export async function updateCommission(id: string, input: CommissionUpdate): Promise<CommissionRow> {
   const { data, error } = await supabase
     .from('commissions')
-    .update(input)
-    .eq('id', id)
+    .update(input as unknown as never)
+    .eq('id', id as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -100,7 +100,7 @@ export async function updateCommission(id: string, input: CommissionUpdate): Pro
 }
 
 export async function deleteCommission(id: string): Promise<void> {
-  const { error } = await supabase.from('commissions').delete().eq('id', id)
+  const { error } = await supabase.from('commissions').delete().eq('id', id as unknown as never)
   if (error) throw error
 }
 
@@ -109,8 +109,8 @@ export async function deleteCommission(id: string): Promise<void> {
 export async function updateSplit(id: string, input: SplitUpdate): Promise<SplitRow> {
   const { data, error } = await supabase
     .from('commission_splits')
-    .update(input)
-    .eq('id', id)
+    .update(input as unknown as never)
+    .eq('id', id as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -138,7 +138,7 @@ export async function addCommissionClient(
 ) {
   const { data, error } = await supabase
     .from('commission_clients')
-    .insert({ commission_id: commissionId, client_id: clientId, tipo })
+    .insert({ commission_id: commissionId, client_id: clientId, tipo } as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -149,8 +149,8 @@ export async function removeCommissionClient(commissionId: string, clientId: str
   const { error } = await supabase
     .from('commission_clients')
     .delete()
-    .eq('commission_id', commissionId)
-    .eq('client_id', clientId)
+    .eq('commission_id', commissionId as unknown as never)
+    .eq('client_id', clientId as unknown as never)
   if (error) throw error
 }
 
@@ -159,7 +159,7 @@ export async function removeCommissionClient(commissionId: string, clientId: str
 export async function createIncome(input: IncomeInsert) {
   const { data, error } = await supabase
     .from('commission_incomes')
-    .insert(input)
+    .insert(input as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -169,8 +169,8 @@ export async function createIncome(input: IncomeInsert) {
 export async function updateIncome(id: string, input: Partial<IncomeInsert>) {
   const { data, error } = await supabase
     .from('commission_incomes')
-    .update(input)
-    .eq('id', id)
+    .update(input as unknown as never)
+    .eq('id', id as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -178,7 +178,7 @@ export async function updateIncome(id: string, input: Partial<IncomeInsert>) {
 }
 
 export async function deleteIncome(id: string): Promise<void> {
-  const { error } = await supabase.from('commission_incomes').delete().eq('id', id)
+  const { error } = await supabase.from('commission_incomes').delete().eq('id', id as unknown as never)
   if (error) throw error
 }
 

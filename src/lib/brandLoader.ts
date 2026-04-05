@@ -60,11 +60,11 @@ export async function loadBrand(
       const { data, error } = await supabase
         .from('consultants')
         .select('*')
-        .eq('uuid', consultantId)
+        .eq('uuid', consultantId as unknown as never)
         .maybeSingle()
       
       if (!error && data) {
-        dbRow = data as ConsultantRow
+        dbRow = data as unknown as ConsultantRow
       }
     }
 
@@ -73,13 +73,13 @@ export async function loadBrand(
       const { data, error } = await supabase
         .from('consultants')
         .select('*')
-        .eq('activo', true)
+        .eq('activo', true as unknown as never)
         .or(`subdomain.eq.${subdomain},custom_domain.eq.${hostname}`)
         .limit(1)
         .maybeSingle()
 
       if (!error && data) {
-        dbRow = data as ConsultantRow
+        dbRow = data as unknown as ConsultantRow
       }
     }
 

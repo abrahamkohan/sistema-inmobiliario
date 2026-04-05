@@ -8,8 +8,8 @@ export async function getUserRole(): Promise<'admin' | 'agente' | null> {
   const { data } = await supabase
     .from('user_roles')
     .select('role')
-    .eq('user_id', user.id)
+    .eq('user_id', user.id as any)
     .maybeSingle()
 
-  return (data?.role as 'admin' | 'agente') ?? null
+  return ((data as any)?.role as 'admin' | 'agente') ?? null
 }

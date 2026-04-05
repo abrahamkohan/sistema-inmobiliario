@@ -77,10 +77,10 @@ export function useDashboardStats() {
         ] = await Promise.all([
           supabase.from('clients').select('*', { count: 'exact', head: true }),
           supabase.from('projects').select('*', { count: 'exact', head: true }),
-          supabase.from('projects').select('*', { count: 'exact', head: true }).in('status', ['en_pozo', 'en_construccion']),
+          supabase.from('projects').select('*', { count: 'exact', head: true }).in('status', ['en_pozo', 'en_construccion'] as unknown as never),
           supabase.from('simulations').select('*', { count: 'exact', head: true }),
-          supabase.from('typologies').select('*', { count: 'exact', head: true }).eq('category', 'unidad'),
-          supabase.from('typologies').select('units_available').eq('category', 'unidad'),
+          supabase.from('typologies').select('*', { count: 'exact', head: true }).eq('category', 'unidad' as unknown as never),
+          supabase.from('typologies').select('units_available').eq('category', 'unidad' as unknown as never),
           supabase
             .from('simulations')
             .select('id, created_at, snapshot_project, snapshot_typology, clients(full_name)')
@@ -103,9 +103,9 @@ export function useDashboardStats() {
             .order('created_at'),
         ])
 
-        const units_available = (unitsData ?? []).reduce((sum, t) => sum + (t.units_available ?? 0), 0)
+        const units_available = (unitsData ?? [])?.reduce((sum, t) => sum + ((t as { units_available?: number }).units_available ?? 0), 0) ?? 0
 
-        const radar = (radarRaw ?? []).map((p: Record<string, unknown>) => {
+        const radar = ((radarRaw ?? []) as Array<Record<string, unknown>>).map((p) => {
           const typs = (p.typologies as Array<{ price_usd: number; area_m2: number; category: string }>) ?? []
           const units = typs.filter((t) => t.category === 'unidad' && t.area_m2 > 0)
           const avg = units.length > 0
@@ -128,7 +128,7 @@ export function useDashboardStats() {
           const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
           monthMap[key] = 0
         }
-        for (const sim of simsForChart ?? []) {
+        for (const sim of (simsForChart ?? []) as Array<{ created_at: string }>) {
           const d = new Date(sim.created_at)
           const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
           if (key in monthMap) monthMap[key]++
@@ -149,8 +149,8 @@ export function useDashboardStats() {
             units_available,
           },
           recent: {
-            simulations: (recentSims ?? []) as DashboardStats['recent']['simulations'],
-            projects: (recentProjects ?? []) as DashboardStats['recent']['projects'],
+            simulations: (recentSims ?? []) as unknown as DashboardStats['recent']['simulations'],
+            projects: (recentProjects ?? []) as unknown as DashboardStats['recent']['projects'],
           },
           radar: radar ?? [],
           simsByMonth: simsByMonth ?? [],

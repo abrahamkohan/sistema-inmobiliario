@@ -11,7 +11,7 @@ export async function getConsultoraConfig(): Promise<ConsultoraRow | null> {
   const { data, error } = await supabase
     .from('consultora_config')
     .select('*')
-    .eq('id', ROW_ID)
+    .eq('id', ROW_ID as unknown as never)
     .maybeSingle()
   if (error) throw error
   return data as ConsultoraRow | null
@@ -28,7 +28,7 @@ export async function upsertConsultoraConfig(
 
   const { error } = await supabase
     .from('consultora_config')
-    .upsert(payload, { onConflict: 'id' })
+    .upsert(payload as unknown as never, { onConflict: 'id' })
   if (error) throw error
 
   // Return optimistic row — React Query refetches real data via invalidateQueries

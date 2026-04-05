@@ -19,7 +19,7 @@ export async function getProperty(id: string): Promise<PropertyRow> {
   const { data, error } = await supabase
     .from('properties')
     .select('*')
-    .eq('id', id)
+    .eq('id', id as any)
     .single()
   if (error) throw error
   return data as unknown as PropertyRow
@@ -29,7 +29,7 @@ export async function getPropertyPhotos(propertyId: string): Promise<PropertyPho
   const { data, error } = await supabase
     .from('property_photos')
     .select('*')
-    .eq('property_id', propertyId)
+    .eq('property_id', propertyId as any)
     .order('sort_order')
   if (error) throw error
   return data as unknown as PropertyPhotoRow[]
@@ -38,7 +38,7 @@ export async function getPropertyPhotos(propertyId: string): Promise<PropertyPho
 export async function createProperty(input: PropertyInsert): Promise<PropertyRow> {
   const { data, error } = await supabase
     .from('properties')
-    .insert(input)
+    .insert(input as any)
     .select()
     .single()
   if (error) {
@@ -56,8 +56,8 @@ export async function createProperty(input: PropertyInsert): Promise<PropertyRow
 export async function updateProperty(id: string, input: PropertyUpdate): Promise<PropertyRow> {
   const { data, error } = await supabase
     .from('properties')
-    .update(input)
-    .eq('id', id)
+    .update(input as any)
+    .eq('id', id as any)
     .select()
     .single()
   if (error) throw error
@@ -65,7 +65,7 @@ export async function updateProperty(id: string, input: PropertyUpdate): Promise
 }
 
 export async function deleteProperty(id: string): Promise<void> {
-  const { error } = await supabase.from('properties').delete().eq('id', id)
+  const { error } = await supabase.from('properties').delete().eq('id', id as any)
   if (error) throw error
 }
 
@@ -94,7 +94,7 @@ export async function addPropertyPhoto(
   if (uploadError) throw uploadError
   const { data, error } = await supabase
     .from('property_photos')
-    .insert({ property_id: propertyId, storage_path: path, sort_order: sortOrder })
+    .insert({ property_id: propertyId, storage_path: path, sort_order: sortOrder } as any)
     .select()
     .single()
   if (error) throw error
@@ -103,7 +103,7 @@ export async function addPropertyPhoto(
 
 export async function deletePropertyPhoto(photo: PropertyPhotoRow): Promise<void> {
   await supabase.storage.from('property-photos').remove([photo.storage_path])
-  const { error } = await supabase.from('property_photos').delete().eq('id', photo.id)
+  const { error } = await supabase.from('property_photos').delete().eq('id', photo.id as any)
   if (error) throw error
 }
 

@@ -10,7 +10,7 @@ export async function getFinancingPlans(projectId: string): Promise<PlanRow[]> {
   const { data, error } = await supabase
     .from('financing_plans')
     .select('*')
-    .eq('project_id', projectId)
+    .eq('project_id', projectId as unknown as never)
     .order('created_at', { ascending: true })
   if (error) throw error
   return data as unknown as PlanRow[]
@@ -19,7 +19,7 @@ export async function getFinancingPlans(projectId: string): Promise<PlanRow[]> {
 export async function createFinancingPlan(input: PlanInsert): Promise<PlanRow> {
   const { data, error } = await supabase
     .from('financing_plans')
-    .insert(input)
+    .insert(input as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -29,8 +29,8 @@ export async function createFinancingPlan(input: PlanInsert): Promise<PlanRow> {
 export async function updateFinancingPlan(id: string, input: PlanUpdate): Promise<PlanRow> {
   const { data, error } = await supabase
     .from('financing_plans')
-    .update(input)
-    .eq('id', id)
+    .update(input as unknown as never)
+    .eq('id', id as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -41,6 +41,6 @@ export async function deleteFinancingPlan(id: string): Promise<void> {
   const { error } = await supabase
     .from('financing_plans')
     .delete()
-    .eq('id', id)
+    .eq('id', id as unknown as never)
   if (error) throw error
 }

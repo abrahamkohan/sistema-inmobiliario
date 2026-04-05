@@ -43,7 +43,7 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
         const { data } = await supabase
           .from('user_roles')
           .select('consultant_id')
-          .eq('user_id', session.user.id)
+          .eq('user_id', session.user.id as unknown as never)
           .maybeSingle() as { data: { consultant_id: string | null } | null }
         
         consultantId = data?.consultant_id ?? null

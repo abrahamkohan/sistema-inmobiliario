@@ -71,12 +71,12 @@ export function PropiedadNuevaPage() {
           storage_path: path,
           sort_order: i,
           es_portada: i === 0,
-        })
+        } as any)
         if (i === 0) portadaPath = path
       }
 
       if (portadaPath) {
-        await supabase.from('properties').update({ foto_portada: portadaPath }).eq('id', property.id)
+        await supabase.from('properties').update({ foto_portada: portadaPath } as any).eq('id', property.id as any)
       }
 
       toast.success(isDraft ? 'Borrador guardado' : 'Propiedad publicada')

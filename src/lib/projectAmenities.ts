@@ -16,7 +16,7 @@ export async function getProjectAmenities(projectId: string): Promise<AmenityWit
   const { data: raw, error } = await supabase
     .from('project_amenities')
     .select('*')
-    .eq('project_id', projectId)
+    .eq('project_id', projectId as unknown as never)
     .order('sort_order', { ascending: true })
   if (error) throw error
   const amenities = (raw ?? []) as unknown as AmenityRow[]
@@ -25,7 +25,7 @@ export async function getProjectAmenities(projectId: string): Promise<AmenityWit
   const { data: rawImgs } = await supabase
     .from('project_amenity_images')
     .select('*')
-    .in('amenity_id', amenities.map(a => a.id))
+    .in('amenity_id', amenities.map(a => a.id) as unknown as never)
     .order('sort_order', { ascending: true })
   const images = (rawImgs ?? []) as unknown as AmenityImageRow[]
 
@@ -46,7 +46,7 @@ export async function addAmenity(
 ): Promise<AmenityRow> {
   const { data, error } = await supabase
     .from('project_amenities')
-    .insert({ project_id: projectId, name, sort_order: sortOrder, categoria, icon: icon ?? null })
+    .insert({ project_id: projectId, name, sort_order: sortOrder, categoria, icon: icon ?? null } as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -56,12 +56,12 @@ export async function addAmenity(
 // ─── Update ───────────────────────────────────────────────────────────────────
 
 export async function updateAmenityName(id: string, name: string): Promise<void> {
-  const { error } = await supabase.from('project_amenities').update({ name }).eq('id', id)
+  const { error } = await supabase.from('project_amenities').update({ name } as unknown as never).eq('id', id as unknown as never)
   if (error) throw error
 }
 
 export async function updateAmenityIcon(id: string, icon: string): Promise<void> {
-  const { error } = await supabase.from('project_amenities').update({ icon: icon || null }).eq('id', id)
+  const { error } = await supabase.from('project_amenities').update({ icon: icon || null } as unknown as never).eq('id', id as unknown as never)
   if (error) throw error
 }
 
@@ -71,7 +71,7 @@ export async function deleteAmenity(amenity: AmenityWithImages): Promise<void> {
   // Delete images from storage first
   await Promise.all(amenity.images.map(img => deleteAmenityImage(img.storage_path)))
   // DB cascade handles project_amenity_images rows
-  const { error } = await supabase.from('project_amenities').delete().eq('id', amenity.id)
+  const { error } = await supabase.from('project_amenities').delete().eq('id', amenity.id as unknown as never)
   if (error) throw error
 }
 
@@ -86,7 +86,7 @@ export async function addAmenityImage(
   const path = await uploadAmenityImage(projectId, amenityId, file)
   const { data, error } = await supabase
     .from('project_amenity_images')
-    .insert({ amenity_id: amenityId, storage_path: path, sort_order: sortOrder })
+    .insert({ amenity_id: amenityId, storage_path: path, sort_order: sortOrder } as unknown as never)
     .select()
     .single()
   if (error) { await deleteAmenityImage(path).catch(() => null); throw error }
@@ -94,7 +94,7 @@ export async function addAmenityImage(
 }
 
 export async function deleteAmenityImageRecord(image: AmenityImageRow): Promise<void> {
-  await supabase.from('project_amenity_images').delete().eq('id', image.id)
+  await supabase.from('project_amenity_images').delete().eq('id', image.id as unknown as never)
   await deleteAmenityImage(image.storage_path).catch(() => null)
 }
 

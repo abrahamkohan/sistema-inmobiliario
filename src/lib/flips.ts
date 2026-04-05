@@ -23,42 +23,42 @@ export async function getAllFlips(): Promise<FlipRow[]> {
     .select('*')
     .order('created_at', { ascending: false })
   if (error) throw error
-  return data as FlipRow[]
+  return data as unknown as FlipRow[]
 }
 
 export async function getFlipById(id: string): Promise<FlipRow> {
   const { data, error } = await supabase
     .from('flip_calculations')
     .select('*')
-    .eq('id', id)
+    .eq('id', id as unknown as never)
     .single()
   if (error) throw error
-  return data as FlipRow
+  return data as unknown as FlipRow
 }
 
 export async function createFlip(input: FlipInsert): Promise<FlipRow> {
   const { data, error } = await supabase
     .from('flip_calculations')
-    .insert(input)
+    .insert(input as unknown as never)
     .select()
     .single()
   if (error) throw error
-  return data as FlipRow
+  return data as unknown as FlipRow
 }
 
 export async function updateFlip(id: string, input: FlipUpdate): Promise<FlipRow> {
   const { data, error } = await supabase
     .from('flip_calculations')
-    .update(input)
-    .eq('id', id)
+    .update(input as unknown as never)
+    .eq('id', id as unknown as never)
     .select()
     .single()
   if (error) throw error
-  return data as FlipRow
+  return data as unknown as FlipRow
 }
 
 export async function deleteFlip(id: string): Promise<void> {
-  const { error } = await supabase.from('flip_calculations').delete().eq('id', id)
+  const { error } = await supabase.from('flip_calculations').delete().eq('id', id as unknown as never)
   if (error) throw error
 }
 
@@ -66,15 +66,15 @@ export async function duplicateFlip(id: string): Promise<FlipRow> {
   const { data: orig, error: fetchErr } = await supabase
     .from('flip_calculations')
     .select('*')
-    .eq('id', id)
+    .eq('id', id as unknown as never)
     .single()
   if (fetchErr) throw fetchErr
-  const { id: _id, created_at: _ca, ...rest } = orig as FlipRow
+  const { id: _id, created_at: _ca, ...rest } = orig as unknown as FlipRow
   const { data, error } = await supabase
     .from('flip_calculations')
-    .insert({ ...rest, label: `${rest.label} (copia)` })
+    .insert({ ...rest, label: `${rest.label} (copia)` } as unknown as never)
     .select()
     .single()
   if (error) throw error
-  return data as FlipRow
+  return data as unknown as FlipRow
 }

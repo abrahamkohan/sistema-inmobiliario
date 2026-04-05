@@ -56,7 +56,7 @@ export async function getTasksByLead(leadId: string): Promise<TaskRow[]> {
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
-    .eq('lead_id', leadId)
+    .eq('lead_id', leadId as any)
     .order('due_date', { ascending: true })
   if (error) throw error
   return data as unknown as TaskRow[]
@@ -66,7 +66,7 @@ export async function getTasksByProperty(propertyId: string): Promise<TaskRow[]>
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
-    .eq('property_id', propertyId)
+    .eq('property_id', propertyId as any)
     .order('due_date', { ascending: true })
   if (error) throw error
   return data as unknown as TaskRow[]
@@ -76,7 +76,7 @@ export async function getTask(id: string): Promise<TaskRow> {
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
-    .eq('id', id)
+    .eq('id', id as any)
     .single()
   if (error) throw error
   return data as unknown as TaskRow
@@ -85,7 +85,7 @@ export async function getTask(id: string): Promise<TaskRow> {
 export async function createTask(input: TaskInsert): Promise<TaskRow> {
   const { data, error } = await supabase
     .from('tasks')
-    .insert(input)
+    .insert(input as any)
     .select()
     .single()
   if (error) throw error
@@ -95,8 +95,8 @@ export async function createTask(input: TaskInsert): Promise<TaskRow> {
 export async function updateTask(id: string, input: TaskUpdate): Promise<TaskRow> {
   const { data, error } = await supabase
     .from('tasks')
-    .update(input)
-    .eq('id', id)
+    .update(input as any)
+    .eq('id', id as any)
     .select()
     .single()
   if (error) throw error
@@ -107,7 +107,7 @@ export async function deleteTask(id: string): Promise<void> {
   const { error } = await supabase
     .from('tasks')
     .delete()
-    .eq('id', id)
+    .eq('id', id as any)
   if (error) throw error
 }
 

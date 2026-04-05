@@ -9,7 +9,7 @@ export async function getProjectPhotos(projectId: string): Promise<PhotoRow[]> {
   const { data, error } = await supabase
     .from('project_photos')
     .select('*')
-    .eq('project_id', projectId)
+    .eq('project_id', projectId as unknown as never)
     .order('sort_order', { ascending: true })
   if (error) throw error
   return data as unknown as PhotoRow[]
@@ -23,7 +23,7 @@ export async function addProjectPhoto(
   const path = await uploadProjectPhoto(projectId, file)
   const { data, error } = await supabase
     .from('project_photos')
-    .insert({ project_id: projectId, storage_path: path, sort_order: sortOrder })
+    .insert({ project_id: projectId, storage_path: path, sort_order: sortOrder } as unknown as never)
     .select()
     .single()
   if (error) {
@@ -38,7 +38,7 @@ export async function deleteProjectPhoto(photo: PhotoRow): Promise<void> {
   const { error } = await supabase
     .from('project_photos')
     .delete()
-    .eq('id', photo.id)
+    .eq('id', photo.id as unknown as never)
   if (error) throw error
   // External URLs are not in storage — skip deletion
   if (!photo.storage_path.startsWith('http')) {

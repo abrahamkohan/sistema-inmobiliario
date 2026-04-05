@@ -21,7 +21,7 @@ export async function getClient(id: string): Promise<ClientRow> {
   const { data, error } = await supabase
     .from('clients')
     .select('*')
-    .eq('id', id)
+    .eq('id', id as unknown as never)
     .single()
   if (error) throw error
   return data as unknown as ClientRow
@@ -30,7 +30,7 @@ export async function getClient(id: string): Promise<ClientRow> {
 export async function createClient(input: ClientInsert): Promise<ClientRow> {
   const { data, error } = await supabase
     .from('clients')
-    .insert(input)
+    .insert(input as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -40,8 +40,8 @@ export async function createClient(input: ClientInsert): Promise<ClientRow> {
 export async function updateClient(id: string, input: ClientUpdate): Promise<ClientRow> {
   const { data, error } = await supabase
     .from('clients')
-    .update(input)
-    .eq('id', id)
+    .update(input as unknown as never)
+    .eq('id', id as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -52,6 +52,6 @@ export async function deleteClient(id: string): Promise<void> {
   const { error } = await supabase
     .from('clients')
     .delete()
-    .eq('id', id)
+    .eq('id', id as unknown as never)
   if (error) throw error
 }

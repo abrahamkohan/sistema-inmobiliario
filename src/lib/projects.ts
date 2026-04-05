@@ -19,7 +19,7 @@ export async function getProject(id: string): Promise<ProjectRow> {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .eq('id', id)
+    .eq('id', id as any)
     .single()
   if (error) throw error
   return data as unknown as ProjectRow
@@ -28,7 +28,7 @@ export async function getProject(id: string): Promise<ProjectRow> {
 export async function createProject(input: ProjectInsert): Promise<ProjectRow> {
   const { data, error } = await supabase
     .from('projects')
-    .insert(input)
+    .insert(input as any)
     .select()
     .single()
   if (error) throw error
@@ -38,8 +38,8 @@ export async function createProject(input: ProjectInsert): Promise<ProjectRow> {
 export async function updateProject(id: string, input: ProjectUpdate): Promise<void> {
   const { error } = await supabase
     .from('projects')
-    .update(input)
-    .eq('id', id)
+    .update(input as any)
+    .eq('id', id as any)
   if (error) throw error
 }
 
@@ -47,6 +47,6 @@ export async function deleteProject(id: string): Promise<void> {
   const { error } = await supabase
     .from('projects')
     .delete()
-    .eq('id', id)
+    .eq('id', id as any)
   if (error) throw error
 }

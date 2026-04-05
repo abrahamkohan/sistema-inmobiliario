@@ -19,7 +19,7 @@ export async function getAgentesActivos(): Promise<AgenteRow[]> {
   const { data, error } = await supabase
     .from('agentes')
     .select('*')
-    .eq('activo', true)
+    .eq('activo', true as unknown as never)
     .order('nombre', { ascending: true })
   if (error) throw error
   return data as unknown as AgenteRow[]
@@ -28,7 +28,7 @@ export async function getAgentesActivos(): Promise<AgenteRow[]> {
 export async function createAgente(input: AgenteInsert): Promise<AgenteRow> {
   const { data, error } = await supabase
     .from('agentes')
-    .insert(input)
+    .insert(input as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -38,8 +38,8 @@ export async function createAgente(input: AgenteInsert): Promise<AgenteRow> {
 export async function updateAgente(id: string, input: AgenteUpdate): Promise<AgenteRow> {
   const { data, error } = await supabase
     .from('agentes')
-    .update(input)
-    .eq('id', id)
+    .update(input as unknown as never)
+    .eq('id', id as unknown as never)
     .select()
     .single()
   if (error) throw error
@@ -47,6 +47,6 @@ export async function updateAgente(id: string, input: AgenteUpdate): Promise<Age
 }
 
 export async function deleteAgente(id: string): Promise<void> {
-  const { error } = await supabase.from('agentes').delete().eq('id', id)
+  const { error } = await supabase.from('agentes').delete().eq('id', id as unknown as never)
   if (error) throw error
 }

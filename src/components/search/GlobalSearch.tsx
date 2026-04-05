@@ -32,14 +32,14 @@ async function search(q: string): Promise<Result[]> {
 
   const results: Result[] = []
 
-  clients.data?.forEach(c => results.push({
+  ;(clients.data as any)?.forEach((c: any) => results.push({
     kind: 'client',
     id: c.id,
     label: c.full_name,
     sub: [c.tipo, c.phone, c.fuente].filter(Boolean).join(' · '),
   }))
 
-  tasks.data?.forEach(t => results.push({
+  ;(tasks.data as any)?.forEach((t: any) => results.push({
     kind: 'task',
     id: t.id,
     label: t.title,
@@ -47,7 +47,7 @@ async function search(q: string): Promise<Result[]> {
     clientId: t.lead_id ?? undefined,
   }))
 
-  properties.data?.forEach(p => results.push({
+  ;(properties.data as any)?.forEach((p: any) => results.push({
     kind: 'property',
     id: p.id,
     label: p.titulo ?? 'Sin título',

@@ -13,13 +13,13 @@ type ClientUpdate = Database['public']['Tables']['clients']['Update']
 
 export function useClients() {
   const { session } = useAuth()
-  console.log('USE CLIENTS DATA:', session?.user?.id)
+  console.log('USE CLIENTS DATA', session?.user?.id)
   
   return useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
       const result = await getClients()
-      console.log('USE CLIENTS RESULT:', result)
+      console.log('USE CLIENTS RESULT', result)
       return result as ClientRow[]
     },
     initialData: [] as ClientRow[],

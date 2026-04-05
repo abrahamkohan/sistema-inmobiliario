@@ -10,12 +10,19 @@ interface Props {
 
 /**
  * Protege una ruta por nivel de permiso.
- * - Si no tiene permiso → muestra fallback (o redirige)
- * - Si tiene permiso → renderiza children
+ * - Si null (loading) → esperar, no redirigir
+ * - Si false (sin permiso) → fallback
+ * - Si true → renderiza children
  */
 export function RequirePermiso({ modulo, nivel, children, fallback = null }: Props) {
   const tienePermiso = usePermiso(modulo, nivel)
   
+  // Si está cargando (null), no redirigir todavía
+  if (tienePermiso === null) {
+    return null
+  }
+  
+  // Si no tiene permiso, mostrar fallback
   if (!tienePermiso) {
     return <>{fallback}</>
   }

@@ -9,7 +9,7 @@ import { PropertyPublicCard } from '@/components/landing/PropertyPublicCard'
 import type { Database } from '@/types/database'
 
 type PropertyRow   = Database['public']['Tables']['properties']['Row']
-type ConsultoraRow = Database['public']['Tables']['consultora_config']['Row']
+type ConsultoraRow = Database['public']['Tables']['consultants']['Row']
 
 const OPERACION_LABEL: Record<string, string> = {
   venta:   'Venta',

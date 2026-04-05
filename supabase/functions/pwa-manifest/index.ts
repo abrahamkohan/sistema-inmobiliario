@@ -26,7 +26,7 @@ serve(async (req) => {
     )
 
     const { data: config } = await supabase
-      .from('consultora_config')
+      .from('consultants')
       .select('nombre, pwa_icon_url')
       .limit(1)
       .single()

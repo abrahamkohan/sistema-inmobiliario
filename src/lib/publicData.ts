@@ -6,14 +6,14 @@ import type { Database } from '@/types/database'
 type ProjectRow      = Database['public']['Tables']['projects']['Row']
 export type { ProjectRow }
 type TypologyRow     = Database['public']['Tables']['typologies']['Row']
-type ConsultoraRow   = Database['public']['Tables']['consultora_config']['Row']
+type ConsultoraRow   = Database['public']['Tables']['consultants']['Row']
 type PropertyRow     = Database['public']['Tables']['properties']['Row']
 type PropertyPhotoRow = Database['public']['Tables']['property_photos']['Row']
 
 // Solo nombre + logos — sin contacto comercial. Para fichas de catálogo.
 export async function getConsultoraBranding(): Promise<Pick<ConsultoraRow, 'nombre' | 'logo_url' | 'logo_light_url'> | null> {
   const { data, error } = await supabase
-    .from('consultora_config')
+    .from('consultants')
     .select('nombre, logo_url, logo_light_url')
     .limit(1)
     .single()
@@ -23,7 +23,7 @@ export async function getConsultoraBranding(): Promise<Pick<ConsultoraRow, 'nomb
 
 export async function getConsultoraPublic(): Promise<ConsultoraRow | null> {
   const { data, error } = await supabase
-    .from('consultora_config')
+    .from('consultants')
     .select('id, nombre, logo_url, logo_light_url, whatsapp, telefono, email, instagram, sitio_web, simulador_publico, pwa_icon_url')
     .limit(1)
     .single()

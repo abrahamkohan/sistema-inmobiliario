@@ -11,7 +11,7 @@ import type { Database } from '@/types/database'
 
 type PropertyRow   = Database['public']['Tables']['properties']['Row']
 type PhotoRow      = Database['public']['Tables']['property_photos']['Row']
-type ConsultoraRow = Database['public']['Tables']['consultora_config']['Row']
+type ConsultoraRow = Database['public']['Tables']['consultants']['Row']
 
 // ── Labels ────────────────────────────────────────────────────────────────────
 

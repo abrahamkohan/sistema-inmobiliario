@@ -7,7 +7,7 @@ import { getPublicProject, getConsultoraPublic } from '@/lib/publicData'
 import type { ProjectRow } from '@/lib/publicData'
 import type { Database } from '@/types/database'
 
-type ConsultoraRow = Database['public']['Tables']['consultora_config']['Row']
+type ConsultoraRow = Database['public']['Tables']['consultants']['Row']
 
 // ── Labels ────────────────────────────────────────────────────────────────────
 

@@ -9,7 +9,7 @@ import { ProjectPublicCard } from '@/components/landing/ProjectPublicCard'
 import type { Database } from '@/types/database'
 
 type ProjectRow    = Database['public']['Tables']['projects']['Row']
-type ConsultoraRow = Database['public']['Tables']['consultora_config']['Row']
+type ConsultoraRow = Database['public']['Tables']['consultants']['Row']
 
 const STATUS_LABEL: Record<string, string> = {
   en_pozo:        'En pozo',

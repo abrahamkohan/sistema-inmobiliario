@@ -2,14 +2,14 @@
 import { supabase } from './supabase'
 import type { Database } from '@/types/database'
 
-type ConsultoraRow    = Database['public']['Tables']['consultora_config']['Row']
-type ConsultoraUpdate = Database['public']['Tables']['consultora_config']['Update']
+type ConsultoraRow    = Database['public']['Tables']['consultants']['Row']
+type ConsultoraUpdate = Database['public']['Tables']['consultants']['Update']
 
 const ROW_ID = 1
 
 export async function getConsultoraConfig(): Promise<ConsultoraRow | null> {
   const { data, error } = await supabase
-    .from('consultora_config')
+    .from('consultants')
     .select('*')
     .eq('id', ROW_ID as unknown as never)
     .maybeSingle()
@@ -27,7 +27,7 @@ export async function upsertConsultoraConfig(
   const payload = { id: ROW_ID, ...values, version: nextVersion }
 
   const { error } = await supabase
-    .from('consultora_config')
+    .from('consultants')
     .upsert(payload as unknown as never, { onConflict: 'id' })
   if (error) throw error
 

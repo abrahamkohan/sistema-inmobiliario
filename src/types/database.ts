@@ -335,7 +335,7 @@ export interface Database {
         }
         Relationships: []
       }
-      consultora_config: {
+      consultants: {
         Row: {
           id: number
           nombre: string
@@ -355,6 +355,11 @@ export interface Database {
           color_accent: string | null
           version: number
           updated_at: string
+          subdomain: string | null
+          custom_domain: string | null
+          activo: boolean | null
+          created_at: string | null
+          uuid: string | null
         }
         Insert: {
           id?: number
@@ -374,6 +379,10 @@ export interface Database {
           color_secondary?: string | null
           color_accent?: string | null
           version?: number
+          subdomain?: string | null
+          custom_domain?: string | null
+          activo?: boolean | null
+          uuid?: string | null
         }
         Update: {
           nombre?: string
@@ -392,6 +401,10 @@ export interface Database {
           color_secondary?: string | null
           color_accent?: string | null
           version?: number
+          subdomain?: string | null
+          custom_domain?: string | null
+          activo?: boolean | null
+          uuid?: string | null
         }
         Relationships: []
       }

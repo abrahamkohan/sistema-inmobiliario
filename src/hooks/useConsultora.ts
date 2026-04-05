@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getConsultoraConfig, upsertConsultoraConfig } from '@/lib/consultoraConfig'
 import type { Database } from '@/types/database'
 
-type ConsultoraUpdate = Database['public']['Tables']['consultora_config']['Update'] & { nombre: string }
+type ConsultoraUpdate = Database['public']['Tables']['consultants']['Update'] & { nombre: string }
 
 export function useConsultoraConfig() {
   return useQuery({

@@ -1,7 +1,7 @@
 // src/components/landing/PublicHeader.tsx
 import type { Database } from '@/types/database'
 
-type ConsultoraRow = Database['public']['Tables']['consultora_config']['Row']
+type ConsultoraRow = Database['public']['Tables']['consultants']['Row']
 
 interface PublicHeaderProps {
   config: ConsultoraRow | null

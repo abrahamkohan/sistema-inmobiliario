@@ -6,7 +6,7 @@ import { getConsultoraPublic } from '@/lib/publicData'
 import { PublicHeader } from '@/components/landing/PublicHeader'
 import type { Database } from '@/types/database'
 
-type ConsultoraRow = Database['public']['Tables']['consultora_config']['Row']
+type ConsultoraRow = Database['public']['Tables']['consultants']['Row']
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 

@@ -9,6 +9,6 @@ export function useSetPermisos() {
   return useMutation({
     mutationFn: ({ userId, permisos }: { userId: string; permisos: Record<string, boolean> | null }) =>
       api.setPermisos(userId, permisos),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
+    onSuccess: async () => { await qc.invalidateQueries({ queryKey: [QK] }) },
   })
 }

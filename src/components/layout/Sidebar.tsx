@@ -133,18 +133,19 @@ export function Sidebar({ onClose }: SidebarProps) {
   }
 
   // ── Permisos al top level (NUNCA dentro de filter/map) ──
-  const puedeVerCRM        = usePermiso('crm', 'read') ?? false
-  const puedeVerTareas     = usePermiso('tareas', 'read') ?? false
-  const puedeVerNotas      = usePermiso('notas', 'read') ?? false
-  const puedeVerPropiedades = usePermiso('propiedades', 'read') ?? false
-  const puedeVerProyectos  = usePermiso('proyectos', 'read') ?? false
-  const puedeVerFinanzas   = usePermiso('finanzas', 'read') ?? false
-  const puedeVerReportes   = usePermiso('reportes', 'read') ?? false
-  const puedeVerMarketing  = usePermiso('marketing', 'read') ?? false
-  const puedeVerConfig     = usePermiso('configuracion', 'read') ?? false
+  // Retorna null durante loading - no ocultar módulos mientras cargan
+  const puedeVerCRM        = usePermiso('crm', 'read')
+  const puedeVerTareas     = usePermiso('tareas', 'read')
+  const puedeVerNotas      = usePermiso('notas', 'read')
+  const puedeVerPropiedades = usePermiso('propiedades', 'read')
+  const puedeVerProyectos  = usePermiso('proyectos', 'read')
+  const puedeVerFinanzas   = usePermiso('finanzas', 'read')
+  const puedeVerReportes   = usePermiso('reportes', 'read')
+  const puedeVerMarketing  = usePermiso('marketing', 'read')
+  const puedeVerConfig     = usePermiso('configuracion', 'read')
 
-  // Mapa de permisos para filtrar items
-  const permisoMap: Record<string, boolean> = {
+  // Mapa de permisos - null significa "loading, mostrar de todos modos"
+  const permisoMap: Record<string, boolean | null> = {
     '/clientes': puedeVerCRM,
     '/tareas': puedeVerTareas,
     '/notas': puedeVerNotas,
@@ -157,7 +158,7 @@ export function Sidebar({ onClose }: SidebarProps) {
     '/marketing': puedeVerMarketing,
     '/recursos': puedeVerConfig,
     '/configuracion': puedeVerConfig,
-    '/comisiones': puedeVerFinanzas && (isAdmin === true),
+    '/comisiones': (isAdmin === true) ? puedeVerFinanzas : false,
   }
 
   return (
@@ -203,11 +204,13 @@ export function Sidebar({ onClose }: SidebarProps) {
           // SISTEMA (último grupo): solo admin
           if (gi === NAV_GRUPOS.length - 1 && isAdmin !== true) return null
           
-          // Filtrar items por permiso usando el mapa (sin llamar hooks aquí!)
+          // Filtrar items por permiso - null significa "mostrar (no sabemos aún)"
           const filteredItems = grupo.items.filter(item => {
             const permiso = MODULO_PERMISO[item.to]
             if (!permiso) return true
-            return permisoMap[item.to]
+            const tienePermiso = permisoMap[item.to]
+            // Mostrar si: es true, o es null (loading - mostrar de todos modos)
+            return tienePermiso === true || tienePermiso === null
           })
           
           if (filteredItems.length === 0) return null

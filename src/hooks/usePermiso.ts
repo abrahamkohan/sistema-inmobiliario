@@ -5,15 +5,19 @@ import { DEFAULT_PERMISSIONS } from '@/lib/roleDefaults'
 
 /**
  * Hook to check if the current user has a given permission level for a module.
+ * Returns null during loading to indicate "don't know yet" - components should wait.
  * Permissions are stored in `user_roles.permisos` JSONB column as:
  * { [module: string]: 'read' | 'write' | 'full' | 'none' }
  * Levels hierarchy: 'none' < 'read' < 'write' < 'full'
  */
-export function usePermiso(module: string, level: string): boolean {
+export function usePermiso(module: string, level: string): boolean | null {
   const { session } = useAuth()
-  const { data: team = [] } = useTeam()
+  const { data: team = [], isLoading } = useTeam()
 
-  // Si no hay sesión o el equipo no ha cargado, retornar false
+  // Durante loading, retornar null para que el componente sepa que no debe decidir todavía
+  if (isLoading) return null
+
+  // Sin sesión o sin equipo, retornar false (sin acceso)
   if (!session?.user?.id) return false
   if (!team || team.length === 0) return false
 

@@ -183,7 +183,7 @@ export function ClientesPage() {
               onConvert={handleConvert}
               onChangeEstado={handleChangeEstado}
               onView={c => navigate(`/clientes/${c.id}`)}
-              puedeEditar={puedeEditar}
+              puedeEditar={puedeEditar ?? false}
             />
           </div>
           {/* Mobile: cards compactas */}
@@ -197,7 +197,7 @@ export function ClientesPage() {
                 onConvert={handleConvert}
                 onChangeEstado={handleChangeEstado}
                 onView={c => navigate(`/clientes/${c.id}`)}
-                puedeEditar={puedeEditar}
+                puedeEditar={puedeEditar ?? false}
               />
             ))}
           </div>

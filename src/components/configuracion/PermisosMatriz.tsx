@@ -119,7 +119,7 @@ export function PermisosMatriz() {
       return
     }
     // Copiar permisos del rol base
-    const basePerms = { ...matrix[newRoleBase] } ?? {}
+    const basePerms = { ...(matrix[newRoleBase] ?? {}) }
     const newMatrix = { ...matrix, [name]: basePerms as Record<ModuleKey, PermLevel> }
     setMatrix(newMatrix)
     setRoles(prev => [...prev, name])

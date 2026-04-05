@@ -15,11 +15,11 @@ export function useClients() {
   const { session } = useAuth()
   console.log('USE CLIENTS DATA:', session?.user?.id)
   
-  return useQuery<ClientRow[]>({
+  return useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
       const result = await getClients()
-      console.log('USE CLIENTS RESULT:', result.length)
+      console.log('USE CLIENTS RESULT:', result)
       return result
     },
     initialData: [],

@@ -7,14 +7,12 @@ export function useUserRole() {
     queryKey: ['user-role'],
     queryFn: getUserRole,
     staleTime: 5 * 60 * 1000,
-    // Sin initialData - necesitamos esperar el valor real antes de renderizar
-    // Para evitar flashes de permisos incorrectos
   })
 }
 
-export function useIsAdmin() {
+export function useIsAdmin(): boolean | null {
+  // Retorna null mientras carga para evitar render incorrecto
   const { data: role, isLoading } = useUserRole()
-  // isLoading es true mientras no sepamos el rol real
-  // Solo es admin si el rol ya cargó Y es 'admin'
-  return isLoading ? false : role === 'admin'
+  if (isLoading) return null
+  return role === 'admin'
 }

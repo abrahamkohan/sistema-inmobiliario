@@ -764,6 +764,10 @@ const WIDGET_LABELS: Record<string, string> = {
 
 export function InicioPage() {
   const isAdmin = useIsAdmin()
+  
+  // Mientras carga el rol, no renderizar nada para evitar error #310
+  if (isAdmin === null) return null
+  
   if (!isAdmin) return <AgenteDashboard />
   return <AdminDashboard />
 }

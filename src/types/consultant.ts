@@ -2,10 +2,10 @@
 // Tipos para multi-tenant: Consultant (consultants table)
 
 export type PermLevel = 'none' | 'read' | 'write' | 'full'
-export type RoleKey   = 'admin' | 'agente' | 'cm' | 'finanzas' | 'viewer'
+export type RoleKey   = string
 export type ModuleKey = 'crm' | 'tareas' | 'notas' | 'propiedades' | 'proyectos' | 'finanzas' | 'reportes' | 'marketing' | 'configuracion'
 
-export type RoleDefaults = Partial<Record<RoleKey, Partial<Record<ModuleKey, PermLevel>>>>
+export type RoleDefaults = Record<string, Partial<Record<ModuleKey, PermLevel>>>
 
 export interface Consultant {
   id: number

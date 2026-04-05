@@ -1,15 +1,16 @@
 // src/components/configuracion/PermisosModal.tsx
 // Modal de permisos personalizados por usuario.
-// Permite sobreescribir los defaults de rol para un usuario específico.
+// Permite cambiar el rol del usuario y sobreescribir permisos a nivel individual.
 import { useState, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { useBrand } from '@/context/BrandContext'
 import { useSetPermisos } from '@/hooks/useSetPermisos'
+import { useSetUserRole } from '@/hooks/useTeam'
 import { DEFAULT_PERMISSIONS } from '@/lib/roleDefaults'
 import type { TeamMember } from '@/lib/team'
-import type { PermLevel, ModuleKey, RoleKey } from '@/types/consultant'
+import type { PermLevel, ModuleKey } from '@/types/consultant'
 
 // ── Módulos en orden del Sidebar ──────────────────────────────────────────────
 
@@ -32,6 +33,9 @@ const PERM_OPTIONS: { value: PermLevel; label: string }[] = [
   { value: 'full',  label: 'Control total' },
 ]
 
+// Roles fijos de fallback cuando el tenant no tiene role_defaults
+const FALLBACK_ROLES = ['admin', 'agente', 'cm', 'finanzas']
+
 interface PermisosModalProps {
   user: TeamMember
   open: boolean
@@ -39,37 +43,83 @@ interface PermisosModalProps {
 }
 
 export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
-  const setPermisos = useSetPermisos()
+  const setPermisos  = useSetPermisos()
+  const setUserRole  = useSetUserRole()
   const { consultant, engine } = useBrand()
   const colors = engine.getColors()
 
-  const [permValues, setPermValues] = useState<Record<ModuleKey, PermLevel>>({} as Record<ModuleKey, PermLevel>)
-  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  // Lista de roles disponibles — dinámicos desde role_defaults o fallback
+  const availableRoles = consultant.role_defaults
+    ? Object.keys(consultant.role_defaults)
+    : FALLBACK_ROLES
 
-  // Inicializar: override del usuario > tenant default > code default > 'none'
+  const [selectedRole,    setSelectedRole]    = useState<string>(user.role ?? '')
+  const [permValues,      setPermValues]      = useState<Record<ModuleKey, PermLevel>>({} as Record<ModuleKey, PermLevel>)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  // Estado para confirmar reset al cambiar de rol
+  const [pendingRole,     setPendingRole]     = useState<string | null>(null)
+
+  // Inicializar al abrir
   useEffect(() => {
     if (!open) return
 
-    const savedPerms  = (user.permisos as Record<string, string>) || {}
-    const role        = (user.role ?? 'viewer') as RoleKey
-    const tenantRole  = (consultant.role_defaults as Record<string, Record<string, string>> | null)?.[role] ?? {}
-    const codeRole    = DEFAULT_PERMISSIONS[role] ?? {}
+    setSelectedRole(user.role ?? '')
+    setShowResetConfirm(false)
+    setPendingRole(null)
+
+    const savedPerms = (user.permisos as Record<string, string>) || {}
+    const role       = user.role ?? 'viewer'
+    const tenantRole = (consultant.role_defaults as Record<string, Record<string, string>> | null)?.[role] ?? {}
+    const codeRole   = DEFAULT_PERMISSIONS[role] ?? {}
 
     const merged = {} as Record<ModuleKey, PermLevel>
     for (const { key } of MODULES) {
       merged[key] = (savedPerms[key] ?? tenantRole[key] ?? codeRole[key] ?? 'none') as PermLevel
     }
-
     setPermValues(merged)
-    setShowResetConfirm(false)
   }, [open, user.permisos, user.role, consultant.role_defaults])
 
-  // Nivel efectivo para comparar y detectar custom (tenant o code)
+  // Nivel efectivo del rol (para detectar override personal)
   function getEffectiveDefault(mod: ModuleKey): PermLevel {
-    const role = (user.role ?? 'viewer') as RoleKey
+    const role   = selectedRole || user.role || 'viewer'
     const tenant = (consultant.role_defaults as Record<string, Record<string, string>> | null)?.[role]?.[mod]
     const code   = DEFAULT_PERMISSIONS[role]?.[mod]
     return (tenant ?? code ?? 'none') as PermLevel
+  }
+
+  // Al cambiar de rol en el select
+  function handleRoleChange(newRole: string) {
+    if (newRole === selectedRole) return
+    if (user.permisos && Object.keys(user.permisos).length > 0) {
+      // Tiene overrides → preguntar si resetear
+      setPendingRole(newRole)
+    } else {
+      applyRoleChange(newRole, false)
+    }
+  }
+
+  async function applyRoleChange(newRole: string, resetPerms: boolean) {
+    try {
+      await setUserRole.mutateAsync({ userId: user.id, role: newRole })
+      if (resetPerms) {
+        await setPermisos.mutateAsync({ userId: user.id, permisos: null })
+      }
+      setSelectedRole(newRole)
+      setPendingRole(null)
+
+      // Recalcular permValues con el nuevo rol
+      const savedPerms = resetPerms ? {} : ((user.permisos as Record<string, string>) || {})
+      const tenantRole = (consultant.role_defaults as Record<string, Record<string, string>> | null)?.[newRole] ?? {}
+      const codeRole   = DEFAULT_PERMISSIONS[newRole] ?? {}
+      const merged = {} as Record<ModuleKey, PermLevel>
+      for (const { key } of MODULES) {
+        merged[key] = (savedPerms[key] ?? tenantRole[key] ?? codeRole[key] ?? 'none') as PermLevel
+      }
+      setPermValues(merged)
+      toast.success(`Rol cambiado a "${newRole}"`)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al cambiar rol')
+    }
   }
 
   function updatePerm(mod: ModuleKey, value: PermLevel) {
@@ -96,11 +146,12 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
     }
   }
 
-  // Contar módulos con override personal (distinto del default efectivo)
-  const savedPerms = (user.permisos as Record<string, string>) || {}
+  const savedPerms  = (user.permisos as Record<string, string>) || {}
   const customCount = MODULES.filter(({ key }) =>
     savedPerms[key] !== undefined && savedPerms[key] !== getEffectiveDefault(key)
   ).length
+
+  const isBusy = setPermisos.isPending || setUserRole.isPending
 
   return (
     <Dialog.Root open={open} onOpenChange={onClose}>
@@ -114,25 +165,79 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
               <Dialog.Title className="text-base font-semibold text-gray-900">
                 {user.full_name || 'Usuario'}
               </Dialog.Title>
-              <Dialog.Description className="text-xs text-gray-500 mt-0.5">
-                Rol base: <span className="font-medium">{user.role ?? 'Sin rol'}</span>
-                {customCount > 0 && (
-                  <span
-                    className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium"
-                    style={{ backgroundColor: colors.accent + '18', color: colors.accent }}
-                  >
-                    {customCount} personalizado{customCount !== 1 ? 's' : ''}
-                  </span>
-                )}
+              <Dialog.Description className="sr-only">
+                Configurar permisos del usuario
               </Dialog.Description>
+              {customCount > 0 && (
+                <span
+                  className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium"
+                  style={{ backgroundColor: colors.accent + '18', color: colors.accent }}
+                >
+                  {customCount} permiso{customCount !== 1 ? 's' : ''} personalizado{customCount !== 1 ? 's' : ''}
+                </span>
+              )}
             </div>
             <Dialog.Close className="p-2 hover:bg-gray-100 rounded-lg">
               <X className="w-4 h-4 text-gray-500" />
             </Dialog.Close>
           </div>
 
+          {/* Selector de rol */}
+          <div className="px-4 pt-4 pb-2">
+            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-1.5">
+              Rol
+            </label>
+            <select
+              value={selectedRole}
+              onChange={e => handleRoleChange(e.target.value)}
+              disabled={isBusy}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-gray-400 disabled:opacity-50"
+            >
+              {availableRoles.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Confirmación al cambiar rol (si tiene overrides) */}
+          {pendingRole && (
+            <div className="mx-4 mb-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-xs text-amber-800 font-medium mb-2">
+                ¿Resetear los permisos personalizados al cambiar a "{pendingRole}"?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => applyRoleChange(pendingRole, true)}
+                  disabled={isBusy}
+                  className="text-xs px-3 py-1.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50"
+                >
+                  Sí, resetear
+                </button>
+                <button
+                  onClick={() => applyRoleChange(pendingRole, false)}
+                  disabled={isBusy}
+                  className="text-xs px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  No, mantener
+                </button>
+                <button
+                  onClick={() => setPendingRole(null)}
+                  className="text-xs px-2 py-1.5 text-gray-400 hover:text-gray-600"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="px-4 pb-1">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+              Permisos por módulo
+            </p>
+          </div>
+
           {/* Lista de módulos */}
-          <div className="p-4 space-y-1">
+          <div className="px-4 pb-2 space-y-0.5">
             {MODULES.map(({ key, label, note }) => {
               const value      = permValues[key] ?? 'none'
               const def        = getEffectiveDefault(key)
@@ -141,7 +246,7 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
               return (
                 <div
                   key={key}
-                  className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between gap-3 py-2 px-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -191,7 +296,7 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
                   <span className="text-xs text-gray-500">¿Confirmar?</span>
                   <button
                     onClick={handleReset}
-                    disabled={setPermisos.isPending}
+                    disabled={isBusy}
                     className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
                   >
                     Sí
@@ -214,7 +319,7 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
               </button>
               <button
                 onClick={handleSave}
-                disabled={setPermisos.isPending}
+                disabled={isBusy}
                 className="px-4 py-2 text-sm text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
                 style={{ backgroundColor: colors.primary }}
               >

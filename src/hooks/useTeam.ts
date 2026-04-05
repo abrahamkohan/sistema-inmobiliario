@@ -17,6 +17,15 @@ export function useSetRole() {
   })
 }
 
+export function useSetUserRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: string }) =>
+      api.setUserRole(userId, role),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
+  })
+}
+
 export function useRemoveRole() {
   const qc = useQueryClient()
   return useMutation({

@@ -11,7 +11,7 @@ export type TeamMember = {
   phone: string | null
   avatar_url: string | null
   created_at: string
-  role: 'admin' | 'agente' | null
+  role: string | null
   is_owner: boolean
   permisos: Record<string, string> | null
   consultant_id: string | null
@@ -42,7 +42,7 @@ export async function getTeam(): Promise<TeamMember[]> {
       phone: p.phone,
       avatar_url: p.avatar_url,
       created_at: p.created_at,
-      role: (roleRow?.role as 'admin' | 'agente') ?? null,
+      role: roleRow?.role ?? null,
       is_owner: roleRow?.is_owner ?? false,
       permisos: roleRow?.permisos ?? null,
       consultant_id: null,
@@ -55,9 +55,14 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 }
 
 export async function setRole(userId: string, role: 'admin' | 'agente'): Promise<void> {
+  return setUserRole(userId, role)
+}
+
+export async function setUserRole(userId: string, role: string): Promise<void> {
   const { error } = await supabase
     .from('user_roles')
-    .upsert({ user_id: userId, role, is_owner: false } as any)
+    .update({ role } as any)
+    .eq('user_id', userId as any)
   if (error) throw error
 }
 

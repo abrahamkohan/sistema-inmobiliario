@@ -7,7 +7,7 @@ import type { TeamMember } from '@/lib/team'
 const QK = 'team'
 
 export function useTeam() {
-  return useQuery({ queryKey: [QK], queryFn: api.getTeam })
+  return useQuery({ queryKey: [QK], queryFn: api.getTeam, staleTime: 0 })
 }
 
 /** Devuelve el TeamMember del usuario logueado (reutiliza cache de useTeam). */

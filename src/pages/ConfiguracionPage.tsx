@@ -16,7 +16,6 @@ import { SeccionContacto }      from '@/components/configuracion/SeccionContacto
 import { SeccionIntegraciones } from '@/components/configuracion/SeccionIntegraciones'
 import { SeccionEquipo }        from '@/components/configuracion/SeccionEquipo'
 import { SeccionAliados }       from '@/components/configuracion/SeccionAliados'
-import { PermisosMatriz }       from '@/components/configuracion/PermisosMatriz'
 
 // ─── Referidos ────────────────────────────────────────────────────────────────
 
@@ -313,20 +312,6 @@ export function ConfiguracionPage() {
       {/* 5. Equipo — solo admin */}
       {isAdmin && <SeccionEquipo />}
 
-      {/* 6. Permisos por rol — solo admin */}
-      {isAdmin && (
-        <div className="rounded-lg border bg-card p-5">
-          <div className="mb-1">
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Permisos globales por rol
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Afecta a todos los usuarios del rol. Los permisos personalizados (por usuario) tienen prioridad.
-            </p>
-          </div>
-          <PermisosMatriz />
-        </div>
-      )}
 
       {/* Aliados comerciales */}
       <SeccionAliados />

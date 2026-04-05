@@ -169,10 +169,10 @@ function KpisWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboar
   const navigate = useNavigate()
   
   // Null safety - si no hay sesión, no mostrar nada
-  const puedeVerCRM = usePermiso('crm', 'read') ?? false
-  const puedeVerProyectos = usePermiso('proyectos', 'read') ?? false
-  const puedeVerPropiedades = usePermiso('propiedades', 'read') ?? false
-  const puedeVerFinanzas = usePermiso('finanzas', 'read') ?? false
+  const puedeVerCRM = usePermiso('crm')
+  const puedeVerProyectos = usePermiso('proyectos')
+  const puedeVerPropiedades = usePermiso('propiedades')
+  const puedeVerFinanzas = usePermiso('simulador')
 
   const metrics = [
     { label: 'Clientes',          value: stats?.counts?.clients ?? 0,         icon: Users,      accent: '#6366f1', permiso: puedeVerCRM, ruta: '/clientes' },
@@ -207,7 +207,7 @@ function RadarWidget({ stats, isLoading, compact }: {
   compact?: boolean
 }) {
   const navigate = useNavigate()
-  const puedeVerProyectos = usePermiso('proyectos', 'read') ?? false
+  const puedeVerProyectos = usePermiso('proyectos')
   const rows = stats?.radar ?? []
 
   // Sin permiso - mensaje (renderizado condicional, NO early return)
@@ -370,7 +370,7 @@ function GraficoWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashb
 
 function ActividadWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboardStats>['data']; isLoading: boolean }) {
   const navigate = useNavigate()
-  const puedeVerReportes = usePermiso('reportes', 'read') ?? false
+  const puedeVerReportes = usePermiso('reportes')
 
   // Si no tiene permiso, no mostrar
   if (!puedeVerReportes) {
@@ -423,7 +423,7 @@ function ActividadWidget({ stats, isLoading }: { stats: ReturnType<typeof useDas
 
 function ProyectosWidget({ stats, isLoading }: { stats: ReturnType<typeof useDashboardStats>['data']; isLoading: boolean }) {
   const navigate = useNavigate()
-  const puedeVerProyectos = usePermiso('proyectos', 'read') ?? false
+  const puedeVerProyectos = usePermiso('proyectos')
 
   if (!puedeVerProyectos) {
     return (
@@ -645,10 +645,10 @@ function QuickActionsBar() {
   const navigate = useNavigate()
   
   // Verificar permisos para cada acción
-  const puedeCrearProyecto = usePermiso('proyectos', 'write')
-  const puedeVerCRM = usePermiso('crm', 'read')
-  const puedeVerFinanzas = usePermiso('finanzas', 'read')
-  const puedeVerReportes = usePermiso('reportes', 'read')
+  const puedeCrearProyecto = usePermiso('proyectos')
+  const puedeVerCRM = usePermiso('crm')
+  const puedeVerFinanzas = usePermiso('simulador')
+  const puedeVerReportes = usePermiso('reportes')
 
   const allActions = [
     {

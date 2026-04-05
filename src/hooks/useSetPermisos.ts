@@ -7,7 +7,7 @@ const QK = 'team'
 export function useSetPermisos() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ userId, permisos }: { userId: string; permisos: Record<string, string> | null }) =>
+    mutationFn: ({ userId, permisos }: { userId: string; permisos: Record<string, boolean> | null }) =>
       api.setPermisos(userId, permisos),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
   })

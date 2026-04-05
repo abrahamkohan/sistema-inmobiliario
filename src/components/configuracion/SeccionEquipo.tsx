@@ -5,23 +5,14 @@ import { toast } from 'sonner'
 import { useTeam, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
 import { useIsAdmin } from '@/hooks/useUserRole'
 import { useAuth } from '@/context/AuthContext'
-import { useBrand } from '@/context/BrandContext'
 import { PermisosModal } from './PermisosModal'
-import { DEFAULT_PERMISSIONS } from '@/lib/roleDefaults'
 import type { TeamMember } from '@/lib/team'
-import type { RoleDefaults } from '@/types/consultant'
 
 // Módulos en orden del Sidebar
 const SUMMARY_MODULES = [
-  'crm',
-  'tareas',
-  'notas',
-  'propiedades',
-  'proyectos',
-  'finanzas',
-  'reportes',
-  'marketing',
-  'configuracion',
+  'crm', 'tareas', 'notas', 'propiedades', 'proyectos',
+  'ventas', 'simulador', 'flip', 'presupuestos',
+  'reportes', 'marketing', 'configuracion',
 ]
 
 const MODULE_LABELS: Record<string, string> = {
@@ -30,58 +21,39 @@ const MODULE_LABELS: Record<string, string> = {
   notas:         'Notas',
   propiedades:   'Propiedades',
   proyectos:     'Proyectos',
-  finanzas:      'Finanzas',
+  ventas:        'Ventas',
+  simulador:     'Simulador',
+  flip:          'Flip',
+  presupuestos:  'Presupuestos',
   reportes:      'Informes',
   marketing:     'Marketing',
   configuracion: 'Configuración',
 }
 
-// Obtiene permisos efectivos: override personal > tenant default > code default
-function getEffectivePerm(
-  member: TeamMember,
-  module: string,
-  tenantDefaults: RoleDefaults | null,
-): string {
-  const role     = member.role ?? 'agente'
-  const override = (member.permisos as Record<string, string>)?.[module]
-  const tenant   = (tenantDefaults as Record<string, Record<string, string>> | null)?.[role]?.[module]
-  const code     = DEFAULT_PERMISSIONS[role]?.[module]
-  return override ?? tenant ?? code ?? 'none'
-}
-
-// Obtiene tooltip para cada nivel
-function getPermTooltip(perm: string): string {
-  switch (perm) {
-    case 'full': return 'Total (puede editar y eliminar)'
-    case 'write': return 'Editar (puede crear y editar)'
-    case 'read': return 'Lectura (solo ver)'
-    default: return 'Sin acceso'
+function PermSummary({ member }: { member: TeamMember }) {
+  if (member.is_owner) {
+    return (
+      <p className="text-[10px] text-amber-600 font-medium mt-0.5">Acceso total</p>
+    )
   }
-}
 
-// Renderiza el resumen de permisos
-function renderPermSummary(member: TeamMember, tenantDefaults: RoleDefaults | null) {
+  const permisos = (member.permisos as Record<string, boolean> | null) ?? {}
+
   return (
     <div className="flex flex-wrap gap-1 mt-1">
       {SUMMARY_MODULES.map(mod => {
-        const perm = getEffectivePerm(member, mod, tenantDefaults)
-
-        const permStyles: Record<string, { bg: string; text: string; dot: string }> = {
-          full:  { bg: 'bg-green-100',  text: 'text-green-700',  dot: '●' },
-          write: { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: '●' },
-          read:  { bg: 'bg-purple-100', text: 'text-purple-700', dot: '●' },
-          none:  { bg: 'bg-gray-100',   text: 'text-gray-400',   dot: '○' },
-        }
-
-        const style = permStyles[perm] ?? permStyles.none
-
+        const tiene = permisos[mod] === true
         return (
           <span
             key={mod}
-            className={`text-[10px] px-1.5 py-0.5 rounded cursor-default ${style.bg} ${style.text}`}
-            title={`${MODULE_LABELS[mod]}: ${getPermTooltip(perm)}`}
+            title={`${MODULE_LABELS[mod]}: ${tiene ? 'Con acceso' : 'Sin acceso'}`}
+            className={`text-[10px] px-1.5 py-0.5 rounded cursor-default ${
+              tiene
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-400'
+            }`}
           >
-            {style.dot}
+            {MODULE_LABELS[mod]}
           </span>
         )
       })}
@@ -92,22 +64,19 @@ function renderPermSummary(member: TeamMember, tenantDefaults: RoleDefaults | nu
 export function SeccionEquipo() {
   const isAdmin = useIsAdmin()
   const { data: team = [] } = useTeam()
-  const { consultant } = useBrand()
   const { session } = useAuth()
   const currentUserId = session?.user?.id
 
-  // Soft check: no debería haber más de un owner
   useEffect(() => {
     const ownerCount = team.filter(m => m.is_owner).length
     if (ownerCount > 1) console.warn(`[SeccionEquipo] ${ownerCount} owners detectados — verificar datos`)
   }, [team])
+
   const removeRole = useRemoveRole()
   const inviteUser = useInviteUser()
 
   const [showInvite, setShowInvite] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
-
-  // Estado para modal de permisos
   const [permModalUser, setPermModalUser] = useState<TeamMember | null>(null)
 
   async function handleInvite() {
@@ -132,11 +101,10 @@ export function SeccionEquipo() {
     }
   }
 
-  // No mostrar sección si no es admin
   if (!isAdmin) {
     return (
       <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
-        <p className="text-xs text-gray-400">No tienes acceso a esta sección</p>
+        <p className="text-xs text-gray-400">No tenés acceso a esta sección</p>
       </div>
     )
   }
@@ -157,7 +125,6 @@ export function SeccionEquipo() {
         </button>
       </div>
 
-      {/* Formulario de invitación */}
       {showInvite && (
         <div className="p-3 bg-gray-50 rounded-lg flex gap-2">
           <input
@@ -177,7 +144,6 @@ export function SeccionEquipo() {
         </div>
       )}
 
-      {/* Lista de usuarios */}
       <div className="flex flex-col gap-2">
         {team.map(member => (
           <div
@@ -189,11 +155,10 @@ export function SeccionEquipo() {
             }`}
           >
             <div className="flex items-center gap-3">
-              {/* Avatar simple */}
-              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-700 font-semibold text-sm">
+              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-700 font-semibold text-sm flex-shrink-0">
                 {(member.full_name ?? 'U')[0].toUpperCase()}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-medium text-gray-900">
                     {member.full_name ?? 'Sin nombre'}
@@ -208,16 +173,21 @@ export function SeccionEquipo() {
                       Vos
                     </span>
                   )}
+                  {member.role && !member.is_owner && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 capitalize">
+                      {member.role}
+                    </span>
+                  )}
                 </div>
-                {/* Resumen de permisos por módulo */}
-                {renderPermSummary(member, consultant.role_defaults)}
+                <PermSummary member={member} />
               </div>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => !member.is_owner && setPermModalUser(member)}
                 disabled={member.is_owner}
-                title={member.is_owner ? 'El propietario no puede ser modificado' : undefined}
+                title={member.is_owner ? 'El propietario no puede ser modificado' : 'Configurar permisos'}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <Settings className="w-4 h-4" />
@@ -240,7 +210,6 @@ export function SeccionEquipo() {
         )}
       </div>
 
-      {/* Modal de permisos */}
       {permModalUser && (
         <PermisosModal
           user={permModalUser}

@@ -98,7 +98,6 @@ export async function loadBrand(
         custom_domain: dbRow.custom_domain,
         activo: dbRow.activo,
         created_at: dbRow.created_at,
-        role_defaults: (dbRow as any).role_defaults ?? null,
       }
 
       brandCache.set(cacheKey, consultant)

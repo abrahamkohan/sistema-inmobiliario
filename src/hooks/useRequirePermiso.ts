@@ -1,35 +1,30 @@
 // src/hooks/useRequirePermiso.ts
-// Devuelve una función check(module, level) que:
-//   - Si tiene permiso → devuelve true
-//   - Si no tiene permiso → abre el modal y devuelve false
-//   - Si está cargando (null) → devuelve true (no bloquear)
+// Devuelve una función check(module) que abre el modal si no hay permiso.
 //
-// Uso en botones:
+// Uso:
 //   const check = useRequirePermiso()
-//   <button onClick={() => { if (check('crm', 'write')) handleCreate() }}>Crear</button>
+//   <button onClick={() => { if (check('crm')) handleCreate() }}>Crear</button>
 import { useAuth } from '@/context/AuthContext'
 import { useTeam } from '@/hooks/useTeam'
-import { useBrand } from '@/context/BrandContext'
 import { useNoPermiso } from '@/context/NoPermisoContext'
-import { resolvePermiso } from '@/lib/resolvePermiso'
+import type { ModuleKey } from '@/types/consultant'
 
 export function useRequirePermiso() {
   const { session } = useAuth()
-  const { data: team = [] } = useTeam()
-  const { consultant } = useBrand()
+  const { data: team = [], isLoading } = useTeam()
   const { showNoPermiso } = useNoPermiso()
 
-  return function check(module: string, level: string): boolean {
-    const result = resolvePermiso(team, session?.user?.id, consultant, module, level)
+  return function check(module: ModuleKey): boolean {
+    if (isLoading) return true
+    if (!session?.user?.id) { showNoPermiso(); return false }
 
-    // null = loading → no bloquear
-    if (result === null) return true
+    const current = team.find(m => m.id === session.user.id)
+    if (!current) { showNoPermiso(); return false }
 
-    if (!result) {
-      showNoPermiso()
-      return false
-    }
+    if (current.is_owner) return true
 
-    return true
+    const tiene = current.permisos?.[module] === true
+    if (!tiene) showNoPermiso()
+    return tiene
   }
 }

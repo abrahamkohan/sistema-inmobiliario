@@ -30,7 +30,7 @@ const FILTROS_TIPO = [
 export function PropiedadesPage() {
   const navigate = useNavigate()
   const { data: properties = [], isLoading } = useProperties()
-  const puedeCrear = usePermiso('propiedades', 'write')
+  const puedeCrear = usePermiso('propiedades')
   const [search, setSearch] = useState('')
   const [filterOp, setFilterOp] = useState('')
   const [filterTipo, setFilterTipo] = useState('')

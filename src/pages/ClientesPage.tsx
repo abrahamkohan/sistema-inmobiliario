@@ -33,8 +33,8 @@ export function ClientesPage() {
   const convertLead   = useConvertToCliente()
   const changeEstado  = useChangeEstado()
   const isAdmin = useIsAdmin()
-  const puedeCrear = usePermiso('crm', 'write')
-  const puedeEditar = usePermiso('crm', 'write')
+  const puedeCrear = usePermiso('crm')
+  const puedeEditar = usePermiso('crm')
   const { session } = useAuth()
 
   const [search, setSearch]       = useState('')

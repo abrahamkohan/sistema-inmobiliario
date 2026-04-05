@@ -20,7 +20,7 @@ export function ProyectosPage() {
   const navigate = useNavigate()
   const { data: projects = [], isLoading } = useProjects()
   const deleteProject = useDeleteProject()
-  const puedeCrear = usePermiso('proyectos', 'write')
+  const puedeCrear = usePermiso('proyectos')
 
   const [search,  setSearch]  = useState('')
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS)

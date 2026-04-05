@@ -1,7 +1,6 @@
 // src/lib/consultoraConfig.ts
 import { supabase } from './supabase'
 import type { Database } from '@/types/database'
-import type { RoleDefaults } from '@/types/consultant'
 
 type ConsultoraRow    = Database['public']['Tables']['consultants']['Row']
 type ConsultoraUpdate = Database['public']['Tables']['consultants']['Update']
@@ -36,10 +35,3 @@ export async function upsertConsultoraConfig(
   return { updated_at: new Date().toISOString(), ...payload } as ConsultoraRow
 }
 
-export async function updateRoleDefaults(roleDefaults: RoleDefaults): Promise<void> {
-  const { error } = await supabase
-    .from('consultants')
-    .update({ role_defaults: roleDefaults } as unknown as never)
-    .eq('id', ROW_ID as unknown as never)
-  if (error) throw error
-}

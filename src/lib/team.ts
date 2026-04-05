@@ -13,7 +13,7 @@ export type TeamMember = {
   created_at: string
   role: string | null
   is_owner: boolean
-  permisos: Record<string, string> | null
+  permisos: Record<string, boolean> | null
   consultant_id: string | null
   email?: string
 }
@@ -22,12 +22,12 @@ export async function getTeam(): Promise<TeamMember[]> {
   const profilesRes = await supabase.from('profiles').select('*').order('created_at', { ascending: true })
   const rolesRes = await supabase.from('user_roles').select('user_id, role, is_owner, permisos')
 
-  const roleMap = new Map<string, { role: string; is_owner: boolean; permisos: Record<string, string> | null }>()
-  
+  const roleMap = new Map<string, { role: string; is_owner: boolean; permisos: Record<string, boolean> | null }>()
+
   const rolesData = rolesRes.data as UserRoleRow[] | null
   if (rolesData) {
     rolesData.forEach(r => {
-      roleMap.set(r.user_id, { role: r.role, is_owner: r.is_owner, permisos: r.permisos })
+      roleMap.set(r.user_id, { role: r.role, is_owner: r.is_owner, permisos: r.permisos as Record<string, boolean> | null })
     })
   }
 
@@ -54,10 +54,6 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
   return getTeam()
 }
 
-export async function setRole(userId: string, role: 'admin' | 'agente'): Promise<void> {
-  return setUserRole(userId, role)
-}
-
 export async function setUserRole(userId: string, role: string): Promise<void> {
   const { data: target } = await supabase
     .from('user_roles')
@@ -74,7 +70,7 @@ export async function setUserRole(userId: string, role: string): Promise<void> {
   if (error) throw error
 }
 
-export async function setPermisos(userId: string, permisos: Record<string, string> | null): Promise<void> {
+export async function setPermisos(userId: string, permisos: Record<string, boolean> | null): Promise<void> {
   const { error } = await supabase
     .from('user_roles')
     .update({ permisos } as any)
@@ -102,7 +98,10 @@ export async function removeRole(userId: string): Promise<void> {
   return removeUser(userId)
 }
 
-// Stub for inviteUser - no-op since Supabase client doesn't have this method
+export async function setRole(userId: string, role: string): Promise<void> {
+  return setUserRole(userId, role)
+}
+
 export async function inviteUser(_email: string): Promise<void> {
   console.warn('inviteUser not implemented - use Supabase Dashboard for invitations')
 }

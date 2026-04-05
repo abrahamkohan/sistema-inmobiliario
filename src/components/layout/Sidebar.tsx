@@ -136,23 +136,20 @@ export function Sidebar({ onClose }: SidebarProps) {
     return undefined
   }
 
-  // ── Permisos al top level (NUNCA dentro de filter/map) ──
-  // Retorna null durante loading - no ocultar módulos mientras cargan
-  const puedeVerCRM         = usePermiso('crm', 'read')
-  const puedeVerTareas      = usePermiso('tareas', 'read')
-  const puedeVerNotas       = usePermiso('notas', 'read')
-  const puedeVerPropiedades = usePermiso('propiedades', 'read')
-  const puedeVerProyectos   = usePermiso('proyectos', 'read')
-  const puedeVerVentas      = usePermiso('ventas', 'read')
-  const puedeVerSimulador   = usePermiso('simulador', 'read')
-  const puedeVerFlip        = usePermiso('flip', 'read')
-  const puedeVerPresupuestos = usePermiso('presupuestos', 'read')
-  const puedeVerReportes    = usePermiso('reportes', 'read')
-  const puedeVerMarketing   = usePermiso('marketing', 'read')
-  const puedeVerConfig      = usePermiso('configuracion', 'read')
+  const puedeVerCRM         = usePermiso('crm')
+  const puedeVerTareas      = usePermiso('tareas')
+  const puedeVerNotas       = usePermiso('notas')
+  const puedeVerPropiedades = usePermiso('propiedades')
+  const puedeVerProyectos   = usePermiso('proyectos')
+  const puedeVerVentas      = usePermiso('ventas')
+  const puedeVerSimulador   = usePermiso('simulador')
+  const puedeVerFlip        = usePermiso('flip')
+  const puedeVerPresupuestos = usePermiso('presupuestos')
+  const puedeVerReportes    = usePermiso('reportes')
+  const puedeVerMarketing   = usePermiso('marketing')
+  const puedeVerConfig      = usePermiso('configuracion')
 
-  // Mapa de permisos - null significa "loading, mostrar de todos modos"
-  const permisoMap: Record<string, boolean | null> = {
+  const permisoMap: Record<string, boolean> = {
     '/clientes':     puedeVerCRM,
     '/tareas':       puedeVerTareas,
     '/notas':        puedeVerNotas,
@@ -211,13 +208,10 @@ export function Sidebar({ onClose }: SidebarProps) {
           // SISTEMA (último grupo): solo admin
           if (gi === NAV_GRUPOS.length - 1 && isAdmin !== true) return null
           
-          // Filtrar items por permiso - null significa "mostrar (no sabemos aún)"
           const filteredItems = grupo.items.filter(item => {
-            const permiso = MODULO_PERMISO[item.to]
-            if (!permiso) return true
-            const tienePermiso = permisoMap[item.to]
-            // Mostrar si: es true, o es null (loading - mostrar de todos modos)
-            return tienePermiso === true || tienePermiso === null
+            const modulo = MODULO_PERMISO[item.to]
+            if (!modulo) return true
+            return permisoMap[item.to] !== false
           })
           
           if (filteredItems.length === 0) return null

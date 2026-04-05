@@ -182,16 +182,26 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
             </Dialog.Close>
           </div>
 
+          {/* Contexto rol + overrides */}
+          <div className="px-4 pt-3 pb-2 text-xs text-gray-500 space-y-0.5">
+            <p>Rol base: <span className="font-semibold text-gray-700">{selectedRole || '—'}</span></p>
+            {customCount > 0 && (
+              <p>Este usuario tiene <span className="font-semibold text-gray-700">{customCount} permiso{customCount !== 1 ? 's' : ''} personalizado{customCount !== 1 ? 's' : ''}</span></p>
+            )}
+            <p className="text-gray-400">Los permisos personalizados sobrescriben el rol</p>
+          </div>
+
           {/* Selector de rol */}
-          <div className="px-4 pt-4 pb-2">
+          <div className="px-4 pt-1 pb-2">
             <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-1.5">
               Rol
             </label>
             <select
               value={selectedRole}
               onChange={e => handleRoleChange(e.target.value)}
-              disabled={isBusy}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-gray-400 disabled:opacity-50"
+              disabled={isBusy || user.is_owner}
+              title={user.is_owner ? 'El propietario no puede ser modificado' : undefined}
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {availableRoles.map(r => (
                 <option key={r} value={r}>{r}</option>

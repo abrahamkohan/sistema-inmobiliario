@@ -181,28 +181,39 @@ export function SeccionEquipo() {
                 {(member.full_name ?? 'U')[0].toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">
-                  {member.full_name ?? 'Sin nombre'}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-900">
+                    {member.full_name ?? 'Sin nombre'}
+                  </p>
+                  {member.is_owner && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
+                      Propietario
+                    </span>
+                  )}
+                </div>
                 {/* Resumen de permisos por módulo */}
                 {renderPermSummary(member, consultant.role_defaults)}
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setPermModalUser(member)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+                onClick={() => !member.is_owner && setPermModalUser(member)}
+                disabled={member.is_owner}
+                title={member.is_owner ? 'El propietario no puede ser modificado' : undefined}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <Settings className="w-4 h-4" />
                 Configurar
               </button>
-              <button
-                onClick={() => handleRemoveUser(member.id, member.full_name ?? member.id)}
-                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                title="Quitar acceso"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {!member.is_owner && (
+                <button
+                  onClick={() => handleRemoveUser(member.id, member.full_name ?? member.id)}
+                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Quitar acceso"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         ))}

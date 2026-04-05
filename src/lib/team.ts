@@ -59,6 +59,14 @@ export async function setRole(userId: string, role: 'admin' | 'agente'): Promise
 }
 
 export async function setUserRole(userId: string, role: string): Promise<void> {
+  const { data: target } = await supabase
+    .from('user_roles')
+    .select('is_owner')
+    .eq('user_id', userId as any)
+    .maybeSingle() as { data: { is_owner: boolean } | null }
+
+  if (target?.is_owner) throw new Error('No se puede modificar el propietario')
+
   const { error } = await supabase
     .from('user_roles')
     .update({ role } as any)
@@ -75,6 +83,14 @@ export async function setPermisos(userId: string, permisos: Record<string, strin
 }
 
 export async function removeUser(userId: string): Promise<void> {
+  const { data: target } = await supabase
+    .from('user_roles')
+    .select('is_owner')
+    .eq('user_id', userId as any)
+    .maybeSingle() as { data: { is_owner: boolean } | null }
+
+  if (target?.is_owner) throw new Error('No se puede eliminar el propietario')
+
   const { error } = await supabase
     .from('user_roles')
     .delete()

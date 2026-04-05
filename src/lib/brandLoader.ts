@@ -25,17 +25,22 @@ const brandCache = new Map<string, Consultant | null>()
 const CACHE_KEY_DEFAULT = 'consultant:default'
 
 /**
- * Carga el consultant desde la DB usando subdomain o custom_domain.
+ * Carga el consultant desde la DB usando consultantId o subdomain/custom_domain.
+ * Si se provee consultantId, busca por ese ID primero (fuente de verdad: user_roles).
  * Implementa fallback a DEFAULT_CONSULTANT si no se encuentra.
  * Usa caché en memoria para evitar queries repetidas.
  */
-export async function loadBrand(hostname: string, subdomain: string | null): Promise<{
+export async function loadBrand(
+  hostname: string,
+  subdomain: string | null,
+  consultantId?: string | null
+): Promise<{
   consultant: Consultant
   isDefault: boolean
   notFound: boolean
 }> {
   // Si es localhost, siempre usar default (no hay subdominios en dev)
-  const cacheKey = subdomain ?? 'default'
+  const cacheKey = consultantId ?? subdomain ?? 'default'
 
   // Verificar caché primero
   if (brandCache.has(cacheKey)) {
@@ -48,27 +53,35 @@ export async function loadBrand(hostname: string, subdomain: string | null): Pro
   }
 
   try {
-    // Query: buscar por subdomain primero, luego por custom_domain
-    const { data, error } = await supabase
-      .from('consultants')
-      .select('*')
-      .eq('activo', true)
-      .or(`subdomain.eq.${subdomain},custom_domain.eq.${hostname}`)
-      .limit(1)
-      .maybeSingle()
+    let dbRow: ConsultantRow | null = null
 
-    if (error) {
-      console.error('[brandLoader] DB error:', error)
-      // En caso de error, retornar default para no romper login
-      brandCache.set(cacheKey, DEFAULT_CONSULTANT)
-      return {
-        consultant: DEFAULT_CONSULTANT,
-        isDefault: true,
-        notFound: false,
+    // SI hay consultantId, buscar por ID primero (este es el flujo correcto)
+    if (consultantId) {
+      const { data, error } = await supabase
+        .from('consultants')
+        .select('*')
+        .eq('uuid', consultantId)
+        .maybeSingle()
+      
+      if (!error && data) {
+        dbRow = data as ConsultantRow
       }
     }
 
-    const dbRow = data as ConsultantRow | null
+    // Si no se encontró por ID, buscar por subdomain/custom_domain (fallback)
+    if (!dbRow && subdomain) {
+      const { data, error } = await supabase
+        .from('consultants')
+        .select('*')
+        .eq('activo', true)
+        .or(`subdomain.eq.${subdomain},custom_domain.eq.${hostname}`)
+        .limit(1)
+        .maybeSingle()
+
+      if (!error && data) {
+        dbRow = data as ConsultantRow
+      }
+    }
 
     if (dbRow) {
       // Mapear row de DB al tipo Consultant
@@ -96,7 +109,7 @@ export async function loadBrand(hostname: string, subdomain: string | null): Pro
       }
     }
 
-    // No se encontró consultant para este subdomain
+    // No se encontró consultant
     // Marcar en caché como null para no reintentar
     brandCache.set(cacheKey, null)
 

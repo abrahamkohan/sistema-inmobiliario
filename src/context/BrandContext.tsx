@@ -1,8 +1,10 @@
 // src/context/BrandContext.tsx
 // Provee brand engine a todos los componentes CRM (auth'd).
-// Ahora usa multi-tenant: consulta consultants por subdomain.
+// Usa consultant_id de user_roles como fuente de verdad para branding.
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useHost } from './HostContext'
+import { useAuth } from './AuthContext'
+import { supabase } from '@/lib/supabase'
 import { loadBrand, clearBrandCache } from '@/lib/brandLoader'
 import { BrandEngine } from '@/lib/brand/BrandEngine'
 import type { Consultant } from '@/types/consultant'
@@ -21,19 +23,33 @@ const BrandCtx = createContext<BrandContextValue | null>(null)
 
 export function BrandProvider({ children }: { children: React.ReactNode }) {
   const { hostname, subdomain } = useHost()
+  const { session } = useAuth()
   const [loading, setLoading] = useState(true)
   const [consultant, setConsultant] = useState<Consultant>(DEFAULT_CONSULTANT)
   const [notFound, setNotFound] = useState(false)
   const [isDefault, setIsDefault] = useState(true)
 
-  // Cargar consultant cuando cambia el hostname/subdomain
+  // Cargar consultant cuando cambia hostname/subdomain o cuando cambia la sesión
   useEffect(() => {
     let cancelled = false
 
-    async function load() {
+    async function loadConsultant() {
       setLoading(true)
 
-      const result = await loadBrand(hostname, subdomain)
+      // Obtener consultant_id desde user_roles (fuente de verdad)
+      let consultantId: string | null = null
+      
+      if (session?.user?.id) {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('consultant_id')
+          .eq('user_id', session.user.id)
+          .maybeSingle() as { data: { consultant_id: string | null } | null }
+        
+        consultantId = data?.consultant_id ?? null
+      }
+
+      const result = await loadBrand(hostname, subdomain, consultantId)
 
       if (!cancelled) {
         setConsultant(result.consultant)
@@ -43,12 +59,12 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    load()
+    loadConsultant()
 
     return () => {
       cancelled = true
     }
-  }, [hostname, subdomain])
+  }, [hostname, subdomain, session])
 
   // Crear engine con settings del consultant
   const engine = useMemo(() => {

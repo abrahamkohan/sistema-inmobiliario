@@ -12,9 +12,16 @@ type ClientInsert = Database['public']['Tables']['clients']['Insert']
 type ClientUpdate = Database['public']['Tables']['clients']['Update']
 
 export function useClients() {
+  const { session } = useAuth()
+  console.log('[DEBUG useClients] USER ID:', session?.user?.id)
+  
   return useQuery<ClientRow[]>({
     queryKey: ['clients'],
-    queryFn: getClients,
+    queryFn: async () => {
+      const result = await getClients()
+      console.log('[DEBUG useClients] CLIENTS RESULT:', result.length, 'clients')
+      return result
+    },
     initialData: [],
   })
 }

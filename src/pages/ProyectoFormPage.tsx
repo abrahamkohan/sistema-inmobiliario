@@ -500,7 +500,7 @@ export function ProyectoFormPage() {
         const path = `${projectId}/photos/${Date.now()}-${i}.${ext}`
         const { error } = await supabase.storage.from('project-media').upload(path, file)
         if (error) continue
-        await supabase.from('project_photos').insert({ project_id: projectId, storage_path: path, sort_order: startOrder + i })
+        await supabase.from('project_photos').insert({ project_id: projectId, storage_path: path, sort_order: startOrder + i } as any)
       }
 
       // Fotos nuevas por URL (ambos modos)
@@ -508,7 +508,7 @@ export function ProyectoFormPage() {
       for (let i = 0; i < s.urlPhotos.length; i++) {
         const { url } = s.urlPhotos[i]
         if (!url.trim()) continue
-        await supabase.from('project_photos').insert({ project_id: projectId, storage_path: url.trim(), sort_order: urlStartOrder + i })
+        await supabase.from('project_photos').insert({ project_id: projectId, storage_path: url.trim(), sort_order: urlStartOrder + i } as any)
       }
 
       toast.success(isEdit ? 'Cambios guardados' : 'Proyecto creado')

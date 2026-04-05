@@ -4,39 +4,48 @@ import { Plus, Trash2, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTeam, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
 import { useIsAdmin } from '@/hooks/useUserRole'
+import { useBrand } from '@/context/BrandContext'
 import { PermisosModal } from './PermisosModal'
 import { DEFAULT_PERMISSIONS } from '@/lib/roleDefaults'
 import type { TeamMember } from '@/lib/team'
+import type { RoleDefaults } from '@/types/consultant'
 
-// Todos los módulos en orden consistente
+// Módulos en orden del Sidebar
 const SUMMARY_MODULES = [
   'crm',
-  'propiedades', 
-  'proyectos',
-  'marketing_media',
-  'finanzas',
   'tareas',
+  'notas',
+  'propiedades',
+  'proyectos',
+  'finanzas',
   'reportes',
+  'marketing',
   'configuracion',
 ]
 
-// Nombres completos de módulos
 const MODULE_LABELS: Record<string, string> = {
-  crm: 'CRM',
-  propiedades: 'Propiedades',
-  proyectos: 'Proyectos',
-  marketing_media: 'Marketing',
-  finanzas: 'Finanzas',
-  tareas: 'Tareas',
-  reportes: 'Reportes',
+  crm:           'Clientes',
+  tareas:        'Tareas',
+  notas:         'Notas',
+  propiedades:   'Propiedades',
+  proyectos:     'Proyectos',
+  finanzas:      'Finanzas',
+  reportes:      'Informes',
+  marketing:     'Marketing',
   configuracion: 'Configuración',
 }
 
-// Obtiene permisos efectivos (override o default del rol)
-function getEffectivePerm(member: TeamMember, module: string): string {
-  const defaults = DEFAULT_PERMISSIONS[member.role ?? 'agente'] ?? {}
+// Obtiene permisos efectivos: override personal > tenant default > code default
+function getEffectivePerm(
+  member: TeamMember,
+  module: string,
+  tenantDefaults: RoleDefaults | null,
+): string {
+  const role     = member.role ?? 'agente'
   const override = (member.permisos as Record<string, string>)?.[module]
-  return override ?? defaults[module] ?? 'none'
+  const tenant   = (tenantDefaults as Record<string, Record<string, string>> | null)?.[role]?.[module]
+  const code     = DEFAULT_PERMISSIONS[role]?.[module]
+  return override ?? tenant ?? code ?? 'none'
 }
 
 // Obtiene tooltip para cada nivel
@@ -50,22 +59,21 @@ function getPermTooltip(perm: string): string {
 }
 
 // Renderiza el resumen de permisos
-function renderPermSummary(member: TeamMember) {
+function renderPermSummary(member: TeamMember, tenantDefaults: RoleDefaults | null) {
   return (
     <div className="flex flex-wrap gap-1 mt-1">
       {SUMMARY_MODULES.map(mod => {
-        const perm = getEffectivePerm(member, mod)
-        
-        // Estilos por nivel de acceso
+        const perm = getEffectivePerm(member, mod, tenantDefaults)
+
         const permStyles: Record<string, { bg: string; text: string; dot: string }> = {
-          full:   { bg: 'bg-green-100', text: 'text-green-700', dot: '●' },
-          write:  { bg: 'bg-blue-100',  text: 'text-blue-700',  dot: '●' },
-          read:   { bg: 'bg-purple-100', text: 'text-purple-700', dot: '●' },
-          none:   { bg: 'bg-gray-100',  text: 'text-gray-400',  dot: '○' },
+          full:  { bg: 'bg-green-100',  text: 'text-green-700',  dot: '●' },
+          write: { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: '●' },
+          read:  { bg: 'bg-purple-100', text: 'text-purple-700', dot: '●' },
+          none:  { bg: 'bg-gray-100',   text: 'text-gray-400',   dot: '○' },
         }
-        
+
         const style = permStyles[perm] ?? permStyles.none
-        
+
         return (
           <span
             key={mod}
@@ -83,6 +91,7 @@ function renderPermSummary(member: TeamMember) {
 export function SeccionEquipo() {
   const isAdmin = useIsAdmin()
   const { data: team = [] } = useTeam()
+  const { consultant } = useBrand()
   const removeRole = useRemoveRole()
   const inviteUser = useInviteUser()
 
@@ -176,7 +185,7 @@ export function SeccionEquipo() {
                   {member.full_name ?? 'Sin nombre'}
                 </p>
                 {/* Resumen de permisos por módulo */}
-                {renderPermSummary(member)}
+                {renderPermSummary(member, consultant.role_defaults)}
               </div>
             </div>
             <div className="flex items-center gap-2">

@@ -1,6 +1,12 @@
 // src/types/consultant.ts
 // Tipos para multi-tenant: Consultant (consultants table)
 
+export type PermLevel = 'none' | 'read' | 'write' | 'full'
+export type RoleKey   = 'admin' | 'agente' | 'cm' | 'finanzas' | 'viewer'
+export type ModuleKey = 'crm' | 'tareas' | 'notas' | 'propiedades' | 'proyectos' | 'finanzas' | 'reportes' | 'marketing' | 'configuracion'
+
+export type RoleDefaults = Partial<Record<RoleKey, Partial<Record<ModuleKey, PermLevel>>>>
+
 export interface Consultant {
   id: number
   uuid: string
@@ -14,6 +20,7 @@ export interface Consultant {
   custom_domain: string | null
   activo: boolean
   created_at: string
+  role_defaults: RoleDefaults | null
 }
 
 /** Valor por defecto cuando no se encuentra consultant (fallback) */
@@ -30,4 +37,5 @@ export const DEFAULT_CONSULTANT: Consultant = {
   custom_domain: null,
   activo: true,
   created_at: new Date().toISOString(),
+  role_defaults: null,
 }

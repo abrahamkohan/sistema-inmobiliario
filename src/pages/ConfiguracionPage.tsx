@@ -16,6 +16,7 @@ import { SeccionContacto }      from '@/components/configuracion/SeccionContacto
 import { SeccionIntegraciones } from '@/components/configuracion/SeccionIntegraciones'
 import { SeccionEquipo }        from '@/components/configuracion/SeccionEquipo'
 import { SeccionAliados }       from '@/components/configuracion/SeccionAliados'
+import { PermisosMatriz }       from '@/components/configuracion/PermisosMatriz'
 
 // ─── Referidos ────────────────────────────────────────────────────────────────
 
@@ -311,6 +312,13 @@ export function ConfiguracionPage() {
 
       {/* 5. Equipo — solo admin */}
       {isAdmin && <SeccionEquipo />}
+
+      {/* 6. Permisos por rol — solo admin */}
+      {isAdmin && (
+        <div className="rounded-lg border bg-card p-5">
+          <PermisosMatriz />
+        </div>
+      )}
 
       {/* Aliados comerciales */}
       <SeccionAliados />

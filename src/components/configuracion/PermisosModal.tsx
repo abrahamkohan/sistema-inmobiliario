@@ -1,4 +1,6 @@
 // src/components/configuracion/PermisosModal.tsx
+// Modal de permisos personalizados por usuario.
+// Permite sobreescribir los defaults de rol para un usuario específico.
 import { useState, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X, RotateCcw } from 'lucide-react'
@@ -7,26 +9,27 @@ import { useBrand } from '@/context/BrandContext'
 import { useSetPermisos } from '@/hooks/useSetPermisos'
 import { DEFAULT_PERMISSIONS } from '@/lib/roleDefaults'
 import type { TeamMember } from '@/lib/team'
+import type { PermLevel, ModuleKey, RoleKey } from '@/types/consultant'
 
-// Módulos con etiquetas amigables
-const PERM_MODULES: Record<string, string> = {
-  crm: 'Clientes',
-  propiedades: 'Propiedades',
-  proyectos: 'Proyectos',
-  media_props: 'Media (Prop/Proj)',
-  marketing_media: 'Marketing (media)',
-  finanzas: 'Finanzas',
-  marketing: 'Marketing',
-  tareas: 'Tareas',
-  reportes: 'Reportes',
-  configuracion: 'Configuración',
-}
+// ── Módulos en orden del Sidebar ──────────────────────────────────────────────
 
-const PERM_OPTIONS = [
-  { value: 'none', label: 'Sin acceso' },
-  { value: 'read', label: 'Lectura' },
-  { value: 'write', label: 'Editar' },
-  { value: 'full', label: 'Total' },
+const MODULES: { key: ModuleKey; label: string; note?: string }[] = [
+  { key: 'crm',           label: 'Clientes'       },
+  { key: 'tareas',        label: 'Tareas'         },
+  { key: 'notas',         label: 'Notas'          },
+  { key: 'propiedades',   label: 'Propiedades'    },
+  { key: 'proyectos',     label: 'Proyectos'      },
+  { key: 'finanzas',      label: 'Finanzas',      note: 'Ventas · Simulador · Flip · Presupuestos' },
+  { key: 'reportes',      label: 'Informes'       },
+  { key: 'marketing',     label: 'Marketing'      },
+  { key: 'configuracion', label: 'Configuración', note: 'Recursos · Configuración' },
+]
+
+const PERM_OPTIONS: { value: PermLevel; label: string }[] = [
+  { value: 'none',  label: 'Sin acceso'    },
+  { value: 'read',  label: 'Lectura'       },
+  { value: 'write', label: 'Editar'        },
+  { value: 'full',  label: 'Control total' },
 ]
 
 interface PermisosModalProps {
@@ -37,29 +40,40 @@ interface PermisosModalProps {
 
 export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
   const setPermisos = useSetPermisos()
-  const { engine } = useBrand()
+  const { consultant, engine } = useBrand()
   const colors = engine.getColors()
-  const [permValues, setPermValues] = useState<Record<string, string>>({})
+
+  const [permValues, setPermValues] = useState<Record<ModuleKey, PermLevel>>({} as Record<ModuleKey, PermLevel>)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
 
-  // Inicializar valores cuando se abre el modal
-  // Mergea todos los módulos visibles con: override del DB > default del rol > 'none'
-  // Garantiza que lo que se ve en el modal = lo que se guarda al hacer Save
+  // Inicializar: override del usuario > tenant default > code default > 'none'
   useEffect(() => {
-    if (open) {
-      const savedPerms = (user.permisos as Record<string, string>) || {}
-      const roleDefaults = DEFAULT_PERMISSIONS[user.role ?? 'viewer'] ?? {}
-      const merged: Record<string, string> = {}
-      for (const key of Object.keys(PERM_MODULES)) {
-        merged[key] = savedPerms[key] ?? roleDefaults[key] ?? 'none'
-      }
-      setPermValues(merged)
-      setShowResetConfirm(false)
-    }
-  }, [open, user.permisos, user.role])
+    if (!open) return
 
-  function updatePerm(module: string, value: string) {
-    setPermValues(prev => ({ ...prev, [module]: value }))
+    const savedPerms  = (user.permisos as Record<string, string>) || {}
+    const role        = (user.role ?? 'viewer') as RoleKey
+    const tenantRole  = (consultant.role_defaults as Record<string, Record<string, string>> | null)?.[role] ?? {}
+    const codeRole    = DEFAULT_PERMISSIONS[role] ?? {}
+
+    const merged = {} as Record<ModuleKey, PermLevel>
+    for (const { key } of MODULES) {
+      merged[key] = (savedPerms[key] ?? tenantRole[key] ?? codeRole[key] ?? 'none') as PermLevel
+    }
+
+    setPermValues(merged)
+    setShowResetConfirm(false)
+  }, [open, user.permisos, user.role, consultant.role_defaults])
+
+  // Nivel efectivo para comparar y detectar custom (tenant o code)
+  function getEffectiveDefault(mod: ModuleKey): PermLevel {
+    const role = (user.role ?? 'viewer') as RoleKey
+    const tenant = (consultant.role_defaults as Record<string, Record<string, string>> | null)?.[role]?.[mod]
+    const code   = DEFAULT_PERMISSIONS[role]?.[mod]
+    return (tenant ?? code ?? 'none') as PermLevel
+  }
+
+  function updatePerm(mod: ModuleKey, value: PermLevel) {
+    setPermValues(prev => ({ ...prev, [mod]: value }))
   }
 
   async function handleSave() {
@@ -74,7 +88,6 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
 
   async function handleReset() {
     try {
-      // Enviar null para borrar los permisos custom y volver al default del rol
       await setPermisos.mutateAsync({ userId: user.id, permisos: null })
       toast.success('Permisos reseteados al rol por defecto')
       onClose()
@@ -83,31 +96,34 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
     }
   }
 
-  // Obtener el default del rol base del usuario
-  const roleDefaults = user.role ? DEFAULT_PERMISSIONS[user.role] : null
-  const hasCustomPerms = Object.keys(permValues).length > 0
-
-  // Contar cuántos módulos tienen permisos distintos al default
-  let customCount = 0
-  if (roleDefaults) {
-    for (const [mod, perm] of Object.entries(permValues)) {
-      if (perm !== roleDefaults[mod]) customCount++
-    }
-  }
+  // Contar módulos con override personal (distinto del default efectivo)
+  const savedPerms = (user.permisos as Record<string, string>) || {}
+  const customCount = MODULES.filter(({ key }) =>
+    savedPerms[key] !== undefined && savedPerms[key] !== getEffectiveDefault(key)
+  ).length
 
   return (
     <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-[95vw] max-w-lg max-h-[85vh] overflow-y-auto z-50">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-[95vw] max-w-md max-h-[85vh] overflow-y-auto z-50">
+
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <div>
-              <Dialog.Title className="text-lg font-semibold text-gray-900">
+              <Dialog.Title className="text-base font-semibold text-gray-900">
                 {user.full_name || 'Usuario'}
               </Dialog.Title>
-              <Dialog.Description className="text-sm text-gray-500">
+              <Dialog.Description className="text-xs text-gray-500 mt-0.5">
                 Rol base: <span className="font-medium">{user.role ?? 'Sin rol'}</span>
+                {customCount > 0 && (
+                  <span
+                    className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium"
+                    style={{ backgroundColor: colors.accent + '18', color: colors.accent }}
+                  >
+                    {customCount} personalizado{customCount !== 1 ? 's' : ''}
+                  </span>
+                )}
               </Dialog.Description>
             </div>
             <Dialog.Close className="p-2 hover:bg-gray-100 rounded-lg">
@@ -115,56 +131,53 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
             </Dialog.Close>
           </div>
 
-          {/* Helper text */}
-          <div className="px-4 py-2 bg-gray-50 border-b text-xs text-gray-600">
-            {customCount > 0 
-              ? `Tenés ${customCount} módulo${customCount !== 1 ? 's' : ''} con permisos personalizados`
-              : 'Este usuario tiene los permisos estándar de su rol'}
-          </div>
+          {/* Lista de módulos */}
+          <div className="p-4 space-y-1">
+            {MODULES.map(({ key, label, note }) => {
+              const value      = permValues[key] ?? 'none'
+              const def        = getEffectiveDefault(key)
+              const hasOverride = savedPerms[key] !== undefined && savedPerms[key] !== def
 
-          {/* Lista de permisos con dropdowns */}
-          <div className="p-4">
-            <div className="space-y-3">
-              {Object.entries(PERM_MODULES).map(([key, label]) => {
-                const currentValue = permValues[key] ?? roleDefaults?.[key] ?? 'none'
-                const isCustom = roleDefaults && permValues[key] !== undefined && permValues[key] !== roleDefaults[key]
-                
-                return (
-                  <div key={key} className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-sm text-gray-700 truncate">{label}</span>
-                      {isCustom && (
-                        <span 
-                          className="text-[9px] font-medium px-1 py-0.5 rounded flex-shrink-0"
-                          style={{ 
-                            backgroundColor: colors.accent + '15', 
-                            color: colors.accent + 'cc',
-                          }}
+              return (
+                <div
+                  key={key}
+                  className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm text-gray-800">{label}</span>
+                      {hasOverride && (
+                        <span
+                          className="text-[9px] font-semibold px-1 py-0.5 rounded"
+                          style={{ backgroundColor: colors.accent + '18', color: colors.accent }}
                         >
                           custom
                         </span>
                       )}
                     </div>
-                    <select
-                      value={currentValue}
-                      onChange={e => updatePerm(key, e.target.value)}
-                      className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-gray-900 min-w-[100px]"
-                      style={isCustom ? { borderColor: colors.accent + '50' } : {}}
-                    >
-                      {PERM_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
+                    {note && (
+                      <span className="text-[10px] text-gray-400">{note}</span>
+                    )}
                   </div>
-                )
-              })}
-            </div>
+                  <select
+                    value={value}
+                    onChange={e => updatePerm(key, e.target.value as PermLevel)}
+                    className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-gray-400 min-w-[130px] flex-shrink-0"
+                    style={hasOverride ? { borderColor: colors.accent + '60' } : {}}
+                  >
+                    {PERM_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )
+            })}
           </div>
 
           {/* Footer */}
           <div className="flex items-center justify-between p-4 border-t bg-gray-50 gap-2">
             <div>
-              {hasCustomPerms && (
+              {customCount > 0 && !showResetConfirm && (
                 <button
                   onClick={() => setShowResetConfirm(true)}
                   className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
@@ -174,7 +187,7 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
                 </button>
               )}
               {showResetConfirm && (
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">¿Confirmar?</span>
                   <button
                     onClick={handleReset}

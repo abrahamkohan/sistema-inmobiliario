@@ -17,9 +17,11 @@ interface Props {
 export function RequirePermiso({ modulo, nivel, children, fallback = null }: Props) {
   const tienePermiso = usePermiso(modulo, nivel)
   
+  console.log('PERMISO:', modulo, nivel, tienePermiso)
+  
   // Si está cargando (null), no redirigir todavía
   if (tienePermiso === null) {
-    return null
+    return <div>Cargando...</div>
   }
   
   // Si no tiene permiso, mostrar fallback

@@ -11,4 +11,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     storage: window.localStorage,
   },
+  realtime: {
+    enabled: false,
+  },
 })

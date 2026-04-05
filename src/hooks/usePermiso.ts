@@ -24,9 +24,6 @@ export function usePermiso(module: string, level: string): boolean | null {
   const current = team.find(m => m.id === session.user.id)
   if (!current) return false
 
-  // Owner has implicit full access
-  if (current.is_owner) return true
-
   // Role based defaults from DEFAULT_PERMISSIONS
   const roleDefaults = DEFAULT_PERMISSIONS[current.role ?? 'viewer'] ?? {}
   const roleDefault = roleDefaults[module] ?? 'none'

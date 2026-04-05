@@ -7,23 +7,17 @@ import { useBrand } from '@/context/BrandContext'
 import { toast } from 'sonner'
 import type { Database } from '@/types/database'
 
-type ClientRow    = Database['public']['Tables']['clients']['Row']
-type ClientInsert = Database['public']['Tables']['clients']['Insert']
-type ClientUpdate = Database['public']['Tables']['clients']['Update']
+export type ClientRow    = Database['public']['Tables']['clients']['Row']
+export type ClientInsert = Database['public']['Tables']['clients']['Insert']
+export type ClientUpdate = Database['public']['Tables']['clients']['Update']
 
 export function useClients() {
+  const { session } = useAuth()
+  
   return useQuery({
     queryKey: ['clients'],
-    queryFn: async () => {
-      try {
-        const result = await getClients()
-        return result as ClientRow[]
-      } catch (e) {
-        console.error('USE CLIENTS ERROR:', e)
-        return [] as ClientRow[]
-      }
-    },
-    initialData: [] as ClientRow[],
+    queryFn: getClients,
+    enabled: !!session,
   })
 }
 

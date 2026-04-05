@@ -5,6 +5,7 @@ import { router } from './router'
 import { HostProvider } from '@/context/HostContext'
 import { BrandProvider } from '@/context/BrandContext'
 import { useBrand } from '@/context/BrandContext'
+import { NoPermisoProvider } from '@/context/NoPermisoContext'
 import { ClienteNoEncontrado } from '@/pages/ClienteNoEncontrado'
 
 // Componente interno que usa BrandContext
@@ -42,7 +43,9 @@ export function App() {
     >
       <HostProvider>
         <BrandProvider>
-          <AppContent />
+          <NoPermisoProvider>
+            <AppContent />
+          </NoPermisoProvider>
         </BrandProvider>
       </HostProvider>
     </Theme>

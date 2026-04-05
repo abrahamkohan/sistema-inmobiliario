@@ -19,19 +19,19 @@ import { GlobalSearch } from '@/components/search/GlobalSearch'
 // ── Mapeo de módulos a permisos ────────────────────────────────────────────────────
 
 const MODULO_PERMISO: Record<string, string> = {
-  '/clientes': 'crm',
-  '/tareas': 'tareas',
-  '/notas': 'notas',
-  '/propiedades': 'propiedades',
-  '/proyectos': 'proyectos',
-  '/simulador': 'finanzas',
-  '/flip': 'finanzas',
-  '/presupuestos': 'finanzas',
-  '/informes': 'reportes',
-  '/marketing': 'marketing',
-  '/recursos': 'configuracion',
-  '/configuracion': 'configuracion',
-  '/comisiones': 'finanzas',
+  '/clientes':     'crm',
+  '/tareas':       'tareas',
+  '/notas':        'notas',
+  '/propiedades':  'propiedades',
+  '/proyectos':    'proyectos',
+  '/comisiones':   'ventas',
+  '/simulador':    'simulador',
+  '/flip':         'flip',
+  '/presupuestos': 'presupuestos',
+  '/informes':     'reportes',
+  '/marketing':    'marketing',
+  '/recursos':     'configuracion',
+  '/configuracion':'configuracion',
 }
 
 // ── Estructura de menú ────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ const NAV_GRUPOS: {
     items: [
       { to: '/propiedades', label: 'Propiedades', icon: MapPin },
       { to: '/proyectos',   label: 'Proyectos',   icon: Building2 },
-      // Ventas se agrega dinámicamente (solo admin)
+      { to: '/comisiones',  label: 'Ventas',      icon: HandCoins },
     ],
   },
   {
@@ -138,31 +138,34 @@ export function Sidebar({ onClose }: SidebarProps) {
 
   // ── Permisos al top level (NUNCA dentro de filter/map) ──
   // Retorna null durante loading - no ocultar módulos mientras cargan
-  const puedeVerCRM        = usePermiso('crm', 'read')
-  const puedeVerTareas     = usePermiso('tareas', 'read')
-  const puedeVerNotas      = usePermiso('notas', 'read')
+  const puedeVerCRM         = usePermiso('crm', 'read')
+  const puedeVerTareas      = usePermiso('tareas', 'read')
+  const puedeVerNotas       = usePermiso('notas', 'read')
   const puedeVerPropiedades = usePermiso('propiedades', 'read')
-  const puedeVerProyectos  = usePermiso('proyectos', 'read')
-  const puedeVerFinanzas   = usePermiso('finanzas', 'read')
-  const puedeVerReportes   = usePermiso('reportes', 'read')
-  const puedeVerMarketing  = usePermiso('marketing', 'read')
-  const puedeVerConfig     = usePermiso('configuracion', 'read')
+  const puedeVerProyectos   = usePermiso('proyectos', 'read')
+  const puedeVerVentas      = usePermiso('ventas', 'read')
+  const puedeVerSimulador   = usePermiso('simulador', 'read')
+  const puedeVerFlip        = usePermiso('flip', 'read')
+  const puedeVerPresupuestos = usePermiso('presupuestos', 'read')
+  const puedeVerReportes    = usePermiso('reportes', 'read')
+  const puedeVerMarketing   = usePermiso('marketing', 'read')
+  const puedeVerConfig      = usePermiso('configuracion', 'read')
 
   // Mapa de permisos - null significa "loading, mostrar de todos modos"
   const permisoMap: Record<string, boolean | null> = {
-    '/clientes': puedeVerCRM,
-    '/tareas': puedeVerTareas,
-    '/notas': puedeVerNotas,
-    '/propiedades': puedeVerPropiedades,
-    '/proyectos': puedeVerProyectos,
-    '/simulador': puedeVerFinanzas,
-    '/flip': puedeVerFinanzas,
-    '/presupuestos': puedeVerFinanzas,
-    '/informes': puedeVerReportes,
-    '/marketing': puedeVerMarketing,
-    '/recursos': puedeVerConfig,
-    '/configuracion': puedeVerConfig,
-    '/comisiones': (isAdmin === true) ? puedeVerFinanzas : false,
+    '/clientes':     puedeVerCRM,
+    '/tareas':       puedeVerTareas,
+    '/notas':        puedeVerNotas,
+    '/propiedades':  puedeVerPropiedades,
+    '/proyectos':    puedeVerProyectos,
+    '/comisiones':   puedeVerVentas,
+    '/simulador':    puedeVerSimulador,
+    '/flip':         puedeVerFlip,
+    '/presupuestos': puedeVerPresupuestos,
+    '/informes':     puedeVerReportes,
+    '/marketing':    puedeVerMarketing,
+    '/recursos':     puedeVerConfig,
+    '/configuracion':puedeVerConfig,
   }
 
   return (
@@ -229,10 +232,6 @@ export function Sidebar({ onClose }: SidebarProps) {
               {filteredItems.map(({ to, label, icon }) => (
                 <NavItem key={to} to={to} label={label} icon={icon} onClick={onClose} badge={badge(to)} />
               ))}
-              {/* Ventas: solo admin, al final de Inventario */}
-              {gi === 2 && isAdmin === true && puedeVerFinanzas && (
-                <NavItem to="/comisiones" label="Ventas" icon={HandCoins} onClick={onClose} />
-              )}
             </div>
           )
         })}

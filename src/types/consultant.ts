@@ -3,7 +3,19 @@
 
 export type PermLevel = 'none' | 'read' | 'write' | 'full'
 export type RoleKey   = string
-export type ModuleKey = 'crm' | 'tareas' | 'notas' | 'propiedades' | 'proyectos' | 'finanzas' | 'reportes' | 'marketing' | 'configuracion'
+export type ModuleKey =
+  | 'crm'
+  | 'tareas'
+  | 'notas'
+  | 'propiedades'
+  | 'proyectos'
+  | 'ventas'
+  | 'simulador'
+  | 'flip'
+  | 'presupuestos'
+  | 'reportes'
+  | 'marketing'
+  | 'configuracion'
 
 export type RoleDefaults = Record<string, Partial<Record<ModuleKey, PermLevel>>>
 

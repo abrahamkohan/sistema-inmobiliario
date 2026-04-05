@@ -15,14 +15,17 @@ import type { PermLevel, ModuleKey } from '@/types/consultant'
 // ── Módulos en orden del Sidebar ──────────────────────────────────────────────
 
 const MODULES: { key: ModuleKey; label: string; note?: string }[] = [
-  { key: 'crm',           label: 'Clientes'       },
-  { key: 'tareas',        label: 'Tareas'         },
-  { key: 'notas',         label: 'Notas'          },
-  { key: 'propiedades',   label: 'Propiedades'    },
-  { key: 'proyectos',     label: 'Proyectos'      },
-  { key: 'finanzas',      label: 'Finanzas',      note: 'Ventas · Simulador · Flip · Presupuestos' },
-  { key: 'reportes',      label: 'Informes'       },
-  { key: 'marketing',     label: 'Marketing'      },
+  { key: 'crm',           label: 'Clientes'      },
+  { key: 'tareas',        label: 'Tareas'        },
+  { key: 'notas',         label: 'Notas'         },
+  { key: 'propiedades',   label: 'Propiedades'   },
+  { key: 'proyectos',     label: 'Proyectos'     },
+  { key: 'ventas',        label: 'Ventas'        },
+  { key: 'simulador',     label: 'Simulador'     },
+  { key: 'flip',          label: 'Flip'          },
+  { key: 'presupuestos',  label: 'Presupuestos'  },
+  { key: 'reportes',      label: 'Informes'      },
+  { key: 'marketing',     label: 'Marketing'     },
   { key: 'configuracion', label: 'Configuración', note: 'Recursos · Configuración' },
 ]
 

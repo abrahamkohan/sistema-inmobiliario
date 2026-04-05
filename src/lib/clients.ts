@@ -11,7 +11,7 @@ export async function getClients(): Promise<ClientRow[]> {
     .from('clients')
     .select('*')
     .order('full_name', { ascending: true })
-  console.log('[DEBUG getClients] Supabase response - data:', data?.length, 'error:', error)
+  console.log('GET CLIENTS RAW:', data?.length, error)
   if (error) throw error
   return data as unknown as ClientRow[]
 }

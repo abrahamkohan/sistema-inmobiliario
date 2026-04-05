@@ -18,7 +18,6 @@ export async function getProfile(userId: string): Promise<{ id: string; full_nam
 }
 
 export async function updateProfile(userId: string, updates: ProfileUpdate): Promise<{ id: string; full_name: string | null }> {
-  console.log('[updateProfile] updating:', userId, updates)
   const { data, error } = await supabase
     .from('profiles')
     .update(updates)
@@ -29,6 +28,5 @@ export async function updateProfile(userId: string, updates: ProfileUpdate): Pro
     console.error('[updateProfile] error:', error)
     throw error
   }
-  console.log('[updateProfile] success:', data)
   return data
 }

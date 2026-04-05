@@ -12,15 +12,11 @@ type ClientInsert = Database['public']['Tables']['clients']['Insert']
 type ClientUpdate = Database['public']['Tables']['clients']['Update']
 
 export function useClients() {
-  const { session } = useAuth()
-  console.log('USE CLIENTS DATA:', session?.user?.id)
-  
   return useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
       try {
         const result = await getClients()
-        console.log('USE CLIENTS RESULT:', result)
         return result as ClientRow[]
       } catch (e) {
         console.error('USE CLIENTS ERROR:', e)
@@ -117,13 +113,10 @@ export function useReassignClient() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ clientId, agentId }: { clientId: string; agentId: string }) => {
-      console.log('[Reassign] Updating client:', clientId, 'to agent:', agentId)
       const result = await updateClient(clientId, { assigned_to: agentId })
-      console.log('[Reassign] Success:', result)
       return result
     },
     onSuccess: () => {
-      console.log('[Reassign] Query invalidated')
       toast.success('Cliente asignado correctamente')
       qc.invalidateQueries({ queryKey: ['clients'] })
     },

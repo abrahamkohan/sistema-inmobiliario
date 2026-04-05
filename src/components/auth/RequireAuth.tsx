@@ -19,10 +19,8 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
       try {
         const profile = await getProfile(session.user.id)
-        console.log('[RequireAuth] profile:', profile)
         
         if (!profile?.full_name || profile.full_name.trim().length < 3) {
-          console.log('[RequireAuth] needs profile, redirecting to /completar-perfil')
           setNeedsProfile(true)
         }
       } catch (e) {

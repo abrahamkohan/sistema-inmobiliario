@@ -12,12 +12,7 @@ export async function getClients(): Promise<ClientRow[]> {
     .select('*')
     .order('full_name', { ascending: true })
 
-  console.log('CLIENTS RESPONSE:', { data, error })
-
-  if (error) {
-    console.error('CLIENTS ERROR:', error)
-    throw error
-  }
+  if (error) throw error
 
   return (data ?? []) as unknown as ClientRow[]
 }

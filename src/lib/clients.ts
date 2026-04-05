@@ -6,7 +6,7 @@ type ClientRow = Database['public']['Tables']['clients']['Row']
 type ClientInsert = Database['public']['Tables']['clients']['Insert']
 type ClientUpdate = Database['public']['Tables']['clients']['Update']
 
-export async function getClients() {
+export async function getClients(): Promise<ClientRow[]> {
   const { data, error } = await supabase
     .from('clients')
     .select('*')
@@ -19,7 +19,7 @@ export async function getClients() {
     throw error
   }
 
-  return data ?? []
+  return (data ?? []) as unknown as ClientRow[]
 }
 
 export async function getClient(id: string): Promise<ClientRow> {

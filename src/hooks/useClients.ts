@@ -20,9 +20,9 @@ export function useClients() {
     queryFn: async () => {
       const result = await getClients()
       console.log('USE CLIENTS RESULT:', result)
-      return result
+      return result as ClientRow[]
     },
-    initialData: [],
+    initialData: [] as ClientRow[],
   })
 }
 

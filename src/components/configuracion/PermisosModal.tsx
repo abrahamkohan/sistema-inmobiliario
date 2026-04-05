@@ -10,7 +10,7 @@ import type { TeamMember } from '@/lib/team'
 
 // Módulos con etiquetas amigables
 const PERM_MODULES: Record<string, string> = {
-  crm: 'CRM',
+  crm: 'Clientes',
   propiedades: 'Propiedades',
   proyectos: 'Proyectos',
   media_props: 'Media (Prop/Proj)',

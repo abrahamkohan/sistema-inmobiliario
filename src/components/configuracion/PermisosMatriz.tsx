@@ -56,7 +56,8 @@ function buildInitialMatrix(
     result[role] = {} as Record<ModuleKey, PermLevel>
     for (const { key: mod } of MODULES) {
       const tenant = tenantDefaults?.[role]?.[mod]
-      const code   = DEFAULT_PERMISSIONS[role]?.[mod] as PermLevel | undefined
+      const defs   = DEFAULT_PERMISSIONS as Record<string, Record<string, PermLevel> | undefined>
+      const code   = defs[role]?.[mod]
       result[role][mod] = tenant ?? code ?? 'none'
     }
   }

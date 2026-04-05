@@ -27,6 +27,9 @@ export function resolvePermiso(
   const current = team.find(m => m.id === userId)
   if (!current) return false
 
+  // El propietario siempre tiene acceso total — sus overrides no lo bloquean
+  if (current.is_owner) return true
+
   const role = current.role ?? 'viewer'
 
   const perms = current.permisos as Record<string, string> | undefined

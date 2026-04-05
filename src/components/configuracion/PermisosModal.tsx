@@ -43,12 +43,20 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
 
   // Inicializar valores cuando se abre el modal
+  // Mergea todos los módulos visibles con: override del DB > default del rol > 'none'
+  // Garantiza que lo que se ve en el modal = lo que se guarda al hacer Save
   useEffect(() => {
     if (open) {
-      setPermValues((user.permisos as Record<string, string>) || {})
+      const savedPerms = (user.permisos as Record<string, string>) || {}
+      const roleDefaults = DEFAULT_PERMISSIONS[user.role ?? 'viewer'] ?? {}
+      const merged: Record<string, string> = {}
+      for (const key of Object.keys(PERM_MODULES)) {
+        merged[key] = savedPerms[key] ?? roleDefaults[key] ?? 'none'
+      }
+      setPermValues(merged)
       setShowResetConfirm(false)
     }
-  }, [open, user.permisos])
+  }, [open, user.permisos, user.role])
 
   function updatePerm(module: string, value: string) {
     setPermValues(prev => ({ ...prev, [module]: value }))

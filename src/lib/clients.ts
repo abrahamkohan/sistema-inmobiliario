@@ -12,10 +12,10 @@ export async function getClients(): Promise<ClientRow[]> {
     .select('*')
     .order('full_name', { ascending: true })
 
-  console.log('CLIENTS RESPONSE', { data, error })
+  console.log('CLIENTS RESPONSE:', { data, error })
 
   if (error) {
-    console.error('CLIENTS ERROR', error)
+    console.error('CLIENTS ERROR:', error)
     throw error
   }
 

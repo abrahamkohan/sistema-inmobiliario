@@ -22,9 +22,13 @@ import type { Database } from '@/types/database'
 type ClientRow = Database['public']['Tables']['clients']['Row']
 type Tab = 'leads' | 'clientes' | 'todos'
 
+console.log('CLIENTES PAGE RENDER')
+
 export function ClientesPage() {
   const navigate = useNavigate()
+  console.log('ANTES DE useClients')
   const { data: clients = [], isLoading } = useClients()
+  console.log('CLIENTES DATA:', clients)
   const deleteClient  = useDeleteClient()
   const convertLead   = useConvertToCliente()
   const changeEstado  = useChangeEstado()

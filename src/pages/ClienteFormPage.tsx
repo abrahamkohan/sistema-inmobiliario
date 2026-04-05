@@ -1,35 +1,21 @@
 // src/pages/ClienteFormPage.tsx
 // Página para crear y editar clientes (sidebar visible, barra flotante inferior)
-import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { X } from 'lucide-react'
 import { useClient, useCreateClient, useUpdateClient } from '@/hooks/useClients'
 import { ClientFormNew, type ClientFormValues } from '@/components/clients/ClientFormNew'
 import { toast } from 'sonner'
-import type { Database } from '@/types/database'
 import { FormActionBar } from '@/components/ui/FormActionBar'
-
-type ClientRow = Database['public']['Tables']['clients']['Row']
 
 export function ClienteFormPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const isEdit = Boolean(id)
-  
+
   // Data
   const { data: client, isLoading } = useClient(id ?? '')
   const createClient = useCreateClient()
   const updateClient = useUpdateClient()
-  
-  // Form state
-  const [formValues, setFormValues] = useState<Partial<ClientRow>>({})
-  
-  // Cargar datos iniciales si es edición
-  useEffect(() => {
-    if (client) {
-      setFormValues(client)
-    }
-  }, [client])
   
   // Handlers
   async function handleSubmit(values: ClientFormValues) {
@@ -113,7 +99,7 @@ export function ClienteFormPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <ClientFormNew
             key={id ?? 'new'}
-            defaultValues={formValues}
+            defaultValues={client ?? {}}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isSubmitting={isPending}

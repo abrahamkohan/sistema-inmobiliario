@@ -1,9 +1,10 @@
 // src/components/configuracion/SeccionEquipo.tsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Trash2, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTeam, useRemoveRole, useInviteUser } from '@/hooks/useTeam'
 import { useIsAdmin } from '@/hooks/useUserRole'
+import { useAuth } from '@/context/AuthContext'
 import { useBrand } from '@/context/BrandContext'
 import { PermisosModal } from './PermisosModal'
 import { DEFAULT_PERMISSIONS } from '@/lib/roleDefaults'
@@ -92,6 +93,14 @@ export function SeccionEquipo() {
   const isAdmin = useIsAdmin()
   const { data: team = [] } = useTeam()
   const { consultant } = useBrand()
+  const { session } = useAuth()
+  const currentUserId = session?.user?.id
+
+  // Soft check: no debería haber más de un owner
+  useEffect(() => {
+    const ownerCount = team.filter(m => m.is_owner).length
+    if (ownerCount > 1) console.warn(`[SeccionEquipo] ${ownerCount} owners detectados — verificar datos`)
+  }, [team])
   const removeRole = useRemoveRole()
   const inviteUser = useInviteUser()
 
@@ -173,7 +182,11 @@ export function SeccionEquipo() {
         {team.map(member => (
           <div
             key={member.id}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
+              member.id === currentUserId
+                ? 'bg-blue-50/60 border border-blue-100 hover:bg-blue-50'
+                : 'bg-gray-50 hover:bg-gray-100'
+            }`}
           >
             <div className="flex items-center gap-3">
               {/* Avatar simple */}
@@ -181,13 +194,18 @@ export function SeccionEquipo() {
                 {(member.full_name ?? 'U')[0].toUpperCase()}
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-medium text-gray-900">
                     {member.full_name ?? 'Sin nombre'}
                   </p>
                   {member.is_owner && (
                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
                       Propietario
+                    </span>
+                  )}
+                  {member.id === currentUserId && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+                      Vos
                     </span>
                   )}
                 </div>

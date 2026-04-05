@@ -1,11 +1,21 @@
 // src/hooks/useTeam.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '@/context/AuthContext'
 import * as api from '@/lib/team'
+import type { TeamMember } from '@/lib/team'
 
 const QK = 'team'
 
 export function useTeam() {
   return useQuery({ queryKey: [QK], queryFn: api.getTeam })
+}
+
+/** Devuelve el TeamMember del usuario logueado (reutiliza cache de useTeam). */
+export function useCurrentMember(): TeamMember | null {
+  const { session } = useAuth()
+  const { data: team = [] } = useTeam()
+  if (!session?.user?.id) return null
+  return team.find(m => m.id === session.user.id) ?? null
 }
 
 export function useSetRole() {

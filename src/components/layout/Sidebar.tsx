@@ -132,6 +132,34 @@ export function Sidebar({ onClose }: SidebarProps) {
     return undefined
   }
 
+  // ── Permisos al top level (NUNCA dentro de filter/map) ──
+  const puedeVerCRM        = usePermiso('crm', 'read') ?? false
+  const puedeVerTareas     = usePermiso('tareas', 'read') ?? false
+  const puedeVerNotas      = usePermiso('notas', 'read') ?? false
+  const puedeVerPropiedades = usePermiso('propiedades', 'read') ?? false
+  const puedeVerProyectos  = usePermiso('proyectos', 'read') ?? false
+  const puedeVerFinanzas   = usePermiso('finanzas', 'read') ?? false
+  const puedeVerReportes   = usePermiso('reportes', 'read') ?? false
+  const puedeVerMarketing  = usePermiso('marketing', 'read') ?? false
+  const puedeVerConfig     = usePermiso('configuracion', 'read') ?? false
+
+  // Mapa de permisos para filtrar items
+  const permisoMap: Record<string, boolean> = {
+    '/clientes': puedeVerCRM,
+    '/tareas': puedeVerTareas,
+    '/notas': puedeVerNotas,
+    '/propiedades': puedeVerPropiedades,
+    '/proyectos': puedeVerProyectos,
+    '/simulador': puedeVerFinanzas,
+    '/flip': puedeVerFinanzas,
+    '/presupuestos': puedeVerFinanzas,
+    '/informes': puedeVerReportes,
+    '/marketing': puedeVerMarketing,
+    '/recursos': puedeVerConfig,
+    '/configuracion': puedeVerConfig,
+    '/comisiones': puedeVerFinanzas && (isAdmin === true),
+  }
+
   return (
     <aside className="w-56 flex-shrink-0 border-r border-sidebar-border bg-sidebar flex flex-col h-full">
 
@@ -173,14 +201,13 @@ export function Sidebar({ onClose }: SidebarProps) {
       <nav className="flex-1 px-3 py-3 flex flex-col gap-4 overflow-y-auto">
         {NAV_GRUPOS.map((grupo, gi) => {
           // SISTEMA (último grupo): solo admin
-          if (gi === NAV_GRUPOS.length - 1 && !isAdmin) return null
+          if (gi === NAV_GRUPOS.length - 1 && isAdmin !== true) return null
           
-          // Filtrar items por permiso: mostrar si permiso !== 'none'
+          // Filtrar items por permiso usando el mapa (sin llamar hooks aquí!)
           const filteredItems = grupo.items.filter(item => {
             const permiso = MODULO_PERMISO[item.to]
-            if (!permiso) return true // Si no tiene mapeo, siempre mostrar
-            // Mostrar si tiene cualquier permiso (read, write, full)
-            return usePermiso(permiso, 'read')
+            if (!permiso) return true
+            return permisoMap[item.to]
           })
           
           if (filteredItems.length === 0) return null
@@ -196,7 +223,7 @@ export function Sidebar({ onClose }: SidebarProps) {
                 <NavItem key={to} to={to} label={label} icon={icon} onClick={onClose} badge={badge(to)} />
               ))}
               {/* Ventas: solo admin, al final de Inventario */}
-              {gi === 2 && isAdmin && usePermiso('finanzas', 'read') && (
+              {gi === 2 && isAdmin === true && puedeVerFinanzas && (
                 <NavItem to="/comisiones" label="Ventas" icon={HandCoins} onClick={onClose} />
               )}
             </div>

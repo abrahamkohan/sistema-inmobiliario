@@ -116,6 +116,9 @@ export async function setRole(userId: string, role: string): Promise<void> {
   return setUserRole(userId, role)
 }
 
-export async function inviteUser(_email: string): Promise<void> {
-  console.warn('inviteUser not implemented - use Supabase Dashboard for invitations')
+export async function inviteUser(email: string): Promise<void> {
+  const { error } = await supabase.functions.invoke('invite-user', {
+    body: { email },
+  })
+  if (error) throw new Error(error.message)
 }

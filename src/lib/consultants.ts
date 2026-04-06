@@ -12,14 +12,14 @@ export async function createConsultant(input: ConsultantInsert): Promise<Consult
     .select()
     .single()
   if (error) throw error
-  return data
+  return data as ConsultantRow
 }
 
 export async function getConsultants(): Promise<ConsultantRow[]> {
   const { data, error } = await supabase
     .from('consultants')
-    .select('id, nombre, subdomain, activo, created_at, uuid')
+    .select('*')
     .order('created_at', { ascending: false })
   if (error) throw error
-  return data ?? []
+  return (data ?? []) as ConsultantRow[]
 }

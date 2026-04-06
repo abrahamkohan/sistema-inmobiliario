@@ -2,6 +2,7 @@
 import type { BrandEngine } from '@/lib/brand/BrandEngine'
 import { useBrand } from '@/context/BrandContext'
 import { useState, useRef } from 'react'
+import { usePuedeEditar, usePuedeBorrar } from '@/hooks/usePermiso'
 import { ImageIcon, Loader2, Plus, Pencil, Trash2, X, Upload, Link as LinkIcon, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -71,11 +72,13 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 // ── Tarjeta de asset ───────────────────────────────────────────────────────────
 
-function AssetCard({ asset, onDelete, onEdit, engine }: { 
+function AssetCard({ asset, onDelete, onEdit, engine, puedeEditar, puedeEliminar }: {
   asset: AssetWithUsages
   onDelete: (a: AssetWithUsages) => void
   onEdit: (a: AssetWithUsages) => void
   engine: BrandEngine
+  puedeEditar: boolean
+  puedeEliminar: boolean
 }) {
   const usageCount = asset.asset_usages.length
   const isUsed     = usageCount > 0
@@ -139,27 +142,31 @@ function AssetCard({ asset, onDelete, onEdit, engine }: {
           </a>
 
         <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => onEdit(asset)}
-            title="Editar"
-            className="p-1.5 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            disabled={isUsed}
-            onClick={() => onDelete(asset)}
-            title={isUsed ? 'No se puede eliminar: asset en uso' : 'Eliminar'}
-            className={`p-1.5 rounded-lg transition-colors ${
-              isUsed
-                ? 'text-gray-200 cursor-not-allowed'
-                : 'text-gray-300 hover:text-red-500 hover:bg-red-50'
-            }`}
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {puedeEditar && (
+            <button
+              type="button"
+              onClick={() => onEdit(asset)}
+              title="Editar"
+              className="p-1.5 rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
+          {puedeEliminar && (
+            <button
+              type="button"
+              disabled={isUsed}
+              onClick={() => onDelete(asset)}
+              title={isUsed ? 'No se puede eliminar: asset en uso' : 'Eliminar'}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isUsed
+                  ? 'text-gray-200 cursor-not-allowed'
+                  : 'text-gray-300 hover:text-red-500 hover:bg-red-50'
+              }`}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -400,7 +407,9 @@ export function SeccionAssets() {
   const [editingAsset,  setEditingAsset]  = useState<AssetWithUsages | null>(null)
 
   const { data: assets = [], isLoading } = useAssets({ type: filterType ?? undefined, subtipo: filterSubtipo ?? undefined })
-  const deleteAsset = useDeleteAsset()
+  const deleteAsset   = useDeleteAsset()
+  const puedeEditar   = usePuedeEditar('marketing')
+  const puedeEliminar = usePuedeBorrar('marketing')
 
   async function handleDelete(asset: AssetWithUsages) {
     if (!confirm(`¿Eliminar "${asset.nombre}"? Esta acción no se puede deshacer.`)) return
@@ -431,15 +440,17 @@ export function SeccionAssets() {
             Imágenes y documentos reutilizables. No elimines assets en uso.
           </p>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => { setShowForm(v => !v); setEditingAsset(null) }}
-          className="gap-1.5 flex-shrink-0"
-        >
-          {showForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-          {showForm ? 'Cerrar' : 'Nuevo'}
-        </Button>
+        {puedeEditar && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => { setShowForm(v => !v); setEditingAsset(null) }}
+            className="gap-1.5 flex-shrink-0"
+          >
+            {showForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+            {showForm ? 'Cerrar' : 'Nuevo'}
+          </Button>
+        )}
       </div>
 
       {/* Formulario colapsable */}
@@ -507,7 +518,7 @@ export function SeccionAssets() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {assets.map(asset => (
-            <AssetCard key={asset.id} asset={asset} onDelete={handleDelete} onEdit={handleEdit} engine={engine} />
+            <AssetCard key={asset.id} asset={asset} onDelete={handleDelete} onEdit={handleEdit} engine={engine} puedeEditar={puedeEditar} puedeEliminar={puedeEliminar} />
           ))}
         </div>
       )}

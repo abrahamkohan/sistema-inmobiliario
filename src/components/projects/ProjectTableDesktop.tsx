@@ -6,6 +6,7 @@ import { Trash2, Pencil, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog'
 import { useUpdateProject } from '@/hooks/useProjects'
+import { usePuedeEditar, usePuedeBorrar } from '@/hooks/usePermiso'
 import type { Database } from '@/types/database'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
@@ -19,7 +20,9 @@ export function ProjectTableDesktop({ projects, onDelete }: ProjectTableDesktopP
   const navigate = useNavigate()
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
   const [pendingToggleId, setPendingToggleId] = useState<string | null>(null)
-  const updateProject = useUpdateProject()
+  const updateProject  = useUpdateProject()
+  const puedeEditar    = usePuedeEditar('proyectos')
+  const puedeEliminar  = usePuedeBorrar('proyectos')
 
   function handleDelete(e: React.MouseEvent, id: string, name: string) {
     e.stopPropagation()
@@ -96,38 +99,44 @@ export function ProjectTableDesktop({ projects, onDelete }: ProjectTableDesktopP
               {/* Acciones */}
               <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center gap-3">
-                  {/* Toggle publicado en web */}
-                  <button
-                    type="button"
-                    onClick={e => handleTogglePublicado(e, project)}
-                    disabled={pendingToggleId === project.id}
-                    title={project.publicado_en_web ? 'Publicado en web' : 'No publicado'}
-                    className="flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <div className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${
-                      project.publicado_en_web ? 'bg-emerald-500' : 'bg-gray-200'
-                    }`}>
-                      <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
-                        project.publicado_en_web ? 'translate-x-4' : 'translate-x-0.5'
-                      }`} />
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/proyectos/${project.id}/editar`)}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    title="Editar"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={e => handleDelete(e, project.id, project.name)}
-                    className="text-muted-foreground hover:text-destructive transition-colors"
-                    title="Eliminar"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {/* Toggle publicado en web — requiere editar */}
+                  {puedeEditar && (
+                    <button
+                      type="button"
+                      onClick={e => handleTogglePublicado(e, project)}
+                      disabled={pendingToggleId === project.id}
+                      title={project.publicado_en_web ? 'Publicado en web' : 'No publicado'}
+                      className="flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${
+                        project.publicado_en_web ? 'bg-emerald-500' : 'bg-gray-200'
+                      }`}>
+                        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+                          project.publicado_en_web ? 'translate-x-4' : 'translate-x-0.5'
+                        }`} />
+                      </div>
+                    </button>
+                  )}
+                  {puedeEditar && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/proyectos/${project.id}/editar`)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      title="Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {puedeEliminar && (
+                    <button
+                      type="button"
+                      onClick={e => handleDelete(e, project.id, project.name)}
+                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>

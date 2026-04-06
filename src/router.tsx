@@ -78,7 +78,7 @@ export const router = createBrowserRouter([
       { path: 'comisiones',            element: <RequireRole role="admin"><ComisionesPage /></RequireRole> },
       { path: 'comisiones/nueva',      element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
       { path: 'comisiones/:id/editar', element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
-      { path: 'configuracion', element: <RequireRole role="admin" fallback={<Navigate to="/inicio" replace />}><ConfiguracionPage /></RequireRole> },
+      { path: 'configuracion', element: <RequirePermiso modulo="configuracion"><ConfiguracionPage /></RequirePermiso> },
     ],
   },
   // Rutas públicas (sin auth)

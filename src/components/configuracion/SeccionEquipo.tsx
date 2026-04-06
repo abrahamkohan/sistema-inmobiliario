@@ -77,14 +77,16 @@ export function SeccionEquipo() {
 
   const [showInvite, setShowInvite] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteName,  setInviteName]  = useState('')
   const [permModalUser, setPermModalUser] = useState<TeamMember | null>(null)
 
   async function handleInvite() {
     if (!inviteEmail.trim()) return
     try {
-      await inviteUser.mutateAsync(inviteEmail.trim())
+      await inviteUser.mutateAsync({ email: inviteEmail.trim(), name: inviteName.trim() || undefined })
       toast.success(`Invitación enviada a ${inviteEmail}`)
       setInviteEmail('')
+      setInviteName('')
       setShowInvite(false)
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Error al invitar')
@@ -126,21 +128,31 @@ export function SeccionEquipo() {
       </div>
 
       {showInvite && (
-        <div className="p-3 bg-gray-50 rounded-lg flex gap-2">
+        <div className="p-3 bg-gray-50 rounded-lg flex flex-col gap-2">
           <input
-            type="email"
-            placeholder="Email del nuevo usuario"
-            value={inviteEmail}
-            onChange={e => setInviteEmail(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg"
+            type="text"
+            placeholder="Nombre del agente (opcional)"
+            value={inviteName}
+            onChange={e => setInviteName(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg"
           />
-          <button
-            onClick={handleInvite}
-            disabled={inviteUser.isPending}
-            className="px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-40"
-          >
-            {inviteUser.isPending ? 'Enviando...' : 'Invitar'}
-          </button>
+          <div className="flex gap-2">
+            <input
+              type="email"
+              placeholder="Email del nuevo usuario"
+              value={inviteEmail}
+              onChange={e => setInviteEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleInvite()}
+              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg"
+            />
+            <button
+              onClick={handleInvite}
+              disabled={inviteUser.isPending}
+              className="px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-40"
+            >
+              {inviteUser.isPending ? 'Enviando...' : 'Invitar'}
+            </button>
+          </div>
         </div>
       )}
 

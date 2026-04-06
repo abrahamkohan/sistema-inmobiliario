@@ -46,7 +46,8 @@ export function useRemoveRole() {
 
 export function useInviteUser() {
   return useMutation({
-    mutationFn: (email: string) => api.inviteUser(email),
+    mutationFn: ({ email, name }: { email: string; name?: string }) =>
+      api.inviteUser(email, name),
   })
 }
 

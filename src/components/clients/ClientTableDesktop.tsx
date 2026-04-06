@@ -4,6 +4,7 @@ import { Pencil, Trash2, History, Phone, MessageCircle, UserCheck, Plus } from '
 import { ClientHistorySheet } from './ClientHistorySheet'
 import { TaskModal } from '@/components/tasks/TaskModal'
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog'
+import { useAgentName } from '@/hooks/useTeam'
 import type { Database } from '@/types/database'
 
 type ClientRow = Database['public']['Tables']['clients']['Row']
@@ -52,10 +53,11 @@ function ClientRow({ client, onEdit, onDelete, onConvert, onChangeEstado, onView
   const [taskOpen,    setTaskOpen]    = useState(false)
   const [showEstados, setShowEstados] = useState(false)
 
-  const isLead  = (client.tipo ?? 'lead') === 'lead'
-  const estado  = client.estado ?? 'nuevo'
-  const waUrl   = client.phone ? buildWhatsAppUrl(client.phone, client.full_name) : null
-  const telUrl  = client.phone ? `tel:${client.phone.replace(/\s/g, '')}` : null
+  const isLead   = (client.tipo ?? 'lead') === 'lead'
+  const estado   = client.estado ?? 'nuevo'
+  const waUrl    = client.phone ? buildWhatsAppUrl(client.phone, client.full_name) : null
+  const telUrl   = client.phone ? `tel:${client.phone.replace(/\s/g, '')}` : null
+  const agentName = useAgentName(client.assigned_to)
 
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -132,6 +134,20 @@ function ClientRow({ client, onEdit, onDelete, onConvert, onChangeEstado, onView
               <span className="text-xs text-muted-foreground">{client.fuente}</span>
             )}
           </div>
+        </td>
+
+        {/* Agente */}
+        <td className="px-4 py-3">
+          {agentName ? (
+            <span className="flex items-center gap-1.5 text-xs text-gray-600">
+              <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600 flex-shrink-0">
+                {agentName[0].toUpperCase()}
+              </span>
+              <span className="truncate max-w-[100px]">{agentName.split(' ')[0]}</span>
+            </span>
+          ) : (
+            <span className="text-xs text-gray-300">—</span>
+          )}
         </td>
 
         {/* Acciones */}
@@ -213,6 +229,7 @@ export function ClientTableDesktop({ clients, onEdit, onDelete, onConvert, onCha
             <th className="px-4 py-3 text-left font-semibold text-foreground">Estado</th>
             <th className="px-4 py-3 text-left font-semibold text-foreground">Contacto</th>
             <th className="px-4 py-3 text-left font-semibold text-foreground">País / Fuente</th>
+            <th className="px-4 py-3 text-left font-semibold text-foreground">Agente</th>
             <th className="px-4 py-3 text-left font-semibold text-foreground">Acciones</th>
           </tr>
         </thead>
@@ -231,7 +248,7 @@ export function ClientTableDesktop({ clients, onEdit, onDelete, onConvert, onCha
           ))}
           {clients.length === 0 && (
             <tr>
-              <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground text-sm">
+              <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground text-sm">
                 Sin resultados.
               </td>
             </tr>

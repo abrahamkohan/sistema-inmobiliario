@@ -4,6 +4,7 @@ import { Pencil, Trash2, History, Phone, MessageCircle, UserCheck, Plus } from '
 import { ClientHistorySheet } from './ClientHistorySheet'
 import { TaskModal } from '@/components/tasks/TaskModal'
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog'
+import { useAgentName } from '@/hooks/useTeam'
 import type { Database } from '@/types/database'
 
 type ClientRow = Database['public']['Tables']['clients']['Row']
@@ -46,10 +47,11 @@ export function ClientCardMobile({ client, onEdit, onDelete, onConvert, onChange
   const [taskOpen,    setTaskOpen]    = useState(false)
   const [showEstados, setShowEstados] = useState(false)
 
-  const isLead = (client.tipo ?? 'lead') === 'lead'
-  const estado = client.estado ?? 'nuevo'
-  const waUrl  = client.phone ? buildWhatsAppUrl(client.phone, client.full_name) : null
-  const telUrl = client.phone ? `tel:${client.phone.replace(/\s/g, '')}` : null
+  const isLead    = (client.tipo ?? 'lead') === 'lead'
+  const estado    = client.estado ?? 'nuevo'
+  const waUrl     = client.phone ? buildWhatsAppUrl(client.phone, client.full_name) : null
+  const telUrl    = client.phone ? `tel:${client.phone.replace(/\s/g, '')}` : null
+  const agentName = useAgentName(client.assigned_to)
 
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -115,6 +117,14 @@ export function ClientCardMobile({ client, onEdit, onDelete, onConvert, onChange
           )}
           {client.fuente && (
             <span className="text-[11px] text-gray-400">{client.fuente}</span>
+          )}
+          {agentName && (
+            <span className="flex items-center gap-1 text-[11px] text-gray-400 ml-auto flex-shrink-0">
+              <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-600">
+                {agentName[0].toUpperCase()}
+              </span>
+              {agentName.split(' ')[0]}
+            </span>
           )}
         </div>
 

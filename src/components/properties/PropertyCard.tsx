@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Bed, Bath, Maximize2, MapPin } from 'lucide-react'
+import { Bed, Bath, Maximize2, MapPin, User } from 'lucide-react'
 import { useDeleteProperty } from '@/hooks/useProperties'
+import { useAgentName } from '@/hooks/useTeam'
 import { getPhotoUrl } from '@/lib/properties'
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog'
 import type { PropertyRow } from '@/lib/properties'
@@ -26,6 +27,7 @@ export function PropertyCard({ property }: Props) {
   const navigate = useNavigate()
   const deleteProperty = useDeleteProperty()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const agentName = useAgentName(property.assigned_to)
 
   // Safe access - handle null/undefined
   const safeString = (val: unknown): string => {
@@ -96,12 +98,22 @@ export function PropertyCard({ property }: Props) {
           )}
         </div>
 
-        {/* Precio */}
-        {property.precio != null && (
-          <p className="text-sm font-bold text-gray-900 mt-auto pt-1">
-            {property.moneda === 'USD' ? '$' : '₲'}{property.precio.toLocaleString()}
-          </p>
-        )}
+        {/* Precio + Agente */}
+        <div className="flex items-end justify-between mt-auto pt-1 gap-2">
+          {property.precio != null ? (
+            <p className="text-sm font-bold text-gray-900">
+              {property.moneda === 'USD' ? '$' : '₲'}{property.precio.toLocaleString()}
+            </p>
+          ) : <span />}
+          {agentName && (
+            <span className="flex items-center gap-1 text-[10px] text-gray-400 flex-shrink-0">
+              <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-600">
+                {agentName[0].toUpperCase()}
+              </span>
+              <span className="truncate max-w-[60px]">{agentName.split(' ')[0]}</span>
+            </span>
+          )}
+        </div>
       </div>
     </div>
 

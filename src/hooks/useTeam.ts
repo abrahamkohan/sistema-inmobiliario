@@ -49,3 +49,10 @@ export function useInviteUser() {
     mutationFn: (email: string) => api.inviteUser(email),
   })
 }
+
+/** Resuelve un user_id a nombre completo usando el cache del equipo. */
+export function useAgentName(userId: string | null | undefined): string | null {
+  const { data: team = [] } = useTeam()
+  if (!userId) return null
+  return team.find(m => m.id === userId)?.full_name ?? null
+}

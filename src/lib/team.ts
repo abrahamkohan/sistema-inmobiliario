@@ -117,8 +117,10 @@ export async function setRole(userId: string, role: string): Promise<void> {
 }
 
 export async function inviteUser(email: string): Promise<void> {
-  const { error } = await supabase.functions.invoke('invite-user', {
+  const { data, error } = await supabase.functions.invoke('invite-user', {
     body: { email },
   })
+  // functions.invoke solo setea error en fallas de red — los errores HTTP vienen en data
   if (error) throw new Error(error.message)
+  if (data?.error) throw new Error(data.error)
 }

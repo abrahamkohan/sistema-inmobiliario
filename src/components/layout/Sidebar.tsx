@@ -161,8 +161,8 @@ export function Sidebar({ onClose }: SidebarProps) {
     '/presupuestos': puedeVerPresupuestos,
     '/informes':     puedeVerReportes,
     '/marketing':    puedeVerMarketing,
-    '/recursos':     puedeVerConfig,
-    '/configuracion':puedeVerConfig,
+    '/recursos':     isAdmin === true,
+    '/configuracion':isAdmin === true,
   }
 
   return (
@@ -205,9 +205,6 @@ export function Sidebar({ onClose }: SidebarProps) {
       {/* ── Nav ── */}
       <nav className="flex-1 px-3 py-3 flex flex-col gap-4 overflow-y-auto">
         {NAV_GRUPOS.map((grupo, gi) => {
-          // SISTEMA (último grupo): solo admin
-          if (gi === NAV_GRUPOS.length - 1 && isAdmin !== true) return null
-          
           const filteredItems = grupo.items.filter(item => {
             const modulo = MODULO_PERMISO[item.to]
             if (!modulo) return true

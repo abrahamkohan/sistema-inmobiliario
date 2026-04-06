@@ -176,16 +176,13 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {GRUPOS.map(grupo => {
                 // activos primero dentro del grupo
-                const sorted = [...grupo.modules].sort(
-                  (a, b) => Number(checks[b.key] ?? false) - Number(checks[a.key] ?? false)
-                )
                 return (
                   <div key={grupo.label} className="border border-gray-100 rounded-xl p-4">
                     <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
                       {grupo.label}
                     </p>
                     <div className="space-y-2.5">
-                      {sorted.map(({ key, label }) => (
+                      {grupo.modules.map(({ key, label }) => (
                         <div key={key} className="flex items-center justify-between gap-3">
                           <span className={`text-sm ${checks[key] ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
                             {label}

@@ -13,7 +13,7 @@ export type TeamMember = {
   created_at: string
   role: string | null
   is_owner: boolean
-  permisos: Record<string, boolean> | null
+  permisos: Record<string, unknown> | null
   consultant_id: string | null
   email?: string
 }
@@ -70,7 +70,7 @@ export async function setUserRole(userId: string, role: string): Promise<void> {
   if (error) throw error
 }
 
-export async function setPermisos(userId: string, permisos: Record<string, boolean> | null): Promise<void> {
+export async function setPermisos(userId: string, permisos: Record<string, unknown> | null): Promise<void> {
   // Usa RPC para garantizar upsert seguro:
   // - si no existe la fila → la crea con role='agente'
   // - si existe → solo actualiza permisos (no toca role ni is_owner)

@@ -98,18 +98,14 @@ function Tip({ text, children }: { text: string; children: React.ReactNode }) {
 
 function ModuleRow({
   label,
-  moduleKey,
   value,
   onChange,
   disabled,
-  primaryColor,
 }: {
   label: string
-  moduleKey: ModuleKey
   value: PermissionLevel | null
   onChange: (level: PermissionLevel | null) => void
   disabled?: boolean
-  primaryColor: string
 }) {
   const active = value !== null
 
@@ -271,11 +267,9 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
                       <ModuleRow
                         key={key}
                         label={label}
-                        moduleKey={key}
                         value={checks[key] ?? null}
                         onChange={level => handleChange(key, level)}
                         disabled={isBusy}
-                        primaryColor={colors.primary}
                       />
                     ))}
                   </div>

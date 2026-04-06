@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Bed, Bath, Maximize2, MapPin, User } from 'lucide-react'
+import { Bed, Bath, Maximize2, MapPin } from 'lucide-react'
 import { useDeleteProperty } from '@/hooks/useProperties'
 import { useAgentName } from '@/hooks/useTeam'
 import { getPhotoUrl } from '@/lib/properties'

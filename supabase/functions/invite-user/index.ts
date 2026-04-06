@@ -16,7 +16,6 @@ serve(async (req: Request) => {
 
   const supabaseUrl  = Deno.env.get('SUPABASE_URL')!
   const serviceKey   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  const anonKey      = Deno.env.get('SUPABASE_ANON_KEY')!
 
   // Cliente admin — service_role, nunca sale del servidor
   const admin = createClient(supabaseUrl, serviceKey, {
@@ -25,17 +24,15 @@ serve(async (req: Request) => {
 
   // Verificar que el caller está autenticado
   const authHeader = req.headers.get('Authorization')
-  if (!authHeader) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return new Response(JSON.stringify({ error: 'No autorizado' }), {
       status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     })
   }
 
-  const callerClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  })
-  const { data: { user } } = await callerClient.auth.getUser()
-  if (!user) {
+  const jwt = authHeader.replace('Bearer ', '')
+  const { data: { user }, error: userError } = await admin.auth.getUser(jwt)
+  if (userError || !user) {
     return new Response(JSON.stringify({ error: 'No autorizado' }), {
       status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     })

@@ -1,6 +1,8 @@
 // src/types/consultant.ts
 // Tipos para multi-tenant: Consultant (consultants table)
 
+export type PermissionLevel = 'read' | 'write' | 'full'
+
 export type ModuleKey =
   | 'crm'
   | 'tareas'

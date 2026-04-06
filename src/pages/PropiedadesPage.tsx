@@ -4,7 +4,7 @@ import { Search, Plus, Building2 } from 'lucide-react'
 import { useProperties } from '@/hooks/useProperties'
 import { PropertyCard } from '@/components/properties/PropertyCard'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { usePermiso } from '@/hooks/usePermiso'
+import { usePuedeEditar } from '@/hooks/usePermiso'
 
 const TIPO_LABEL: Record<string, string> = {
   departamento: 'Departamento',
@@ -30,7 +30,7 @@ const FILTROS_TIPO = [
 export function PropiedadesPage() {
   const navigate = useNavigate()
   const { data: properties = [], isLoading } = useProperties()
-  const puedeCrear = usePermiso('propiedades')
+  const puedeCrear = usePuedeEditar('propiedades')
   const [search, setSearch] = useState('')
   const [filterOp, setFilterOp] = useState('')
   const [filterTipo, setFilterTipo] = useState('')

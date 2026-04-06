@@ -15,7 +15,7 @@ import {
   useChangeEstado,
 } from '@/hooks/useClients'
 import { useIsAdmin } from '@/hooks/useUserRole'
-import { usePermiso } from '@/hooks/usePermiso'
+import { usePuedeEditar } from '@/hooks/usePermiso'
 import { useAuth } from '@/context/AuthContext'
 import type { Database } from '@/types/database'
 
@@ -33,8 +33,8 @@ export function ClientesPage() {
   const convertLead   = useConvertToCliente()
   const changeEstado  = useChangeEstado()
   const isAdmin = useIsAdmin()
-  const puedeCrear = usePermiso('crm')
-  const puedeEditar = usePermiso('crm')
+  const puedeCrear  = usePuedeEditar('crm')
+  const puedeEditar = usePuedeEditar('crm')
   const { session } = useAuth()
 
   const [search, setSearch]       = useState('')

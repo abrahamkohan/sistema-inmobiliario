@@ -4,6 +4,7 @@ import { ArrowLeft, Pencil, MapPin, Building2, Calendar, DollarSign, FileText, M
 import { toast } from 'sonner'
 import { useProject, useUpdateProject } from '@/hooks/useProjects'
 import { WhatsAppShareButton } from '@/components/whatsapp/WhatsAppShareButton'
+import { usePuedeEditar } from '@/hooks/usePermiso'
 
 const APP_URL = (
   import.meta.env.DEV
@@ -48,6 +49,7 @@ export function ProjectDetailPage() {
   const navigate = useNavigate()
   const { data: project, isLoading } = useProject(id!)
   const updateProject = useUpdateProject()
+  const puedeEditar   = usePuedeEditar('proyectos')
 
   function togglePublicado() {
     if (!project) return
@@ -137,13 +139,15 @@ export function ProjectDetailPage() {
               resourceUrl={`${APP_URL}/proyecto/${id}`}
               resourceContext={resourceContext}
             />
-            <button
-              onClick={() => navigate(`/proyectos/${project.id}/editar`)}
-              className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              Editar
-            </button>
+            {puedeEditar && (
+              <button
+                onClick={() => navigate(`/proyectos/${project.id}/editar`)}
+                className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Editar
+              </button>
+            )}
             <button onClick={togglePublicado} className="flex items-center gap-1.5 sm:gap-2.5 group">
               <span className="text-xs font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
                 {project.publicado_en_web ? 'Publicado' : <><span className="sm:hidden">No pub.</span><span className="hidden sm:inline">No publicado</span></>}
@@ -304,13 +308,15 @@ export function ProjectDetailPage() {
         )}
 
         {/* Botón editar — al pie */}
-        <button
-          onClick={() => navigate(`/proyectos/${project.id}/editar`)}
-          className="w-full h-12 rounded-2xl bg-gray-900 text-white text-sm font-semibold flex items-center justify-center gap-2 mt-2"
-        >
-          <Pencil className="w-4 h-4" />
-          Editar proyecto
-        </button>
+        {puedeEditar && (
+          <button
+            onClick={() => navigate(`/proyectos/${project.id}/editar`)}
+            className="w-full h-12 rounded-2xl bg-gray-900 text-white text-sm font-semibold flex items-center justify-center gap-2 mt-2"
+          >
+            <Pencil className="w-4 h-4" />
+            Editar proyecto
+          </button>
+        )}
       </div>
     </div>
   )

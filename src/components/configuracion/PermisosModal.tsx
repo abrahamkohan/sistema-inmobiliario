@@ -1,13 +1,13 @@
 // src/components/configuracion/PermisosModal.tsx
 import { useState, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import { X, Eye, Pencil, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { useBrand } from '@/context/BrandContext'
 import { useSetPermisos } from '@/hooks/useSetPermisos'
 import { useSetUserRole } from '@/hooks/useTeam'
 import type { TeamMember } from '@/lib/team'
-import type { ModuleKey } from '@/types/consultant'
+import type { ModuleKey, PermissionLevel } from '@/types/consultant'
 
 // ── Módulos agrupados ─────────────────────────────────────────────────────────
 
@@ -49,29 +49,100 @@ const GRUPOS: {
   },
 ]
 
-// ── Toggle ────────────────────────────────────────────────────────────────────
+// ── Niveles ───────────────────────────────────────────────────────────────────
 
-function Toggle({
-  value, onChange, disabled, primaryColor,
+const LEVELS: {
+  level: PermissionLevel
+  icon: React.ReactNode
+  tooltip: string
+  color: string
+  bgLight: string
+}[] = [
+  {
+    level:   'read',
+    icon:    <Eye className="w-3.5 h-3.5" />,
+    tooltip: 'Ver',
+    color:   '#6b7280',
+    bgLight: '#f3f4f6',
+  },
+  {
+    level:   'write',
+    icon:    <Pencil className="w-3.5 h-3.5" />,
+    tooltip: 'Editar',
+    color:   '#C9A34E',
+    bgLight: '#fef3c7',
+  },
+  {
+    level:   'full',
+    icon:    <Zap className="w-3.5 h-3.5" />,
+    tooltip: 'Control total',
+    color:   '#ef4444',
+    bgLight: '#fee2e2',
+  },
+]
+
+// ── Tooltip simple ────────────────────────────────────────────────────────────
+
+function Tip({ text, children }: { text: string; children: React.ReactNode }) {
+  return (
+    <div className="relative group/tip">
+      {children}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-gray-900 text-white text-[10px] rounded-md whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-20">
+        {text}
+      </div>
+    </div>
+  )
+}
+
+// ── Fila de módulo ────────────────────────────────────────────────────────────
+
+function ModuleRow({
+  label,
+  moduleKey,
+  value,
+  onChange,
+  disabled,
+  primaryColor,
 }: {
-  value: boolean
-  onChange: (v: boolean) => void
+  label: string
+  moduleKey: ModuleKey
+  value: PermissionLevel | null
+  onChange: (level: PermissionLevel | null) => void
   disabled?: boolean
   primaryColor: string
 }) {
+  const active = value !== null
+
   return (
-    <button
-      type="button"
-      onClick={() => !disabled && onChange(!value)}
-      disabled={disabled}
-      className="relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-      style={{ backgroundColor: value ? primaryColor : '#d1d5db' }}
-    >
-      <span
-        className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
-        style={{ transform: value ? 'translateX(20px)' : 'translateX(0)' }}
-      />
-    </button>
+    <div className="flex items-center justify-between gap-3 py-1.5">
+      <span className={`text-sm flex-1 min-w-0 truncate ${active ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+        {label}
+      </span>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        {LEVELS.map(({ level, icon, tooltip, color }) => {
+          const selected = value === level
+          return (
+            <Tip key={level} text={tooltip}>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => onChange(selected ? null : level)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={
+                  selected
+                    ? { backgroundColor: color, color: '#fff' }
+                    : { backgroundColor: 'transparent', color: '#d1d5db' }
+                }
+                onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.color = color }}
+                onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.color = '#d1d5db' }}
+              >
+                {icon}
+              </button>
+            </Tip>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -90,23 +161,28 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
   const colors = engine.getColors()
 
   const [role,   setRole]   = useState<string>(user.role ?? '')
-  const [checks, setChecks] = useState<Record<ModuleKey, boolean>>({} as Record<ModuleKey, boolean>)
+  const [checks, setChecks] = useState<Record<ModuleKey, PermissionLevel | null>>(
+    {} as Record<ModuleKey, PermissionLevel | null>
+  )
 
   useEffect(() => {
     if (!open) return
     setRole(user.role ?? '')
-    const saved = (user.permisos as Record<string, boolean> | null) ?? {}
-    const init = {} as Record<ModuleKey, boolean>
+    const saved = (user.permisos as Record<string, boolean | PermissionLevel> | null) ?? {}
+    const init = {} as Record<ModuleKey, PermissionLevel | null>
     for (const grupo of GRUPOS) {
       for (const { key } of grupo.modules) {
-        init[key] = saved[key] === true
+        const val = saved[key]
+        if (val === true)                                         init[key] = 'write'  // retrocompat
+        else if (val === 'read' || val === 'write' || val === 'full') init[key] = val
+        else                                                          init[key] = null
       }
     }
     setChecks(init)
   }, [open, user.permisos, user.role])
 
-  function toggle(mod: ModuleKey) {
-    setChecks(prev => ({ ...prev, [mod]: !prev[mod] }))
+  function handleChange(key: ModuleKey, level: PermissionLevel | null) {
+    setChecks(prev => ({ ...prev, [key]: level }))
   }
 
   async function handleSave() {
@@ -114,7 +190,12 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
       if (role !== (user.role ?? '') && !user.is_owner) {
         await setUserRole.mutateAsync({ userId: user.id, role })
       }
-      await setPermisos.mutateAsync({ userId: user.id, permisos: checks })
+      // Solo guardar los módulos con acceso
+      const permisos: Record<string, PermissionLevel> = {}
+      for (const [key, level] of Object.entries(checks)) {
+        if (level !== null) permisos[key] = level as PermissionLevel
+      }
+      await setPermisos.mutateAsync({ userId: user.id, permisos })
       toast.success('Permisos guardados')
       onClose()
     } catch (e) {
@@ -123,7 +204,7 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
   }
 
   const isBusy      = setPermisos.isPending || setUserRole.isPending
-  const totalActive = GRUPOS.flatMap(g => g.modules).filter(({ key }) => checks[key]).length
+  const totalActive = Object.values(checks).filter(v => v !== null).length
   const totalMods   = GRUPOS.flatMap(g => g.modules).length
 
   return (
@@ -139,7 +220,7 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
                 {user.full_name || 'Usuario'}
               </Dialog.Title>
               <Dialog.Description className="text-xs text-gray-400 mt-0.5">
-                Activá los módulos que este usuario puede usar
+                Asigná el nivel de acceso por módulo
               </Dialog.Description>
             </div>
             <div className="flex items-center gap-3">
@@ -149,6 +230,12 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
               >
                 {totalActive} / {totalMods} activos
               </span>
+              {/* Leyenda */}
+              <div className="hidden sm:flex items-center gap-2 text-[10px] text-gray-400">
+                <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> Ver</span>
+                <span className="flex items-center gap-1"><Pencil className="w-3 h-3 text-amber-500" /> Editar</span>
+                <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-red-400" /> Total</span>
+              </div>
               <Dialog.Close className="p-2 hover:bg-gray-100 rounded-lg">
                 <X className="w-4 h-4 text-gray-500" />
               </Dialog.Close>
@@ -174,31 +261,26 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
 
             {/* Grupos */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {GRUPOS.map(grupo => {
-                // activos primero dentro del grupo
-                return (
-                  <div key={grupo.label} className="border border-gray-100 rounded-xl p-4">
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                      {grupo.label}
-                    </p>
-                    <div className="space-y-2.5">
-                      {grupo.modules.map(({ key, label }) => (
-                        <div key={key} className="flex items-center justify-between gap-3">
-                          <span className={`text-sm ${checks[key] ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
-                            {label}
-                          </span>
-                          <Toggle
-                            value={checks[key] ?? false}
-                            onChange={() => toggle(key)}
-                            disabled={isBusy}
-                            primaryColor={colors.primary}
-                          />
-                        </div>
-                      ))}
-                    </div>
+              {GRUPOS.map(grupo => (
+                <div key={grupo.label} className="border border-gray-100 rounded-xl p-4">
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    {grupo.label}
+                  </p>
+                  <div className="divide-y divide-gray-50">
+                    {grupo.modules.map(({ key, label }) => (
+                      <ModuleRow
+                        key={key}
+                        label={label}
+                        moduleKey={key}
+                        value={checks[key] ?? null}
+                        onChange={level => handleChange(key, level)}
+                        disabled={isBusy}
+                        primaryColor={colors.primary}
+                      />
+                    ))}
                   </div>
-                )
-              })}
+                </div>
+              ))}
             </div>
 
           </div>

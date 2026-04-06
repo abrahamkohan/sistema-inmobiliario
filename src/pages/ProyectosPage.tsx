@@ -9,7 +9,7 @@ import { ProjectList } from '@/components/projects/ProjectList'
 import { type FilterState } from '@/components/projects/ProyectoFilters'
 import { toast } from 'sonner'
 import { useProjects, useDeleteProject } from '@/hooks/useProjects'
-import { usePermiso } from '@/hooks/usePermiso'
+import { usePuedeEditar } from '@/hooks/usePermiso'
 import type { Database } from '@/types/database'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
@@ -20,7 +20,7 @@ export function ProyectosPage() {
   const navigate = useNavigate()
   const { data: projects = [], isLoading } = useProjects()
   const deleteProject = useDeleteProject()
-  const puedeCrear = usePermiso('proyectos')
+  const puedeCrear = usePuedeEditar('proyectos')
 
   const [search,  setSearch]  = useState('')
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS)

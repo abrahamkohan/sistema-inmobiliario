@@ -8,6 +8,7 @@ import { ProjectPhotosSheet } from './ProjectPhotosSheet'
 import { FinancingPlansSheet } from './FinancingPlansSheet'
 import { TypologiesSheet } from '@/components/typologies/TypologiesSheet'
 import { linkIcon, linkColor } from './ProjectForm'
+import { usePuedeEditar, usePuedeBorrar } from '@/hooks/usePermiso'
 import type { Database } from '@/types/database'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
@@ -43,6 +44,8 @@ export function ProjectCard({ project, onDelete, onTogglePublicado, onChangeBadg
   const [photosOpen,    setPhotosOpen]    = useState(false)
   const [financingOpen, setFinancingOpen] = useState(false)
   const [typologiesOpen, setTypologiesOpen] = useState(false)
+  const puedeEditar  = usePuedeEditar('proyectos')
+  const puedeEliminar = usePuedeBorrar('proyectos')
 
   const links = [
     project.maps_url     ? { type: 'maps',     name: 'Maps',      url: project.maps_url }     : null,
@@ -154,9 +157,11 @@ export function ProjectCard({ project, onDelete, onTogglePublicado, onChangeBadg
 
         {/* Actions */}
         <div className="flex flex-wrap gap-1.5 pt-1 border-t">
-          <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate(`/proyectos/${project.id}/editar`)}>
-            <Pencil className="h-3 w-3 mr-1" />Editar
-          </Button>
+          {puedeEditar && (
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate(`/proyectos/${project.id}/editar`)}>
+              <Pencil className="h-3 w-3 mr-1" />Editar
+            </Button>
+          )}
           <Button variant="outline" size="sm" className="text-xs" onClick={() => setTypologiesOpen(true)}>
             <LayoutGrid className="h-3 w-3 mr-1" />Tipolog.
           </Button>
@@ -166,13 +171,15 @@ export function ProjectCard({ project, onDelete, onTogglePublicado, onChangeBadg
           <Button variant="outline" size="sm" className="text-xs" onClick={() => setFinancingOpen(true)}>
             <DollarSign className="h-3 w-3 mr-1" />Financ.
           </Button>
-          <Button
-            variant="ghost" size="sm"
-            className="text-xs text-destructive hover:text-destructive ml-auto"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
+          {puedeEliminar && (
+            <Button
+              variant="ghost" size="sm"
+              className="text-xs text-destructive hover:text-destructive ml-auto"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          )}
         </div>
       </div>
 

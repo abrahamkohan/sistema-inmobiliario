@@ -1,28 +1,40 @@
 // src/hooks/usePermiso.ts
-// Permiso = booleano. Sin niveles, sin resolución de cadena, sin role_defaults.
-//
-// Reglas:
-//   is_owner → siempre true
-//   permisos[module] === true → true
-//   cualquier otra cosa → false
-//   loading → true (no ocultar mientras carga)
+// Permiso por nivel: 'read' | 'write' | 'full' | null (sin acceso)
+// Retrocompatible: boolean true → 'write'
 import { useAuth } from '@/context/AuthContext'
 import { useTeam } from '@/hooks/useTeam'
-import type { ModuleKey } from '@/types/consultant'
+import type { ModuleKey, PermissionLevel } from '@/types/consultant'
 
-export function usePermiso(module: ModuleKey): boolean {
+/** Nivel real del usuario en el módulo. null = sin acceso. */
+export function usePermisoLevel(module: ModuleKey): PermissionLevel | null {
   const { session } = useAuth()
   const { data: team = [], isLoading } = useTeam()
 
-  // Mientras carga: mostrar (evita flash de sidebar vacío)
-  if (isLoading) return true
-  if (!session?.user?.id) return false
+  if (isLoading) return 'full'
+  if (!session?.user?.id) return null
 
   const current = team.find(m => m.id === session.user.id)
-  if (!current) return false
+  if (!current) return null
+  if (current.is_owner) return 'full'
 
-  // Propietario → acceso total siempre
-  if (current.is_owner) return true
+  const val = current.permisos?.[module]
+  if (val === true) return 'write'   // retrocompatibilidad con boolean
+  if (val === 'read' || val === 'write' || val === 'full') return val
+  return null
+}
 
-  return current.permisos?.[module] === true
+/** ¿Puede acceder al módulo? (cualquier nivel — para sidebar y RequirePermiso) */
+export function usePermiso(module: ModuleKey): boolean {
+  return usePermisoLevel(module) !== null
+}
+
+/** ¿Puede crear y editar? (write o full) */
+export function usePuedeEditar(module: ModuleKey): boolean {
+  const level = usePermisoLevel(module)
+  return level === 'write' || level === 'full'
+}
+
+/** ¿Puede eliminar? (solo full) */
+export function usePuedeBorrar(module: ModuleKey): boolean {
+  return usePermisoLevel(module) === 'full'
 }

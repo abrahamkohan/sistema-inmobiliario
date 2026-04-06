@@ -7,6 +7,7 @@ import { useConsultoraConfig } from '@/hooks/useConsultora'
 import { getPhotoUrl, formatPrice, timeAgo } from '@/lib/properties'
 import { PropertyLightbox, PropertyPhotoMosaic } from '@/components/properties/PropertyGallery'
 import { WhatsAppShareButton } from '@/components/whatsapp/WhatsAppShareButton'
+import { usePuedeEditar } from '@/hooks/usePermiso'
 import { buildShareUrl } from '@/lib/whatsapp'
 
 const APP_URL = (
@@ -56,6 +57,7 @@ export function PropiedadDetallePage() {
   const { data: photos = [] } = usePropertyPhotos(id!)
   const { data: consultora } = useConsultoraConfig()
   const updateProperty = useUpdateProperty()
+  const puedeEditar    = usePuedeEditar('propiedades')
 
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
@@ -207,13 +209,15 @@ export function PropiedadDetallePage() {
               resourceUrl={`${APP_URL}/p/${id}`}
               resourceContext={resourceContext}
             />
-            <button
-              onClick={() => navigate(`/propiedades/${id}/editar`)}
-              className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
-            >
-              <Edit className="w-3.5 h-3.5" />
-              Editar
-            </button>
+            {puedeEditar && (
+              <button
+                onClick={() => navigate(`/propiedades/${id}/editar`)}
+                className="flex items-center gap-1 px-2 py-1 sm:gap-1.5 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-xl hover:border-gray-400 hover:text-gray-900 transition-colors"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                Editar
+              </button>
+            )}
           <button onClick={togglePublicado} className="flex items-center gap-1.5 sm:gap-2.5 group">
             <span className="text-xs font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
               {property.publicado_en_web ? 'Publicado' : <><span className="sm:hidden">No pub.</span><span className="hidden sm:inline">No publicado</span></>}

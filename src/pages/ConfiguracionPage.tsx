@@ -1,7 +1,7 @@
 // src/pages/ConfiguracionPage.tsx
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router'
-import { Loader2, Check, Users, Copy, MessageCircle, Plus, Trash2, Lock, Building2 } from 'lucide-react'
+import { Loader2, Check, Users, Copy, MessageCircle, Plus, Trash2, Lock, Building2, UserCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { useConsultoraConfig, useSaveConsultoraConfig } from '@/hooks/useConsultora'
 import { useAgentes, useCreateAgente, useDeleteAgente } from '@/hooks/useAgentes'
 import { useIsAdmin } from '@/hooks/useUserRole'
+import { useMyProfile, useUpdateMyProfile } from '@/hooks/useProfile'
 
 import { SeccionIdentidad }     from '@/components/configuracion/SeccionIdentidad'
 import { SeccionColores }       from '@/components/configuracion/SeccionColores'
@@ -62,6 +63,12 @@ export function ConfiguracionPage() {
   const isAdmin  = useIsAdmin()
   const navigate = useNavigate()
 
+  // Perfil del usuario actual
+  const { data: profile } = useMyProfile()
+  const updateProfile = useUpdateMyProfile()
+  const [profileName, setProfileName] = useState('')
+  const profileInitialized = useRef(false)
+
   const [form,      setForm]      = useState<FormState>(EMPTY)
   const [saved,     setSaved]     = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -76,6 +83,12 @@ export function ConfiguracionPage() {
   const [nuevoNombre,   setNuevoNombre]   = useState('')
   const [nuevoPct,      setNuevoPct]      = useState('')
   const totalPct = agentes.filter(a => a.activo).reduce((s, a) => s + a.porcentaje_comision, 0)
+
+  useEffect(() => {
+    if (!profile || profileInitialized.current) return
+    setProfileName(profile.full_name ?? '')
+    profileInitialized.current = true
+  }, [profile])
 
   useEffect(() => {
     if (!config) return
@@ -321,6 +334,35 @@ export function ConfiguracionPage() {
 
       {/* Aliados comerciales */}
       <SeccionAliados />
+
+      {/* Mi perfil */}
+      <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <UserCircle className="h-4 w-4 text-muted-foreground" />
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mi perfil</p>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="profile-name">Nombre completo</Label>
+          <div className="flex gap-2">
+            <Input
+              id="profile-name"
+              value={profileName}
+              onChange={e => setProfileName(e.target.value)}
+              placeholder="Tu nombre"
+              className="max-w-xs"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={updateProfile.isPending || profileName === (profile?.full_name ?? '')}
+              onClick={() => updateProfile.mutate(profileName.trim())}
+            >
+              {updateProfile.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Este nombre aparece en las propiedades y clientes que te asignan.</p>
+        </div>
+      </div>
 
       {/* 6. Seguridad */}
       <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">

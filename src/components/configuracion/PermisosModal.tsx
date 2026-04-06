@@ -43,8 +43,7 @@ const GRUPOS: {
   {
     label: 'Sistema',
     modules: [
-      { key: 'marketing',     label: 'Marketing'     },
-      { key: 'configuracion', label: 'Configuración' },
+      { key: 'marketing', label: 'Marketing' },
     ],
   },
 ]

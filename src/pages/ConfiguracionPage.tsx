@@ -122,7 +122,11 @@ export function ConfiguracionPage() {
       },
       {
         onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 3000) },
-        onError: (e: Error) => setSaveError(e.message || 'Error al guardar'),
+        onError: (e: Error) => {
+          const msg = e.message || 'Error al guardar'
+          setSaveError(msg)
+          toast.error(msg)
+        },
       },
     )
   }
@@ -343,20 +347,22 @@ export function ConfiguracionPage() {
         </div>
       </div>
 
-      {/* Sticky save bar */}
+      {/* Sticky save bar — solo admin */}
       <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t py-3 flex items-center justify-between gap-4 -mx-4 sm:-mx-6 px-4 sm:px-6 z-10">
         <span className="text-xs text-muted-foreground">
           {saved ? '✓ Cambios guardados' : 'Recordá guardar antes de salir.'}
         </span>
-        <Button onClick={handleSave} disabled={save.isPending} className="min-w-[140px]">
-          {save.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : saved ? (
-            <><Check className="h-4 w-4 mr-1.5" />Guardado</>
-          ) : (
-            'Guardar cambios'
-          )}
-        </Button>
+        {isAdmin && (
+          <Button onClick={handleSave} disabled={save.isPending} className="min-w-[140px]">
+            {save.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : saved ? (
+              <><Check className="h-4 w-4 mr-1.5" />Guardado</>
+            ) : (
+              'Guardar cambios'
+            )}
+          </Button>
+        )}
       </div>
 
     </div>

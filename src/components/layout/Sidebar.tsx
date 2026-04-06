@@ -147,7 +147,6 @@ export function Sidebar({ onClose }: SidebarProps) {
   const puedeVerPresupuestos = usePermiso('presupuestos')
   const puedeVerReportes    = usePermiso('reportes')
   const puedeVerMarketing   = usePermiso('marketing')
-  const puedeVerConfig      = usePermiso('configuracion')
 
   const permisoMap: Record<string, boolean> = {
     '/clientes':     puedeVerCRM,
@@ -162,7 +161,7 @@ export function Sidebar({ onClose }: SidebarProps) {
     '/informes':     puedeVerReportes,
     '/marketing':    puedeVerMarketing,
     '/recursos':     isAdmin === true,
-    '/configuracion':puedeVerConfig,
+    '/configuracion':isAdmin === true,
   }
 
   return (

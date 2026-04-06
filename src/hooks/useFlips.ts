@@ -1,5 +1,6 @@
 // src/hooks/useFlips.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { getAllFlips, getFlipById, createFlip, updateFlip, deleteFlip, duplicateFlip } from '@/lib/flips'
 import type { FlipInsert, FlipUpdate } from '@/lib/flips'
 
@@ -34,6 +35,7 @@ export function useDeleteFlip() {
   return useMutation({
     mutationFn: (id: string) => deleteFlip(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })
 }
 
@@ -42,5 +44,6 @@ export function useDuplicateFlip() {
   return useMutation({
     mutationFn: (id: string) => duplicateFlip(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })
 }

@@ -1,6 +1,7 @@
 // src/pages/ConfiguracionPage.tsx
 import { useEffect, useState } from 'react'
-import { Loader2, Check, Users, Copy, MessageCircle, Plus, Trash2, Lock } from 'lucide-react'
+import { useNavigate } from 'react-router'
+import { Loader2, Check, Users, Copy, MessageCircle, Plus, Trash2, Lock, Building2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -58,7 +59,8 @@ const EMPTY: FormState = {
 export function ConfiguracionPage() {
   const { data: config, isLoading } = useConsultoraConfig()
   const save    = useSaveConsultoraConfig()
-  const isAdmin = useIsAdmin()
+  const isAdmin  = useIsAdmin()
+  const navigate = useNavigate()
 
   const [form,      setForm]      = useState<FormState>(EMPTY)
   const [saved,     setSaved]     = useState(false)
@@ -346,6 +348,29 @@ export function ConfiguracionPage() {
           </Button>
         </div>
       </div>
+
+      {/* Sistema — solo admin */}
+      {isAdmin && (
+        <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sistema</p>
+          </div>
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="text-sm font-medium text-gray-800">Onboarding de clientes</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Crear un nuevo tenant (inmobiliaria)</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/admin/onboarding')}
+            >
+              Ir al onboarding
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Sticky save bar — solo admin */}
       <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t py-3 flex items-center justify-between gap-4 -mx-4 sm:-mx-6 px-4 sm:px-6 z-10">

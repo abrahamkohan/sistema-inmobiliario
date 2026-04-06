@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Bed, Bath, Maximize2, MapPin } from 'lucide-react'
+import { Bed, Bath, Maximize2, MapPin, Trash2 } from 'lucide-react'
 import { useDeleteProperty } from '@/hooks/useProperties'
 import { useAgentName } from '@/hooks/useTeam'
+import { usePuedeBorrar } from '@/hooks/usePermiso'
 import { getPhotoUrl } from '@/lib/properties'
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog'
 import type { PropertyRow } from '@/lib/properties'
@@ -35,6 +36,7 @@ export function PropertyCard({ property }: Props) {
     return String(val)
   }
 
+  const puedeBorrar = usePuedeBorrar('propiedades')
   const coverUrl = property.foto_portada ? getPhotoUrl(property.foto_portada) : null
   const ubicacion = property.barrio || property.zona || property.ciudad || 'Sin ubicación'
   const tipoLabel = safeString(property.tipo)
@@ -105,14 +107,25 @@ export function PropertyCard({ property }: Props) {
               {property.moneda === 'USD' ? '$' : '₲'}{property.precio.toLocaleString()}
             </p>
           ) : <span />}
-          {agentName && (
-            <span className="flex items-center gap-1 text-[10px] text-gray-400 flex-shrink-0">
-              <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-600">
-                {agentName[0].toUpperCase()}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {agentName && (
+              <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                <span className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-600">
+                  {agentName[0].toUpperCase()}
+                </span>
+                <span className="truncate max-w-[60px]">{agentName.split(' ')[0]}</span>
               </span>
-              <span className="truncate max-w-[60px]">{agentName.split(' ')[0]}</span>
-            </span>
-          )}
+            )}
+            {puedeBorrar && (
+              <button
+                onClick={e => { e.stopPropagation(); setShowDeleteModal(true) }}
+                className="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                title="Eliminar"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

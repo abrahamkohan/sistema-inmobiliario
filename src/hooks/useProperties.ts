@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   getProperties, getProperty, getPropertyPhotos,
   createProperty, updateProperty, deleteProperty,
@@ -86,5 +87,6 @@ export function useDeleteProperty() {
   return useMutation({
     mutationFn: (id: string) => deleteProperty(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['properties'] }),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })
 }

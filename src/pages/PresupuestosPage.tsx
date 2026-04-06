@@ -7,6 +7,7 @@ import {
   useDeletePresupuesto,
   useDuplicatePresupuesto,
 } from '@/hooks/usePresupuestos'
+import { usePuedeEditar, usePuedeBorrar } from '@/hooks/usePermiso'
 
 function fmt(n: number) {
   return `USD ${n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
@@ -17,6 +18,8 @@ export function PresupuestosPage() {
   const { data: list = [], isLoading } = usePresupuestos()
   const deleteP    = useDeletePresupuesto()
   const duplicateP = useDuplicatePresupuesto()
+  const puedeEditar = usePuedeEditar('presupuestos')
+  const puedeBorrar = usePuedeBorrar('presupuestos')
 
   function handleDelete(id: string) {
     if (confirm('¿Eliminar este presupuesto?')) deleteP.mutate(id)
@@ -26,9 +29,11 @@ export function PresupuestosPage() {
     <div className="p-4 md:p-6 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Presupuestos</h1>
-        <Button size="sm" onClick={() => navigate('/presupuestos/nuevo')}>
-          <Plus className="h-3.5 w-3.5 mr-1.5" />Nuevo
-        </Button>
+        {puedeEditar && (
+          <Button size="sm" onClick={() => navigate('/presupuestos/nuevo')}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />Nuevo
+          </Button>
+        )}
       </div>
 
       {isLoading && (
@@ -41,7 +46,7 @@ export function PresupuestosPage() {
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <FileText className="h-8 w-8 text-gray-300" />
           <p className="text-muted-foreground">No hay presupuestos todavía.</p>
-          <Button variant="outline" onClick={() => navigate('/presupuestos/nuevo')}>Crear el primero</Button>
+          {puedeEditar && <Button variant="outline" onClick={() => navigate('/presupuestos/nuevo')}>Crear el primero</Button>}
         </div>
       )}
 
@@ -71,15 +76,21 @@ export function PresupuestosPage() {
                         <Button variant="outline" size="sm" className="text-xs" onClick={() => window.open(`/presupuestos/${p.id}/pdf`, '_blank')}>
                           <FileDown className="h-3 w-3 mr-1" />PDF
                         </Button>
-                        <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate(`/presupuestos/${p.id}/editar`)}>
-                          <Pencil className="h-3 w-3 mr-1" />Editar
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-xs" onClick={() => duplicateP.mutate(p.id)} disabled={duplicateP.isPending} title="Duplicar">
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(p.id)} disabled={deleteP.isPending}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        {puedeEditar && (
+                          <>
+                            <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate(`/presupuestos/${p.id}/editar`)}>
+                              <Pencil className="h-3 w-3 mr-1" />Editar
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-xs" onClick={() => duplicateP.mutate(p.id)} disabled={duplicateP.isPending} title="Duplicar">
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
+                        {puedeBorrar && (
+                          <Button variant="outline" size="sm" className="text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(p.id)} disabled={deleteP.isPending}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -101,15 +112,21 @@ export function PresupuestosPage() {
                   <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => window.open(`/presupuestos/${p.id}/pdf`, '_blank')}>
                     <FileDown className="h-3 w-3 mr-1" />PDF
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => navigate(`/presupuestos/${p.id}/editar`)}>
-                    <Pencil className="h-3 w-3 mr-1" />Editar
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs" onClick={() => duplicateP.mutate(p.id)} disabled={duplicateP.isPending}>
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(p.id)} disabled={deleteP.isPending}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  {puedeEditar && (
+                    <>
+                      <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => navigate(`/presupuestos/${p.id}/editar`)}>
+                        <Pencil className="h-3 w-3 mr-1" />Editar
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-xs" onClick={() => duplicateP.mutate(p.id)} disabled={duplicateP.isPending}>
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </>
+                  )}
+                  {puedeBorrar && (
+                    <Button variant="outline" size="sm" className="text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(p.id)} disabled={deleteP.isPending}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

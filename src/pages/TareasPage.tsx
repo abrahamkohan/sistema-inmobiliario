@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react'
 import { ChevronDown, ChevronUp, Loader2, Search } from 'lucide-react'
 import { useTasks, useUpdateTask, useCreateTask, useDeleteTask } from '@/hooks/useTasks'
 import { useClients } from '@/hooks/useClients'
-import { useAuth } from '@/context/AuthContext'
+import { usePuedeEditar, usePuedeBorrar } from '@/hooks/usePermiso'
 import { getUrgency } from '@/lib/tasks'
 import { TaskList } from '@/components/tasks/TaskList'
 import { TaskModal } from '@/components/tasks/TaskModal'
@@ -54,8 +54,8 @@ const TYPE_OPTIONS: { value: TaskType | 'all'; label: string }[] = [
 // ── Componente ─────────────────────────────────────────────────────────────
 
 export function TareasPage() {
-  const { session } = useAuth()
-  const role = (session?.user?.app_metadata?.role as 'admin' | 'supervisor' | 'agent') ?? 'agent'
+  const puedeEditar = usePuedeEditar('tareas')
+  const puedeBorrar = usePuedeBorrar('tareas')
 
   const { data: allTasks = [], isLoading } = useTasks()
   const { data: allClients = [] } = useClients()
@@ -266,8 +266,8 @@ export function TareasPage() {
               </div>
             )}
 
-            {/* Agente — solo supervisor / admin (futuro: selector real) */}
-            {role !== 'agent' && (
+            {/* Agente — solo usuarios con permiso de edición */}
+            {puedeEditar && (
               <div className="flex flex-col gap-1.5">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Agente
@@ -306,7 +306,7 @@ export function TareasPage() {
             onComplete={handleComplete}
             onReschedule={handleReschedule}
             onOpenPeek={setPeekLeadId}
-            onDelete={id => deleteTask.mutate(id)}
+            onDelete={puedeBorrar ? id => deleteTask.mutate(id) : undefined}
           />
         )}
       </div>

@@ -7,9 +7,9 @@ import type { CommissionFull } from '@/lib/commissions'
 
 interface Props {
   commission: CommissionFull
-  onView:   (c: CommissionFull) => void
-  onEdit:   (c: CommissionFull) => void
-  onDelete: (id: string) => void
+  onView:    (c: CommissionFull) => void
+  onEdit?:   (c: CommissionFull) => void
+  onDelete?: (id: string) => void
 }
 
 export function CommissionCard({ commission: c, onView, onEdit, onDelete }: Props) {
@@ -41,18 +41,22 @@ export function CommissionCard({ commission: c, onView, onEdit, onDelete }: Prop
           {dateStr && <p className="text-xs text-gray-400 mt-0.5">{dateStr}</p>}
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
-          <button
-            onClick={e => { e.stopPropagation(); onEdit(c) }}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:bg-gray-100 transition-colors"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleDelete}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 active:text-red-500 active:bg-red-50 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {onEdit && (
+            <button
+              onClick={e => { e.stopPropagation(); onEdit(c) }}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:bg-gray-100 transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={handleDelete}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 active:text-red-500 active:bg-red-50 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -92,13 +96,15 @@ export function CommissionCard({ commission: c, onView, onEdit, onDelete }: Prop
       </div>
     </div>
 
-    <DeleteConfirmDialog
-      open={deleteOpen}
-      mode="keyword"
-      entityName={c.proyecto_vendido}
-      onConfirm={() => { onDelete(c.id); setDeleteOpen(false) }}
-      onCancel={() => setDeleteOpen(false)}
-    />
+    {onDelete && (
+      <DeleteConfirmDialog
+        open={deleteOpen}
+        mode="keyword"
+        entityName={c.proyecto_vendido}
+        onConfirm={() => { onDelete(c.id); setDeleteOpen(false) }}
+        onCancel={() => setDeleteOpen(false)}
+      />
+    )}
     </>
   )
 }

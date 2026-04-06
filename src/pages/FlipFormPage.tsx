@@ -89,7 +89,7 @@ function FlipFormInner({ initial, isEdit, id }: { initial: Partial<FlipRow>; isE
       }
       navigate('/flip')
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error al guardar')
+      toast.error('Ocurrió un error, intentá nuevamente')
     }
   }
 

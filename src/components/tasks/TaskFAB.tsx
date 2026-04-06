@@ -9,6 +9,7 @@ import { NoteEditor } from '@/components/notes/NoteEditor'
 import { useCreateNote } from '@/hooks/useNotes'
 import { useClients } from '@/hooks/useClients'
 import { useProjects } from '@/hooks/useProjects'
+import { usePuedeEditar } from '@/hooks/usePermiso'
 import type { Database } from '@/types/database'
 
 type Context = Database['public']['Tables']['tasks']['Row']['context']
@@ -29,6 +30,8 @@ export function TaskFAB({ defaultContext, defaultLeadId, defaultPropertyId }: Ta
   const createNote = useCreateNote()
   const { data: clients  = [] } = useClients()
   const { data: projects = [] } = useProjects()
+  const puedeEditarTareas = usePuedeEditar('tareas')
+  const puedeEditarNotas  = usePuedeEditar('notas')
 
   function handleNewLead() {
     setExpanded(false)
@@ -81,29 +84,33 @@ export function TaskFAB({ defaultContext, defaultLeadId, defaultPropertyId }: Ta
           </button>
 
           {/* Nueva tarea */}
-          <button
-            onClick={handleNewTask}
-            className="flex items-center gap-2.5 pl-3 pr-4 py-2 rounded-full shadow-lg text-black text-sm font-semibold transition-transform active:scale-95 hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, #D4AF37, #f0c93a)' }}
-          >
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-black/10">
-              <ClipboardList className="w-3.5 h-3.5" />
-            </span>
-            Nueva tarea
-          </button>
+          {puedeEditarTareas && (
+            <button
+              onClick={handleNewTask}
+              className="flex items-center gap-2.5 pl-3 pr-4 py-2 rounded-full shadow-lg text-black text-sm font-semibold transition-transform active:scale-95 hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #D4AF37, #f0c93a)' }}
+            >
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-black/10">
+                <ClipboardList className="w-3.5 h-3.5" />
+              </span>
+              Nueva tarea
+            </button>
+          )}
 
           {/* Nueva nota */}
-          <button
-            onClick={handleNewNote}
-            disabled={createNote.isPending}
-            className="flex items-center gap-2.5 pl-3 pr-4 py-2 rounded-full shadow-lg text-white text-sm font-semibold transition-transform active:scale-95 hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}
-          >
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
-              <NotebookPen className="w-3.5 h-3.5" />
-            </span>
-            Nueva nota
-          </button>
+          {puedeEditarNotas && (
+            <button
+              onClick={handleNewNote}
+              disabled={createNote.isPending}
+              className="flex items-center gap-2.5 pl-3 pr-4 py-2 rounded-full shadow-lg text-white text-sm font-semibold transition-transform active:scale-95 hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}
+            >
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
+                <NotebookPen className="w-3.5 h-3.5" />
+              </span>
+              Nueva nota
+            </button>
+          )}
         </div>
 
         {/* Botón principal */}

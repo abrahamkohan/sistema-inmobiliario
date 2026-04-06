@@ -1,5 +1,6 @@
 // src/hooks/useNotes.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { getNotes, getNotesByClient, createNote, updateNote, deleteNote } from '@/lib/notes'
 import type { Database } from '@/types/database'
 
@@ -28,6 +29,7 @@ export function useCreateNote() {
   return useMutation({
     mutationFn: (input: NoteInsert) => createNote(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })
 }
 
@@ -37,6 +39,7 @@ export function useUpdateNote() {
     mutationFn: ({ id, input }: { id: string; input: NoteUpdate }) =>
       updateNote(id, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })
 }
 
@@ -45,5 +48,6 @@ export function useDeleteNote() {
   return useMutation({
     mutationFn: (id: string) => deleteNote(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })
 }

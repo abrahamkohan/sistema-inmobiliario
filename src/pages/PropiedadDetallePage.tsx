@@ -83,7 +83,10 @@ export function PropiedadDetallePage() {
 
   function togglePublicado() {
     if (!property) return
-    updateProperty.mutate({ id: property.id, input: { publicado_en_web: !property.publicado_en_web } })
+    updateProperty.mutate(
+      { id: property.id, input: { publicado_en_web: !property.publicado_en_web } },
+      { onError: () => toast.error('Ocurrió un error, intentá nuevamente') },
+    )
   }
 
   function handleCopiarLink() {

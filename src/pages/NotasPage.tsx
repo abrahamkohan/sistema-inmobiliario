@@ -8,6 +8,7 @@ import { Input }  from '@/components/ui/input'
 import { NoteItem }   from '@/components/notes/NoteItem'
 import { NoteEditor } from '@/components/notes/NoteEditor'
 import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from '@/hooks/useNotes'
+import { usePuedeEditar, usePuedeBorrar } from '@/hooks/usePermiso'
 import { useClients }  from '@/hooks/useClients'
 import { useProjects } from '@/hooks/useProjects'
 import type { Database } from '@/types/database'
@@ -16,6 +17,9 @@ type NoteRow = Database['public']['Tables']['notes']['Row']
 type Tab = 'inbox' | 'flagged' | 'archive' | 'all'
 
 export function NotasPage() {
+  const puedeEditar = usePuedeEditar('notas')
+  const puedeBorrar = usePuedeBorrar('notas')
+
   const { data: notes    = [], isLoading } = useNotes()
   const { data: clients  = [] }            = useClients()
   const { data: projects = [] }            = useProjects()
@@ -108,10 +112,12 @@ export function NotasPage() {
           <h1 className="text-2xl font-semibold">Notas</h1>
           <p className="text-sm text-muted-foreground">Capturá ideas al instante</p>
         </div>
-        <Button size="sm" onClick={handleNew} disabled={createNote.isPending}>
-          <Plus className="h-3.5 w-3.5 mr-1.5" />
-          Nueva
-        </Button>
+        {puedeEditar && (
+          <Button size="sm" onClick={handleNew} disabled={createNote.isPending}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            Nueva
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -235,10 +241,10 @@ export function NotasPage() {
               clientName={note.client_id ? clientMap[note.client_id] : undefined}
               clientId={note.client_id ?? undefined}
               projectName={note.project_id ? projectMap[note.project_id] : undefined}
-              onOpen={setEditing}
-              onArchive={handleArchive}
-              onDelete={handleDelete}
-              onFlag={handleFlag}
+              onOpen={puedeEditar ? setEditing : undefined}
+              onArchive={puedeEditar ? handleArchive : undefined}
+              onDelete={puedeBorrar ? handleDelete : undefined}
+              onFlag={puedeEditar ? handleFlag : undefined}
             />
           ))}
         </div>

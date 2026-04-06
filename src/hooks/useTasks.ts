@@ -63,6 +63,7 @@ export function useCreateTask() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (input: TaskInsert) => createTask(input),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
     onSuccess: (newTask) => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       // Invalida también la lista del lead/propiedad si aplica
@@ -105,6 +106,7 @@ export function useUpdateTask() {
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) qc.setQueryData(['tasks'], ctx.previous)
+      toast.error('Ocurrió un error, intentá nuevamente')
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
@@ -117,6 +119,7 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: (id: string) => deleteTask(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })
 }
 
@@ -157,6 +160,7 @@ export function useMarkContacted() {
     },
     onError: (_err, _id, ctx) => {
       if (ctx?.previous) qc.setQueryData(['tasks'], ctx.previous)
+      toast.error('Ocurrió un error, intentá nuevamente')
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })

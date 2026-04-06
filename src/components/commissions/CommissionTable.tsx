@@ -7,9 +7,9 @@ import type { CommissionFull } from '@/lib/commissions'
 
 interface Props {
   commissions: CommissionFull[]
-  onView:   (c: CommissionFull) => void
-  onEdit:   (c: CommissionFull) => void
-  onDelete: (id: string) => void
+  onView:    (c: CommissionFull) => void
+  onEdit?:   (c: CommissionFull) => void
+  onDelete?: (id: string) => void
 }
 
 function Row({ c, onView, onEdit, onDelete }: { c: CommissionFull } & Omit<Props, 'commissions'>) {
@@ -96,27 +96,33 @@ function Row({ c, onView, onEdit, onDelete }: { c: CommissionFull } & Omit<Props
             title="Ver detalle">
             <Eye className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => onEdit(c)}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
-            title="Editar">
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={handleDelete}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-            title="Eliminar">
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {onEdit && (
+            <button onClick={() => onEdit(c)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
+              title="Editar">
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {onDelete && (
+            <button onClick={handleDelete}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+              title="Eliminar">
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </td>
     </tr>
 
-    <DeleteConfirmDialog
-      open={deleteOpen}
-      mode="keyword"
-      entityName={c.proyecto_vendido}
-      onConfirm={() => { onDelete(c.id); setDeleteOpen(false) }}
-      onCancel={() => setDeleteOpen(false)}
-    />
+    {onDelete && (
+      <DeleteConfirmDialog
+        open={deleteOpen}
+        mode="keyword"
+        entityName={c.proyecto_vendido}
+        onConfirm={() => { onDelete(c.id); setDeleteOpen(false) }}
+        onCancel={() => setDeleteOpen(false)}
+      />
+    )}
     </>
   )
 }

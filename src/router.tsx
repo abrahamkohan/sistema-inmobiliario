@@ -8,6 +8,7 @@ import { SimuladorPage } from '@/pages/SimuladorPage'
 import { InformesPage } from '@/pages/InformesPage'
 import { ReporteHtmlPage } from '@/pages/ReporteHtmlPage'
 import { ConfiguracionPage } from '@/pages/ConfiguracionPage'
+import { AdminOnboardingPage } from '@/pages/AdminOnboardingPage'
 import { RecursosPage } from '@/pages/RecursosPage'
 import { MarketingPage } from '@/pages/MarketingPage'
 import { PresupuestosPage } from '@/pages/PresupuestosPage'
@@ -78,7 +79,8 @@ export const router = createBrowserRouter([
       { path: 'comisiones',            element: <RequireRole role="admin"><ComisionesPage /></RequireRole> },
       { path: 'comisiones/nueva',      element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
       { path: 'comisiones/:id/editar', element: <RequireRole role="admin"><VentaFormPage /></RequireRole> },
-      { path: 'configuracion', element: <RequireRole role="admin"><ConfiguracionPage /></RequireRole> },
+      { path: 'configuracion',       element: <RequireRole role="admin"><ConfiguracionPage /></RequireRole> },
+      { path: 'admin/onboarding',    element: <RequireRole role="admin"><AdminOnboardingPage /></RequireRole> },
     ],
   },
   // Rutas públicas (sin auth)

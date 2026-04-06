@@ -1,5 +1,6 @@
 // src/hooks/usePresupuestos.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   getAllPresupuestos,
   getPresupuestoById,
@@ -52,6 +53,7 @@ export function useDeletePresupuesto() {
   return useMutation({
     mutationFn: (id: string) => deletePresupuesto(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })
 }
 
@@ -60,5 +62,6 @@ export function useDuplicatePresupuesto() {
   return useMutation({
     mutationFn: (id: string) => duplicatePresupuesto(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
+    onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })
 }

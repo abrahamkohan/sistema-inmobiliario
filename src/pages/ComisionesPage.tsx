@@ -11,6 +11,7 @@ import {
   useCommissions,
   useDeleteCommission,
 } from '@/hooks/useCommissions'
+import { usePuedeEditar, usePuedeBorrar } from '@/hooks/usePermiso'
 import { calcTotals } from '@/lib/commissions'
 import type { CommissionFull } from '@/lib/commissions'
 
@@ -20,6 +21,8 @@ export function ComisionesPage() {
   const navigate = useNavigate()
   const { data: commissions = [], isLoading } = useCommissions()
   const deleteCommission = useDeleteCommission()
+  const puedeEditar = usePuedeEditar('ventas')
+  const puedeBorrar = usePuedeBorrar('ventas')
 
   const [tab,        setTab]        = useState<Tab>('todas')
   const [detailItem, setDetailItem] = useState<CommissionFull | null>(null)
@@ -37,7 +40,7 @@ export function ComisionesPage() {
   function handleDelete(id: string) {
     deleteCommission.mutate(id, {
       onSuccess: () => toast.success('Venta eliminada'),
-      onError:   () => toast.error('Error al eliminar'),
+      onError:   () => toast.error('Ocurrió un error, intentá nuevamente'),
     })
   }
 
@@ -61,13 +64,15 @@ export function ComisionesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Ventas</h1>
-        <button
-          onClick={() => navigate('/comisiones/nueva')}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Nueva
-        </button>
+        {puedeEditar && (
+          <button
+            onClick={() => navigate('/comisiones/nueva')}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Nueva
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -118,8 +123,8 @@ export function ComisionesPage() {
             <CommissionTable
               commissions={filtered}
               onView={openDetail}
-              onEdit={c => navigate(`/comisiones/${c.id}/editar`)}
-              onDelete={handleDelete}
+              onEdit={puedeEditar ? c => navigate(`/comisiones/${c.id}/editar`) : undefined}
+              onDelete={puedeBorrar ? handleDelete : undefined}
             />
           </div>
           {/* Mobile: cards */}
@@ -129,8 +134,8 @@ export function ComisionesPage() {
                 key={c.id}
                 commission={c}
                 onView={openDetail}
-                onEdit={c => navigate(`/comisiones/${c.id}/editar`)}
-                onDelete={handleDelete}
+                onEdit={puedeEditar ? c => navigate(`/comisiones/${c.id}/editar`) : undefined}
+                onDelete={puedeBorrar ? handleDelete : undefined}
               />
             ))}
           </div>

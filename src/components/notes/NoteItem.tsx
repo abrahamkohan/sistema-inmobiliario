@@ -50,10 +50,10 @@ interface NoteItemProps {
   clientName?: string
   clientId?: string
   projectName?: string
-  onOpen:    (note: NoteRow) => void
-  onArchive: (id: string)   => void
-  onDelete:  (id: string)   => void
-  onFlag:    (id: string, flagged: boolean) => void
+  onOpen?:    (note: NoteRow) => void
+  onArchive?: (id: string)   => void
+  onDelete?:  (id: string)   => void
+  onFlag?:    (id: string, flagged: boolean) => void
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -69,37 +69,38 @@ export function NoteItem({ note, clientName, clientId, projectName, onOpen, onAr
 
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation()
+    if (!onDelete) return
     if (!confirm(`¿Eliminar esta nota?`)) return
     onDelete(note.id)
   }
 
   function handleArchive(e: React.MouseEvent) {
     e.stopPropagation()
-    onArchive(note.id)
+    onArchive?.(note.id)
   }
 
   function handleFlag(e: React.MouseEvent) {
     e.stopPropagation()
-    onFlag(note.id, !note.is_flagged)
+    onFlag?.(note.id, !note.is_flagged)
   }
 
   return (
     <SwipeableRow
-      leftAction={{
+      leftAction={onArchive ? {
         icon: <Archive className="w-5 h-5" />,
         label: note.location === 'inbox' ? 'Archivar' : 'Inbox',
         color: 'bg-gray-500',
         onTrigger: () => onArchive(note.id),
-      }}
-      rightAction={{
+      } : undefined}
+      rightAction={onDelete ? {
         icon: <Trash2 className="w-5 h-5" />,
         label: 'Eliminar',
         color: 'bg-red-500',
         onTrigger: () => onDelete(note.id),
-      }}
+      } : undefined}
     >
     <div
-      onClick={() => onOpen(note)}
+      onClick={() => onOpen?.(note)}
       className="group flex items-start gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50/80 cursor-pointer transition-colors bg-white"
     >
       {/* Flag button */}
@@ -164,14 +165,16 @@ export function NoteItem({ note, clientName, clientId, projectName, onOpen, onAr
 
       {/* Acciones — solo en hover */}
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5">
-        <button
-          onClick={(e) => { e.stopPropagation(); onOpen(note) }}
-          className="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-          title="Editar"
-        >
-          <Pencil className="w-3 h-3" />
-        </button>
-        {note.location === 'inbox' && (
+        {onOpen && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpen(note) }}
+            className="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            title="Editar"
+          >
+            <Pencil className="w-3 h-3" />
+          </button>
+        )}
+        {onArchive && note.location === 'inbox' && (
           <button
             onClick={handleArchive}
             className="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
@@ -180,13 +183,15 @@ export function NoteItem({ note, clientName, clientId, projectName, onOpen, onAr
             <Archive className="w-3 h-3" />
           </button>
         )}
-        <button
-          onClick={handleDelete}
-          className="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-          title="Eliminar"
-        >
-          <Trash2 className="w-3 h-3" />
-        </button>
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            className="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            title="Eliminar"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        )}
       </div>
     </div>
     </SwipeableRow>

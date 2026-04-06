@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { Plus, TrendingUp, Copy, Trash2, Pencil, Loader2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useFlips, useDeleteFlip, useDuplicateFlip } from '@/hooks/useFlips'
+import { usePuedeEditar, usePuedeBorrar } from '@/hooks/usePermiso'
 import { calcFlip } from '@/simulator/engine'
 import { formatUsd } from '@/utils/money'
 
@@ -11,6 +12,8 @@ export function FlipPage() {
   const { data: list = [], isLoading } = useFlips()
   const deleteFlip    = useDeleteFlip()
   const duplicateFlip = useDuplicateFlip()
+  const puedeEditar = usePuedeEditar('flip')
+  const puedeBorrar = usePuedeBorrar('flip')
 
   function handleDelete(id: string) {
     if (confirm('¿Eliminar este flip?')) deleteFlip.mutate(id)
@@ -23,9 +26,11 @@ export function FlipPage() {
           <h1 className="text-2xl font-semibold text-gray-900">Flip</h1>
           <p className="text-sm text-muted-foreground">Calculadora de reventa · ROI de inversión</p>
         </div>
-        <Button size="sm" onClick={() => navigate('/flip/nuevo')}>
-          <Plus className="h-3.5 w-3.5 mr-1.5" />Nuevo
-        </Button>
+        {puedeEditar && (
+          <Button size="sm" onClick={() => navigate('/flip/nuevo')}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />Nuevo
+          </Button>
+        )}
       </div>
 
       {isLoading && (
@@ -38,7 +43,7 @@ export function FlipPage() {
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <TrendingUp className="h-8 w-8 text-gray-300" />
           <p className="text-muted-foreground">No hay cálculos de flip todavía.</p>
-          <Button variant="outline" onClick={() => navigate('/flip/nuevo')}>Crear el primero</Button>
+          {puedeEditar && <Button variant="outline" onClick={() => navigate('/flip/nuevo')}>Crear el primero</Button>}
         </div>
       )}
 
@@ -72,15 +77,21 @@ export function FlipPage() {
                           <Button variant="outline" size="sm" className="text-xs" onClick={() => window.open(`/flip/${f.id}/imprimir`, '_blank')}>
                             <Printer className="h-3 w-3 mr-1" />Imprimir
                           </Button>
-                          <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate(`/flip/${f.id}/editar`)}>
-                            <Pencil className="h-3 w-3 mr-1" />Editar
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-xs" onClick={() => duplicateFlip.mutate(f.id)} disabled={duplicateFlip.isPending} title="Duplicar">
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(f.id)} disabled={deleteFlip.isPending}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                          {puedeEditar && (
+                            <>
+                              <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate(`/flip/${f.id}/editar`)}>
+                                <Pencil className="h-3 w-3 mr-1" />Editar
+                              </Button>
+                              <Button variant="outline" size="sm" className="text-xs" onClick={() => duplicateFlip.mutate(f.id)} disabled={duplicateFlip.isPending} title="Duplicar">
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </>
+                          )}
+                          {puedeBorrar && (
+                            <Button variant="outline" size="sm" className="text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(f.id)} disabled={deleteFlip.isPending}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -105,15 +116,21 @@ export function FlipPage() {
                     <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => window.open(`/flip/${f.id}/imprimir`, '_blank')}>
                       <Printer className="h-3 w-3 mr-1" />Imprimir
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => navigate(`/flip/${f.id}/editar`)}>
-                      <Pencil className="h-3 w-3 mr-1" />Editar
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-xs" onClick={() => duplicateFlip.mutate(f.id)} disabled={duplicateFlip.isPending}>
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(f.id)} disabled={deleteFlip.isPending}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    {puedeEditar && (
+                      <>
+                        <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => navigate(`/flip/${f.id}/editar`)}>
+                          <Pencil className="h-3 w-3 mr-1" />Editar
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-xs" onClick={() => duplicateFlip.mutate(f.id)} disabled={duplicateFlip.isPending}>
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
+                    {puedeBorrar && (
+                      <Button variant="outline" size="sm" className="text-xs text-destructive hover:text-destructive" onClick={() => handleDelete(f.id)} disabled={deleteFlip.isPending}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               )

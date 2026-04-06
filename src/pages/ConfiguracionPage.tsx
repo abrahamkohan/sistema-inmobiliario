@@ -1,7 +1,7 @@
 // src/pages/ConfiguracionPage.tsx
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Loader2, Check, Users, Copy, MessageCircle, Plus, Trash2, Lock, Building2, UserCircle } from 'lucide-react'
+import { Loader2, Check, Users, Copy, MessageCircle, Plus, Trash2, Lock, Building2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,6 @@ import { toast } from 'sonner'
 import { useConsultoraConfig, useSaveConsultoraConfig } from '@/hooks/useConsultora'
 import { useAgentes, useCreateAgente, useDeleteAgente } from '@/hooks/useAgentes'
 import { useIsAdmin } from '@/hooks/useUserRole'
-import { useMyProfile, useUpdateMyProfile } from '@/hooks/useProfile'
 
 import { SeccionIdentidad }     from '@/components/configuracion/SeccionIdentidad'
 import { SeccionColores }       from '@/components/configuracion/SeccionColores'
@@ -63,12 +62,6 @@ export function ConfiguracionPage() {
   const isAdmin  = useIsAdmin()
   const navigate = useNavigate()
 
-  // Mi perfil
-  const { data: profile } = useMyProfile()
-  const updateMyProfile   = useUpdateMyProfile()
-  const [myName,      setMyName]      = useState('')
-  const [myWhatsapp,  setMyWhatsapp]  = useState('')
-  const [profileReady, setProfileReady] = useState(false)
 
   const [form,      setForm]      = useState<FormState>(EMPTY)
   const [saved,     setSaved]     = useState(false)
@@ -84,13 +77,6 @@ export function ConfiguracionPage() {
   const [nuevoNombre,   setNuevoNombre]   = useState('')
   const [nuevoPct,      setNuevoPct]      = useState('')
   const totalPct = agentes.filter(a => a.activo).reduce((s, a) => s + a.porcentaje_comision, 0)
-
-  useEffect(() => {
-    if (!profile || profileReady) return
-    setMyName(profile.full_name ?? '')
-    setMyWhatsapp((profile as any).whatsapp ?? '')
-    setProfileReady(true)
-  }, [profile, profileReady])
 
   useEffect(() => {
     if (!config) return
@@ -336,45 +322,6 @@ export function ConfiguracionPage() {
 
       {/* Aliados comerciales */}
       <SeccionAliados />
-
-      {/* Mi perfil — visible para todos */}
-      <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <UserCircle className="h-4 w-4 text-muted-foreground" />
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mi perfil</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="my-name">Nombre completo</Label>
-            <Input
-              id="my-name"
-              value={myName}
-              onChange={e => setMyName(e.target.value)}
-              placeholder="Tu nombre"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="my-whatsapp">WhatsApp</Label>
-            <Input
-              id="my-whatsapp"
-              value={myWhatsapp}
-              onChange={e => setMyWhatsapp(e.target.value)}
-              placeholder="+54 9 11 12345678"
-            />
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">Este nombre y WhatsApp aparecen en tus propiedades y clientes.</p>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={updateMyProfile.isPending}
-            onClick={() => updateMyProfile.mutate({ full_name: myName.trim(), whatsapp: myWhatsapp.trim() })}
-          >
-            {updateMyProfile.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
-          </Button>
-        </div>
-      </div>
 
       {/* 6. Seguridad */}
       <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">

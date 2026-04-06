@@ -1,9 +1,10 @@
 // src/components/layout/Sidebar.tsx
+import { useState, useRef, useEffect } from 'react'
 import { NavLink } from 'react-router'
 import {
   Home, Building2, Users, Calculator, FileText, Settings,
   LogOut, X, Receipt, MapPin, ClipboardList,
-  NotebookPen, HandCoins, TrendingUp, Megaphone,
+  NotebookPen, HandCoins, TrendingUp, Megaphone, Loader2,
 } from 'lucide-react'
 import { useBrand } from '@/context/BrandContext'
 import { useAuth } from '@/context/AuthContext'
@@ -14,6 +15,7 @@ import { useNotes } from '@/hooks/useNotes'
 import { useIsAdmin } from '@/hooks/useUserRole'
 import { usePermiso } from '@/hooks/usePermiso'
 import { useCurrentMember } from '@/hooks/useTeam'
+import { useMyProfile, useUpdateMyProfile } from '@/hooks/useProfile'
 import { GlobalSearch } from '@/components/search/GlobalSearch'
 
 // ── Mapeo de módulos a permisos ────────────────────────────────────────────────────
@@ -125,6 +127,32 @@ export function Sidebar({ onClose }: SidebarProps) {
   const isAdmin = useIsAdmin()
   const currentMember = useCurrentMember()
 
+  // Perfil propio
+  const { data: profile } = useMyProfile()
+  const updateMyProfile   = useUpdateMyProfile()
+  const [showProfile, setShowProfile] = useState(false)
+  const [myName,     setMyName]     = useState('')
+  const [myWhatsapp, setMyWhatsapp] = useState('')
+  const profileRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!profile) return
+    setMyName(profile.full_name ?? '')
+    setMyWhatsapp((profile as any).whatsapp ?? '')
+  }, [profile])
+
+  // Cerrar al hacer click fuera
+  useEffect(() => {
+    if (!showProfile) return
+    function handleClickOutside(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setShowProfile(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showProfile])
+
   const overdueCount = tasks.filter(t => getUrgency(t) === 'overdue').length
   const inboxCount   = notes.filter(n => n.location === 'inbox').length
 
@@ -230,25 +258,63 @@ export function Sidebar({ onClose }: SidebarProps) {
       {/* ── Usuario logueado ── */}
       <div className="px-3 pt-3 border-t border-sidebar-border">
         {currentMember && (
-          <div className="px-3 py-2.5 rounded-md bg-sidebar-accent/40 mb-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-primary font-semibold text-xs flex-shrink-0">
-                {(currentMember.full_name ?? session?.user?.email ?? 'U')[0].toUpperCase()}
+          <div ref={profileRef} className="relative mb-2">
+            {/* Popover Mi perfil */}
+            {showProfile && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4 flex flex-col gap-3 z-50">
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Mi perfil</p>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-gray-500">Nombre completo</label>
+                  <input
+                    type="text"
+                    value={myName}
+                    onChange={e => setMyName(e.target.value)}
+                    placeholder="Tu nombre"
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-gray-500">WhatsApp</label>
+                  <input
+                    type="text"
+                    value={myWhatsapp}
+                    onChange={e => setMyWhatsapp(e.target.value)}
+                    placeholder="+54 9 11 12345678"
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+                <button
+                  disabled={updateMyProfile.isPending}
+                  onClick={() => updateMyProfile.mutate(
+                    { full_name: myName.trim(), whatsapp: myWhatsapp.trim() },
+                    { onSuccess: () => setShowProfile(false) }
+                  )}
+                  className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-40 transition-colors"
+                >
+                  {updateMyProfile.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar'}
+                </button>
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-sidebar-primary truncate leading-tight">
-                  {currentMember.full_name ?? 'Sin nombre'}
-                </p>
-                <p className="text-[10px] text-sidebar-foreground/60 truncate capitalize leading-tight">
-                  {currentMember.is_owner ? 'Propietario' : (currentMember.role ?? 'Sin rol')}
-                </p>
-                {session?.user?.email && (
-                  <p className="text-[10px] text-sidebar-foreground/40 truncate leading-tight">
-                    {session.user.email}
+            )}
+
+            {/* Botón usuario */}
+            <button
+              onClick={() => setShowProfile(v => !v)}
+              className="w-full px-3 py-2.5 rounded-md bg-sidebar-accent/40 hover:bg-sidebar-accent/60 transition-colors text-left"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-primary font-semibold text-xs flex-shrink-0">
+                  {(currentMember.full_name ?? session?.user?.email ?? 'U')[0].toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-sidebar-primary truncate leading-tight">
+                    {currentMember.full_name || session?.user?.email?.split('@')[0] || 'Sin nombre'}
                   </p>
-                )}
+                  <p className="text-[10px] text-sidebar-foreground/60 truncate capitalize leading-tight">
+                    {currentMember.is_owner ? 'Propietario' : (currentMember.role ?? 'Sin rol')}
+                  </p>
+                </div>
               </div>
-            </div>
+            </button>
           </div>
         )}
         <button

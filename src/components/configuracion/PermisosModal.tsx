@@ -3,12 +3,18 @@ import { useState, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X, Eye, Pencil, Zap } from 'lucide-react'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import { useBrand } from '@/context/BrandContext'
 import { useSetPermisos } from '@/hooks/useSetPermisos'
 import { useSetUserRole } from '@/hooks/useTeam'
 import { updateProfile } from '@/lib/profile'
 import type { TeamMember } from '@/lib/team'
 import type { ModuleKey, PermissionLevel } from '@/types/consultant'
+
+function normalizeWhatsapp(raw: string): string | null {
+  if (!raw.trim()) return null
+  return raw.replace(/[\s\-().]/g, '') || null
+}
 
 // ── Módulos agrupados ─────────────────────────────────────────────────────────
 
@@ -155,6 +161,7 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
   const setUserRole = useSetUserRole()
   const { engine } = useBrand()
   const colors = engine.getColors()
+  const qc = useQueryClient()
 
   const [name,     setName]     = useState<string>(user.full_name ?? '')
   const [whatsapp, setWhatsapp] = useState<string>(user.whatsapp ?? '')
@@ -189,7 +196,7 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
     try {
       await updateProfile(user.id, {
         full_name: name.trim() || null,
-        whatsapp:  whatsapp.trim() || null,
+        whatsapp:  normalizeWhatsapp(whatsapp),
       })
       if (role !== (user.role ?? '') && !user.is_owner) {
         await setUserRole.mutateAsync({ userId: user.id, role })
@@ -199,6 +206,7 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
         if (level !== null) permisos[key] = level as PermissionLevel
       }
       await setPermisos.mutateAsync({ userId: user.id, permisos })
+      qc.invalidateQueries({ queryKey: ['team'] })
       toast.success('Cambios guardados')
       onClose()
     } catch (e) {

@@ -17,7 +17,7 @@ export async function getProfile(userId: string): Promise<{ id: string; full_nam
   return data as unknown as { id: string; full_name: string | null } | null
 }
 
-export async function updateProfile(userId: string, updates: ProfileUpdate): Promise<{ id: string; full_name: string | null }> {
+export async function updateProfile(userId: string, updates: ProfileUpdate & { whatsapp?: string | null }): Promise<{ id: string; full_name: string | null }> {
   const { data, error } = await supabase
     .from('profiles')
     .update(updates as unknown as never)

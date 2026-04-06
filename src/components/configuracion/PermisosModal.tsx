@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { useBrand } from '@/context/BrandContext'
 import { useSetPermisos } from '@/hooks/useSetPermisos'
 import { useSetUserRole } from '@/hooks/useTeam'
+import { updateProfile } from '@/lib/profile'
 import type { TeamMember } from '@/lib/team'
 import type { ModuleKey, PermissionLevel } from '@/types/consultant'
 
@@ -155,13 +156,17 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
   const { engine } = useBrand()
   const colors = engine.getColors()
 
-  const [role,   setRole]   = useState<string>(user.role ?? '')
-  const [checks, setChecks] = useState<Record<ModuleKey, PermissionLevel | null>>(
+  const [name,     setName]     = useState<string>(user.full_name ?? '')
+  const [whatsapp, setWhatsapp] = useState<string>(user.whatsapp ?? '')
+  const [role,     setRole]     = useState<string>(user.role ?? '')
+  const [checks,   setChecks]   = useState<Record<ModuleKey, PermissionLevel | null>>(
     {} as Record<ModuleKey, PermissionLevel | null>
   )
 
   useEffect(() => {
     if (!open) return
+    setName(user.full_name ?? '')
+    setWhatsapp(user.whatsapp ?? '')
     setRole(user.role ?? '')
     const saved = (user.permisos as Record<string, boolean | PermissionLevel> | null) ?? {}
     const init = {} as Record<ModuleKey, PermissionLevel | null>
@@ -182,16 +187,19 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
 
   async function handleSave() {
     try {
+      await updateProfile(user.id, {
+        full_name: name.trim() || null,
+        whatsapp:  whatsapp.trim() || null,
+      })
       if (role !== (user.role ?? '') && !user.is_owner) {
         await setUserRole.mutateAsync({ userId: user.id, role })
       }
-      // Solo guardar los módulos con acceso
       const permisos: Record<string, PermissionLevel> = {}
       for (const [key, level] of Object.entries(checks)) {
         if (level !== null) permisos[key] = level as PermissionLevel
       }
       await setPermisos.mutateAsync({ userId: user.id, permisos })
-      toast.success('Permisos guardados')
+      toast.success('Cambios guardados')
       onClose()
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Error al guardar')
@@ -238,6 +246,45 @@ export function PermisosModal({ user, open, onClose }: PermisosModalProps) {
           </div>
 
           <div className="px-6 py-4 space-y-6">
+
+            {/* Datos del agente */}
+            <div className="flex flex-col gap-3">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">
+                Datos del agente
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Nombre completo</span>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    disabled={isBusy}
+                    placeholder="Nombre del agente"
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 disabled:opacity-50"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">WhatsApp</span>
+                  <input
+                    type="text"
+                    value={whatsapp}
+                    onChange={e => setWhatsapp(e.target.value)}
+                    disabled={isBusy}
+                    placeholder="+54 9 11 12345678"
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+              {user.email && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500">Email</span>
+                  <span className="text-sm text-gray-400 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg">
+                    {user.email}
+                  </span>
+                </div>
+              )}
+            </div>
 
             {/* Rol */}
             <div>

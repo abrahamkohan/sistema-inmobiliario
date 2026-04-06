@@ -9,26 +9,35 @@ export type TeamMember = {
   id: string
   full_name: string | null
   phone: string | null
+  whatsapp: string | null
   avatar_url: string | null
   created_at: string
   role: string | null
   is_owner: boolean
   permisos: Record<string, unknown> | null
   consultant_id: string | null
-  email?: string
+  email: string | null
 }
 
 export async function getTeam(): Promise<TeamMember[]> {
-  const profilesRes = await supabase.from('profiles').select('*').order('created_at', { ascending: true })
-  const rolesRes = await supabase.from('user_roles').select('user_id, role, is_owner, permisos')
+  const [profilesRes, rolesRes, emailsRes] = await Promise.all([
+    supabase.from('profiles').select('*').order('created_at', { ascending: true }),
+    supabase.from('user_roles').select('user_id, role, is_owner, permisos'),
+    (supabase.rpc as any)('get_team_emails'),
+  ])
 
   const roleMap = new Map<string, { role: string; is_owner: boolean; permisos: Record<string, boolean> | null }>()
-
   const rolesData = rolesRes.data as UserRoleRow[] | null
   if (rolesData) {
     rolesData.forEach(r => {
       roleMap.set(r.user_id, { role: r.role, is_owner: r.is_owner, permisos: r.permisos as Record<string, boolean> | null })
     })
+  }
+
+  const emailMap = new Map<string, string>()
+  const emailsData = emailsRes.data as { user_id: string; email: string }[] | null
+  if (emailsData) {
+    emailsData.forEach(e => emailMap.set(e.user_id, e.email))
   }
 
   const profilesData = profilesRes.data as ProfileRow[] | null
@@ -40,12 +49,14 @@ export async function getTeam(): Promise<TeamMember[]> {
       id: p.id,
       full_name: p.full_name,
       phone: p.phone,
+      whatsapp: (p as any).whatsapp ?? null,
       avatar_url: p.avatar_url,
       created_at: p.created_at,
       role: roleRow?.role ?? null,
       is_owner: roleRow?.is_owner ?? false,
       permisos: roleRow?.permisos ?? null,
       consultant_id: null,
+      email: emailMap.get(p.id) ?? null,
     }
   })
 }

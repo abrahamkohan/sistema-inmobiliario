@@ -777,6 +777,7 @@ export interface Database {
           id: string
           full_name: string | null
           phone: string | null
+          whatsapp: string | null
           avatar_url: string | null
           telegram_chat_id: string | null
           created_at: string
@@ -785,12 +786,14 @@ export interface Database {
           id: string
           full_name?: string | null
           phone?: string | null
+          whatsapp?: string | null
           avatar_url?: string | null
           telegram_chat_id?: string | null
         }
         Update: {
           full_name?: string | null
           phone?: string | null
+          whatsapp?: string | null
           avatar_url?: string | null
           telegram_chat_id?: string | null
         }

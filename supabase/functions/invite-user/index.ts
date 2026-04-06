@@ -18,8 +18,9 @@ function buildWelcomeEmail(opts: {
   subdomain: string | null
   appUrl: string
 }): string {
-  const { recipientName, recipientEmail, consultoraNombre, logoUrl, colorPrimary, subdomain, appUrl } = opts
-  const accessUrl  = subdomain ? `https://${subdomain}.${new URL(appUrl).host}` : appUrl
+  const { recipientName, recipientEmail, consultoraNombre, logoUrl, colorPrimary, appUrl } = opts
+  // Por ahora todos los tenants usan el mismo dominio — subdomain es solo un identificador
+  const accessUrl = appUrl
   const displayName = recipientName || recipientEmail.split('@')[0]
   const greeting    = `Hola ${displayName},`
 

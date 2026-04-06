@@ -147,8 +147,12 @@ serve(async (req: Request) => {
   })
 
   if (inviteError) {
-    return new Response(JSON.stringify({ error: inviteError.message }), {
-      status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
+    // Siempre 200 para que supabase.functions.invoke popule data con el error real
+    const msg = inviteError.message.toLowerCase().includes('already')
+      ? 'Este email ya tiene una cuenta activa en el sistema'
+      : inviteError.message
+    return new Response(JSON.stringify({ ok: false, error: msg }), {
+      status: 200, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     })
   }
 

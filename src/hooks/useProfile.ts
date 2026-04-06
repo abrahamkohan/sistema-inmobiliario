@@ -21,10 +21,11 @@ export function useUpdateMyProfile() {
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: (full_name: string) => updateProfile(userId!, { full_name }),
+    mutationFn: (data: { full_name: string; whatsapp: string }) =>
+      updateProfile(userId!, { full_name: data.full_name || null, whatsapp: data.whatsapp || null }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['profile', userId] })
-      toast.success('Nombre actualizado')
+      toast.success('Perfil actualizado')
     },
     onError: () => toast.error('Ocurrió un error, intentá nuevamente'),
   })

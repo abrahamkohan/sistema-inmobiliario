@@ -11,15 +11,17 @@ function corsHeaders(req: Request) {
 
 function buildWelcomeEmail(opts: {
   recipientName: string | null
+  recipientEmail: string
   consultoraNombre: string
   logoUrl: string | null
   colorPrimary: string
   subdomain: string | null
   appUrl: string
 }): string {
-  const { recipientName, consultoraNombre, logoUrl, colorPrimary, subdomain, appUrl } = opts
-  const accessUrl = subdomain ? `https://${subdomain}.${new URL(appUrl).host}` : appUrl
-  const greeting  = recipientName ? `Hola ${recipientName},` : 'Hola,'
+  const { recipientName, recipientEmail, consultoraNombre, logoUrl, colorPrimary, subdomain, appUrl } = opts
+  const accessUrl  = subdomain ? `https://${subdomain}.${new URL(appUrl).host}` : appUrl
+  const displayName = recipientName || recipientEmail.split('@')[0]
+  const greeting    = `Hola ${displayName},`
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -34,7 +36,7 @@ function buildWelcomeEmail(opts: {
           <td style="background:${colorPrimary};padding:32px;text-align:center;">
             ${logoUrl
               ? `<img src="${logoUrl}" alt="${consultoraNombre}" style="max-height:56px;max-width:200px;object-fit:contain;">`
-              : `<h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">${consultoraNombre}</h1>`
+              : `<h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:0.05em;">${consultoraNombre.toUpperCase()}</h1>`
             }
           </td>
         </tr>
@@ -43,24 +45,30 @@ function buildWelcomeEmail(opts: {
         <tr>
           <td style="padding:40px 32px;">
             <p style="margin:0 0 16px;font-size:16px;color:#111827;">${greeting}</p>
-            <p style="margin:0 0 16px;font-size:16px;color:#374151;line-height:1.6;">
-              Ya configuramos tu acceso al sistema de gestión de <strong>${consultoraNombre}</strong>.
-            </p>
-            <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
-              En unos minutos vas a recibir un email separado para crear tu contraseña. Una vez que lo hagas, podés entrar desde acá:
+            <p style="margin:0 0 24px;font-size:16px;color:#374151;line-height:1.6;">
+              Tu acceso al sistema ya está listo.
             </p>
 
             <!-- Botón -->
-            <table cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+            <table cellpadding="0" cellspacing="0" style="margin:0 0 12px;">
               <tr>
                 <td style="background:${colorPrimary};border-radius:8px;">
                   <a href="${accessUrl}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;">
-                    Ir al sistema →
+                    Acceder al sistema
                   </a>
                 </td>
               </tr>
             </table>
 
+            <!-- URL visible como fallback -->
+            <p style="margin:0 0 28px;font-size:12px;color:#9ca3af;">
+              <a href="${accessUrl}" style="color:#9ca3af;">${accessUrl}</a>
+            </p>
+
+            <p style="margin:0 0 8px;font-size:13px;color:#6b7280;line-height:1.6;">
+              En unos minutos vas a recibir un email separado para crear tu contraseña.
+              Si no llega, revisá la carpeta de spam.
+            </p>
             <p style="margin:0;font-size:13px;color:#9ca3af;">
               Si no esperabas este email, podés ignorarlo.
             </p>
@@ -154,11 +162,12 @@ serve(async (req: Request) => {
 
       if (consultant) {
         const html = buildWelcomeEmail({
-          recipientName:   name ?? null,
+          recipientName:    name ?? null,
+          recipientEmail:   email,
           consultoraNombre: consultant.nombre,
-          logoUrl:         consultant.logo_url,
-          colorPrimary:    consultant.color_primary ?? '#1e293b',
-          subdomain:       consultant.subdomain,
+          logoUrl:          consultant.logo_url,
+          colorPrimary:     consultant.color_primary ?? '#1e293b',
+          subdomain:        consultant.subdomain,
           appUrl,
         })
 

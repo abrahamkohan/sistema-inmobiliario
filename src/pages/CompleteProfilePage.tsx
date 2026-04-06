@@ -1,20 +1,24 @@
 // src/pages/CompleteProfilePage.tsx
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateProfile } from '@/lib/profile'
 import { useAuth } from '@/context/AuthContext'
+import { useBrand } from '@/context/BrandContext'
 
 export function CompleteProfilePage() {
   const { session } = useAuth()
+  const { engine, nombre } = useBrand()
+  const colors = engine.getColors()
+  const logoUrl = engine.getLogo('crm')
+
   const [fullName, setFullName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
 
   async function handleSave() {
     const trimmed = fullName.trim()
-    
-    // Validación
+
     if (trimmed.length < 3) {
       setError('El nombre debe tener al menos 3 caracteres')
       return
@@ -31,7 +35,6 @@ export function CompleteProfilePage() {
     try {
       await updateProfile(session.user.id, { full_name: trimmed })
       toast.success('Perfil guardado correctamente')
-      // Force reload to refresh all auth state and queries
       window.location.href = '/inicio'
     } catch (e) {
       console.error('[CompleteProfile] error:', e)
@@ -43,21 +46,35 @@ export function CompleteProfilePage() {
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && !isSaving) {
-      handleSave()
-    }
+    if (e.key === 'Enter' && !isSaving) handleSave()
   }
 
+  const canSave = fullName.trim().length >= 3 && !isSaving
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: colors.secondary + '10' }}>
+      <div className="w-full max-w-sm">
+
+        {/* Brand header */}
+        <div className="text-center mb-6">
+          {logoUrl ? (
+            <img src={logoUrl} alt={nombre} className="h-10 object-contain mx-auto mb-4" />
+          ) : (
+            <p className="text-lg font-bold mb-4" style={{ color: colors.secondary }}>{nombre}</p>
+          )}
+        </div>
+
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+
           {/* Header */}
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl text-white font-bold">👤</span>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
+              style={{ backgroundColor: colors.primary + '18' }}
+            >
+              <User className="w-6 h-6" style={{ color: colors.primary }} />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Completá tu perfil</h1>
+            <h1 className="text-lg font-bold text-gray-900">Completá tu perfil</h1>
             <p className="text-sm text-gray-500 mt-1">
               Necesitamos tu nombre para identificarte en el sistema
             </p>
@@ -66,31 +83,30 @@ export function CompleteProfilePage() {
           {/* Form */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Nombre completo <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={fullName}
-                onChange={(e) => {
-                  setFullName(e.target.value)
-                  setError('')
-                }}
+                onChange={e => { setFullName(e.target.value); setError('') }}
                 onKeyDown={handleKeyDown}
                 placeholder="Ej: Juan Pérez"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-colors"
+                style={{ '--tw-ring-color': colors.primary } as React.CSSProperties}
+                onFocus={e => e.target.style.borderColor = colors.primary}
+                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
                 autoFocus
                 disabled={isSaving}
               />
-              {error && (
-                <p className="text-red-500 text-xs mt-1">{error}</p>
-              )}
+              {error && <p className="text-red-500 text-xs mt-1.5">{error}</p>}
             </div>
 
             <button
               onClick={handleSave}
-              disabled={isSaving || fullName.trim().length < 3}
-              className="w-full py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              disabled={!canSave}
+              className="w-full py-3 text-white font-semibold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2"
+              style={{ backgroundColor: colors.primary }}
             >
               {isSaving ? (
                 <>
@@ -102,11 +118,6 @@ export function CompleteProfilePage() {
               )}
             </button>
           </div>
-
-          {/* Footer */}
-          <p className="text-center text-xs text-gray-400 mt-4">
-            * Campo obligatorio
-          </p>
         </div>
       </div>
     </div>

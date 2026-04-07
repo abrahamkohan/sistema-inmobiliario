@@ -115,7 +115,7 @@ export function SeccionAliados() {
     <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">🤝 Aliados Comerciales</p>
+          <p className="text-base font-semibold text-foreground">🤝 Aliados Comerciales</p>
           <p className="text-xs text-gray-400 mt-1">
             Aliados externos que reciben porcentaje de comisión en ventas
           </p>

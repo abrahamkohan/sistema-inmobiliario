@@ -35,42 +35,27 @@ export function SeccionColores({ color_primary, color_secondary, color_accent, n
 
   return (
     <div className="rounded-lg border bg-card p-5 flex flex-col gap-5">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">🎨 Colores del sistema</p>
+      <p className="text-base font-semibold text-foreground">🎨 Colores del sistema</p>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Pickers */}
-        <div className="flex flex-col gap-4">
+      {/* Pickers en fila */}
+      <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {COLOR_FIELDS.map(({ key, label, description, default: def }) => (
-            <div key={key} className="flex items-center gap-3">
-              <div className="relative flex-shrink-0">
-                <input
-                  type="color"
-                  value={values[key] || def}
-                  onChange={e => onChange(key, e.target.value)}
-                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-gray-800">{label}</p>
-                </div>
-                <p className="text-xs text-gray-400">{description}</p>
-              </div>
+            <div key={key} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
               <input
-                type="text"
+                type="color"
                 value={values[key] || def}
-                onChange={e => {
-                  const v = e.target.value
-                  if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) onChange(key, v)
-                }}
-                className="w-24 h-8 px-2 text-xs font-mono border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 bg-white"
-                placeholder={def}
+                onChange={e => onChange(key, e.target.value)}
+                className="w-8 h-8 rounded-md border border-gray-200 cursor-pointer p-0.5 bg-white"
               />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-800 truncate">{label}</p>
+                <p className="text-[10px] text-gray-400 truncate">{description}</p>
+              </div>
             </div>
           ))}
         </div>
-
-        {/* Live preview */}
+        {/* Preview abajo */}
         <ColorPreview
           primary={color_primary || '#C9A34E'}
           secondary={color_secondary || '#1E3A5F'}

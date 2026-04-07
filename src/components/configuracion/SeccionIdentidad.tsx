@@ -50,7 +50,7 @@ function LogoField({ label, value, onChange, placeholder, hint, preview }: {
 export function SeccionIdentidad({ nombre, slogan, logo_url, logo_light_url, pwa_icon_url, onChange }: Props) {
   return (
     <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">🏠 Mi Inmobiliaria</p>
+      <p className="text-base font-semibold text-foreground">🏠 Mi Inmobiliaria</p>
 
       <Field
         label="Nombre de la empresa"

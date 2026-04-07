@@ -115,7 +115,7 @@ export function SeccionEquipo() {
     <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">👥 Mi Equipo</p>
+          <p className="text-base font-semibold text-foreground">👥 Mi Equipo</p>
           <p className="text-xs text-gray-400 mt-1">Gestiona permisos por usuario</p>
         </div>
         <button
@@ -156,7 +156,7 @@ export function SeccionEquipo() {
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
         {team.map(member => (
           <div
             key={member.id}

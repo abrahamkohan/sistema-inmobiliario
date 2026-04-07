@@ -175,8 +175,8 @@ export function ConfiguracionPage() {
         </div>
       )}
 
-      {/* ── 1. BRANDING (full width) ── */}
-      <div className="flex flex-col gap-5">
+      {/* ── 1. BRANDING (2 columnas internas) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <SeccionIdentidad
           nombre={form.nombre}
           slogan={form.slogan}
@@ -194,10 +194,7 @@ export function ConfiguracionPage() {
         />
       </div>
 
-      {/* ── 2. EQUIPO (full width) ── */}
-      {isAdmin && <SeccionEquipo />}
-
-      {/* ── 3. CONTACTO + INTEGRACIONES (2 columnas) ── */}
+      {/* ── 2. CONTACTO + INTEGRACIONES (2 columnas) ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <SeccionContacto
           telefono={form.telefono}
@@ -213,6 +210,52 @@ export function ConfiguracionPage() {
         />
       </div>
 
+      {/* ── 3. LINKS REFERIDOS (full width) ── */}
+      <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <p className="text-base font-semibold text-foreground">Links para referidos</p>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label className="text-xs text-muted-foreground">Base</Label>
+          <code className="text-sm font-medium text-gray-700">{SHORT_BASE}</code>
+          <p className="text-xs text-muted-foreground">
+            Cualquier cosa después de <code>/l/</code> funciona: <code>/l/juan</code>, <code>/l/pedro</code>
+          </p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <Input
+              value={refName}
+              onChange={e => { setRefName(e.target.value); setRefLink('') }}
+              placeholder="Nombre del referido"
+              className="text-sm"
+              onKeyDown={e => { if (e.key === 'Enter' && refName.trim()) setRefLink(`${SHORT_BASE}${toSlug(refName)}`) }}
+            />
+            <Button variant="outline" disabled={!refName.trim()} onClick={() => setRefLink(`${SHORT_BASE}${toSlug(refName)}`)}>
+              Generar
+            </Button>
+          </div>
+          {refLink && (
+            <div className="flex flex-col gap-3 p-4 bg-muted/60 rounded-lg border">
+              <code className="text-sm font-semibold text-gray-800 break-all">{refLink}</code>
+              <div className="flex gap-2 flex-wrap">
+                <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(refLink).then(() => toast.success('Link copiado'))}>
+                  <Copy className="h-3.5 w-3.5 mr-1.5" />Copiar
+                </Button>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`Cargá un contacto acá: ${refLink}`)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />WhatsApp
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* ── 4. AGENTES/SOCIOS + ALIADOS (2 columnas) ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -220,7 +263,7 @@ export function ConfiguracionPage() {
         <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Agentes / Socios</p>
+              <p className="text-base font-semibold text-foreground">Agentes / Socios</p>
               <p className="text-xs text-muted-foreground mt-1">
                 Definen quiénes reciben comisiones y en qué porcentaje. La suma debe ser 100%.
               </p>
@@ -280,51 +323,8 @@ export function ConfiguracionPage() {
         <SeccionAliados />
       </div>
 
-      {/* ── 5. LINKS REFERIDOS (full width) ── */}
-      <div className="rounded-lg border bg-card p-5 flex flex-col gap-5">
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Links para referidos</p>
-        </div>
-        <div className="flex flex-col gap-1">
-          <Label className="text-xs text-muted-foreground">Base</Label>
-          <code className="text-sm font-medium text-gray-700">{SHORT_BASE}</code>
-          <p className="text-xs text-muted-foreground">
-            Cualquier cosa después de <code>/l/</code> funciona: <code>/l/juan</code>, <code>/l/pedro</code>
-          </p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            <Input
-              value={refName}
-              onChange={e => { setRefName(e.target.value); setRefLink('') }}
-              placeholder="Nombre del referido"
-              className="text-sm"
-              onKeyDown={e => { if (e.key === 'Enter' && refName.trim()) setRefLink(`${SHORT_BASE}${toSlug(refName)}`) }}
-            />
-            <Button variant="outline" disabled={!refName.trim()} onClick={() => setRefLink(`${SHORT_BASE}${toSlug(refName)}`)}>
-              Generar
-            </Button>
-          </div>
-          {refLink && (
-            <div className="flex flex-col gap-3 p-4 bg-muted/60 rounded-lg border">
-              <code className="text-sm font-semibold text-gray-800 break-all">{refLink}</code>
-              <div className="flex gap-2 flex-wrap">
-                <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(refLink).then(() => toast.success('Link copiado'))}>
-                  <Copy className="h-3.5 w-3.5 mr-1.5" />Copiar
-                </Button>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`Cargá un contacto acá: ${refLink}`)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
-                >
-                  <MessageCircle className="h-3.5 w-3.5" />WhatsApp
-                </a>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* ── 5. EQUIPO (full width, scroll interno) ── */}
+      {isAdmin && <SeccionEquipo />}
 
       {/* ── 6. SEGURIDAD + SISTEMA (2 columnas) ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -333,7 +333,7 @@ export function ConfiguracionPage() {
         <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">🔒 Seguridad</p>
+            <p className="text-base font-semibold text-foreground">Seguridad</p>
           </div>
           <div className="flex items-center justify-between py-2">
             <div>
@@ -361,7 +361,7 @@ export function ConfiguracionPage() {
           <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-muted-foreground" />
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sistema</p>
+              <p className="text-base font-semibold text-foreground">Sistema</p>
             </div>
             <div className="flex items-center justify-between py-2">
               <div>
@@ -381,7 +381,7 @@ export function ConfiguracionPage() {
       </div>
 
       {/* Sticky save bar — solo admin */}
-      <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t py-3 flex items-center justify-between gap-4 -mx-4 sm:-mx-6 px-4 sm:px-6 z-10">
+      <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t shadow-lg py-3 flex items-center justify-between gap-4 -mx-4 sm:-mx-6 px-4 sm:px-6 z-10">
         <span className="text-xs text-muted-foreground">
           {saved ? '✓ Cambios guardados' : 'Recordá guardar antes de salir.'}
         </span>

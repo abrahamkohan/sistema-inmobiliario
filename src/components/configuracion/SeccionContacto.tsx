@@ -29,7 +29,7 @@ function Field({ label, icon: Icon, value, onChange, placeholder, type = 'text' 
 export function SeccionContacto({ telefono, email, whatsapp, instagram, sitio_web, onChange }: Props) {
   return (
     <div className="rounded-lg border bg-card p-5 flex flex-col gap-4">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">📞 Contacto</p>
+      <p className="text-base font-semibold text-foreground">📞 Contacto</p>
 
       <Field
         label="WhatsApp (número con código de país)"

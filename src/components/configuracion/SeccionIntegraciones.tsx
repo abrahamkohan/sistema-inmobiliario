@@ -68,7 +68,7 @@ export function SeccionIntegraciones({ simulador_publico, onSimuladorChange }: P
 
   return (
     <div className="rounded-lg border bg-card p-5 flex flex-col gap-5">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">🔗 Integraciones</p>
+      <p className="text-base font-semibold text-foreground">🔗 Integraciones</p>
 
       {/* Google Calendar */}
       <div className="flex flex-col gap-3">

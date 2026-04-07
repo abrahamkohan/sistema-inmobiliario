@@ -168,6 +168,18 @@ serve(async (req: Request) => {
 
   const inviteLink = linkData.properties?.action_link ?? appUrl
 
+  // Crear user_roles inmediatamente — el agente aparece en el equipo
+  // con role='agente' y permisos vacíos, listo para que el admin configure.
+  if (linkData.user?.id && callerRole.consultant_id) {
+    await admin.from('user_roles').upsert({
+      user_id:       linkData.user.id,
+      consultant_id: callerRole.consultant_id,
+      role:          'agente',
+      is_owner:      false,
+      permisos:      {},
+    }, { onConflict: 'user_id' })
+  }
+
   // Email de invitación con branding (único email que recibe el agente)
   if (resendKey && callerRole.consultant_id) {
     try {

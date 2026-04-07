@@ -44,6 +44,8 @@ import { ProyectoFichaPage } from '@/pages/ProyectoFichaPage'
 import { RequireAuth } from '@/components/auth/RequireAuth'
 import { RequireRole } from '@/components/auth/RequireRole'
 import { RequirePermiso } from '@/components/auth/RequirePermiso'
+import { SaasAdminPage } from '@/pages/SaasAdminPage'
+import { SaasAdminTenantPage } from '@/pages/SaasAdminTenantPage'
 
 export const router = createBrowserRouter([
   {
@@ -100,4 +102,17 @@ export const router = createBrowserRouter([
   { path: 'auth/callback',        element: <AuthCallbackPage /> },
   { path: 'auth/google/callback', element: <GoogleCallbackPage /> },
   { path: 'reset-password', element: <ResetPasswordPage /> },
+  // SaaS admin — solo para el owner de la plataforma
+  {
+    path: 'admin',
+    element: <RequireAuth><SaasAdminPage /></RequireAuth>,
+  },
+  {
+    path: 'admin/nuevo',
+    element: <RequireAuth><AdminOnboardingPage /></RequireAuth>,
+  },
+  {
+    path: 'admin/tenant/:uuid',
+    element: <RequireAuth><SaasAdminTenantPage /></RequireAuth>,
+  },
 ])

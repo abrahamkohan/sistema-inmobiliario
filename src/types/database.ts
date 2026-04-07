@@ -755,17 +755,23 @@ export interface Database {
             user_id: string
             role: 'admin' | 'agente'
             is_owner: boolean
+            is_saas_owner: boolean
+            consultant_id: string | null
             permisos: Record<string, string> | null
           }
           Insert: {
             user_id: string
             role: 'admin' | 'agente'
             is_owner?: boolean
+            is_saas_owner?: boolean
+            consultant_id?: string | null
             permisos?: Record<string, string> | null
           }
           Update: {
             role?: 'admin' | 'agente'
             is_owner?: boolean
+            is_saas_owner?: boolean
+            consultant_id?: string | null
             permisos?: Record<string, string> | null
           }
           Relationships: [

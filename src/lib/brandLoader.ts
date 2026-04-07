@@ -44,11 +44,14 @@ export async function loadBrand(
 
   // Verificar caché primero
   if (brandCache.has(cacheKey)) {
-    const cached = brandCache.get(cacheKey)!
+    const cached = brandCache.get(cacheKey) ?? null
+    if (cached === null) {
+      return { consultant: DEFAULT_CONSULTANT, isDefault: true, notFound: true }
+    }
     return {
       consultant: cached,
       isDefault: cached.subdomain === 'default',
-      notFound: cached === null,
+      notFound: false,
     }
   }
 

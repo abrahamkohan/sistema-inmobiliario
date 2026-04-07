@@ -118,7 +118,7 @@ export async function setRole(userId: string, role: string): Promise<void> {
 
 export async function inviteUser(email: string, name?: string): Promise<void> {
   const { data, error } = await supabase.functions.invoke('invite-user', {
-    body: { email, name: name ?? null },
+    body: { email, name: name ?? null, appUrl: window.location.origin },
   })
   if (error) throw new Error(error.message)
   if (data?.error) throw new Error(data.error)

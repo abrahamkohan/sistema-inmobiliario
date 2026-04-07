@@ -47,7 +47,7 @@ function buildWelcomeEmail(opts: {
           <td style="padding:40px 32px;">
             <p style="margin:0 0 16px;font-size:16px;color:#111827;">${greeting}</p>
             <p style="margin:0 0 24px;font-size:16px;color:#374151;line-height:1.6;">
-              Tu acceso al sistema ya está listo.
+              Fuiste invitado al sistema. Hacé clic en el botón para crear tu contraseña y empezar a usar el CRM.
             </p>
 
             <!-- Botón -->
@@ -55,7 +55,7 @@ function buildWelcomeEmail(opts: {
               <tr>
                 <td style="background:${colorPrimary};border-radius:8px;">
                   <a href="${accessUrl}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;">
-                    Acceder al sistema
+                    Crear mi contraseña
                   </a>
                 </td>
               </tr>
@@ -63,12 +63,12 @@ function buildWelcomeEmail(opts: {
 
             <!-- URL visible como fallback -->
             <p style="margin:0 0 28px;font-size:12px;color:#9ca3af;">
-              <a href="${accessUrl}" style="color:#9ca3af;">${accessUrl}</a>
+              Si el botón no funciona, copiá este enlace en tu navegador:<br>
+              <a href="${accessUrl}" style="color:#9ca3af;word-break:break-all;">${accessUrl}</a>
             </p>
 
             <p style="margin:0 0 8px;font-size:13px;color:#6b7280;line-height:1.6;">
-              En unos minutos vas a recibir un email separado para crear tu contraseña.
-              Si no llega, revisá la carpeta de spam.
+              Este enlace expira en 24 horas.
             </p>
             <p style="margin:0;font-size:13px;color:#9ca3af;">
               Si no esperabas este email, podés ignorarlo.
@@ -99,7 +99,7 @@ serve(async (req: Request) => {
   const serviceKey   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const resendKey    = Deno.env.get('RESEND_API_KEY')
   const resendFrom   = Deno.env.get('RESEND_FROM') ?? 'Sistema <noreply@resend.dev>'
-  const appUrl       = Deno.env.get('APP_URL') ?? 'https://sistema.kohancampos.com.py'
+  const appUrlEnv    = Deno.env.get('APP_URL') ?? 'https://sistema.kohancampos.com.py'
 
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -134,20 +134,30 @@ serve(async (req: Request) => {
     })
   }
 
-  const { email, name } = await req.json()
+  const { email, name, appUrl: appUrlFromClient } = await req.json()
+
+  // Usar el dominio que manda el frontend (cada tenant tiene el suyo).
+  // Fallback a env var solo si el cliente no lo manda o si no es HTTPS.
+  const appUrl = (typeof appUrlFromClient === 'string' && appUrlFromClient.startsWith('https://'))
+    ? appUrlFromClient
+    : appUrlEnv
   if (!email || typeof email !== 'string') {
     return new Response(JSON.stringify({ error: 'Email requerido' }), {
       status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
     })
   }
 
-  // Invitar via Supabase Auth
-  const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-    data: { consultant_id: callerRole.consultant_id, full_name: name ?? null },
+  // Generar link de invitación (NO envía email de Supabase — nosotros enviamos el nuestro)
+  const { data: linkData, error: inviteError } = await admin.auth.admin.generateLink({
+    type: 'invite',
+    email,
+    options: {
+      data: { consultant_id: callerRole.consultant_id, full_name: name ?? null },
+      redirectTo: `${appUrl}/auth/callback`,
+    },
   })
 
   if (inviteError) {
-    // Siempre 200 para que supabase.functions.invoke popule data con el error real
     const msg = inviteError.message.toLowerCase().includes('already')
       ? 'Este email ya tiene una cuenta activa en el sistema'
       : inviteError.message
@@ -156,7 +166,9 @@ serve(async (req: Request) => {
     })
   }
 
-  // Email de bienvenida con branding (no bloquea si falla)
+  const inviteLink = linkData.properties?.action_link ?? appUrl
+
+  // Email de invitación con branding (único email que recibe el agente)
   if (resendKey && callerRole.consultant_id) {
     try {
       const { data: consultant } = await admin
@@ -173,10 +185,10 @@ serve(async (req: Request) => {
           logoUrl:          consultant.logo_url,
           colorPrimary:     consultant.color_primary ?? '#1e293b',
           subdomain:        consultant.subdomain,
-          appUrl,
+          appUrl:           inviteLink,
         })
 
-        await fetch('https://api.resend.com/emails', {
+        const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -186,10 +198,19 @@ serve(async (req: Request) => {
             html,
           }),
         })
+        if (!resendRes.ok) {
+          const resendBody = await resendRes.text()
+          console.error('[invite-user] Resend error:', resendBody)
+          return new Response(JSON.stringify({ ok: false, error: 'Error enviando el email de invitación' }), {
+            status: 200, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
+          })
+        }
       }
     } catch (e) {
-      // El email de bienvenida no es crítico — la invitación de Supabase ya fue enviada
       console.error('[invite-user] error enviando email de bienvenida:', e)
+      return new Response(JSON.stringify({ ok: false, error: 'Error enviando el email de invitación' }), {
+        status: 200, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
+      })
     }
   }
 

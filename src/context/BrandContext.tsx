@@ -49,7 +49,13 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
         consultantId = data?.consultant_id ?? null
       }
 
-      const result = await loadBrand(hostname, subdomain, consultantId)
+      let result: { consultant: Consultant; isDefault: boolean; notFound: boolean }
+      try {
+        result = await loadBrand(hostname, subdomain, consultantId)
+      } catch (err) {
+        console.error('[BrandContext] loadBrand threw:', err)
+        result = { consultant: DEFAULT_CONSULTANT, isDefault: true, notFound: false }
+      }
 
       if (!cancelled) {
         setConsultant(result.consultant)

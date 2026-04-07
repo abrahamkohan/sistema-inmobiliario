@@ -46,7 +46,7 @@ async function getTenantTeam(uuid: string): Promise<TeamMemberBasic[]> {
   const { data: emails } = await (supabase.rpc as any)('get_team_emails')
 
   const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p.full_name]))
-  const emailMap   = new Map((emails ?? []).map((e: any) => [e.user_id, String(e.email)]))
+  const emailMap = new Map<string, string>((emails ?? []).map((e: any) => [e.user_id as string, String(e.email ?? '')]))
 
   return roles.map(r => ({
     user_id:   r.user_id,

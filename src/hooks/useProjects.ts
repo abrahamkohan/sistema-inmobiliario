@@ -29,7 +29,7 @@ export function useCreateProject() {
     mutationFn: (input: ProjectInsert) => {
       const dataWithConsultant = {
         ...input,
-        consultant_id: consultant.uuid as any
+        consultant_id: (consultant.uuid === 'default' ? null : consultant.uuid) as any
       }
       return createProject(dataWithConsultant)
     },

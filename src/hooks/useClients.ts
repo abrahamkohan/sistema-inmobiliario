@@ -38,7 +38,7 @@ export function useCreateClient() {
       const dataWithConsultant = {
         ...input,
         assigned_to: session?.user?.id ?? null,
-        consultant_id: consultant.uuid as any
+        consultant_id: (consultant.uuid === 'default' ? null : consultant.uuid) as any
       }
       return createClient(dataWithConsultant)
     },

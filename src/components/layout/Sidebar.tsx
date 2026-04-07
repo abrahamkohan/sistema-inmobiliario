@@ -4,7 +4,7 @@ import { NavLink } from 'react-router'
 import {
   Home, Building2, Users, Calculator, FileText, Settings,
   LogOut, X, Receipt, MapPin, ClipboardList,
-  NotebookPen, HandCoins, TrendingUp, Megaphone, Loader2,
+  NotebookPen, HandCoins, TrendingUp, Megaphone, Loader2, LayoutDashboard,
 } from 'lucide-react'
 import { useBrand } from '@/context/BrandContext'
 import { useAuth } from '@/context/AuthContext'
@@ -14,6 +14,7 @@ import { getUrgency } from '@/lib/tasks'
 import { useNotes } from '@/hooks/useNotes'
 import { useIsAdmin } from '@/hooks/useUserRole'
 import { usePermiso } from '@/hooks/usePermiso'
+import { useIsSaasOwner } from '@/hooks/useIsSaasOwner'
 import { useCurrentMember } from '@/hooks/useTeam'
 import { useMyProfile, useUpdateMyProfile } from '@/hooks/useProfile'
 import { GlobalSearch } from '@/components/search/GlobalSearch'
@@ -125,6 +126,7 @@ export function Sidebar({ onClose }: SidebarProps) {
   const { data: tasks = [] } = useTasks()
   const { data: notes = [] } = useNotes()
   const isAdmin = useIsAdmin()
+  const isSaasOwner = useIsSaasOwner()
   const currentMember = useCurrentMember()
 
   // Perfil propio
@@ -253,6 +255,14 @@ export function Sidebar({ onClose }: SidebarProps) {
             </div>
           )
         })}
+        {isSaasOwner === true && (
+          <div className="flex flex-col gap-0.5">
+            <p className="text-[10px] font-semibold text-sidebar-foreground/40 uppercase tracking-wider px-3 mb-1">
+              SaaS
+            </p>
+            <NavItem to="/admin" label="Admin SaaS" icon={LayoutDashboard} onClick={onClose} />
+          </div>
+        )}
       </nav>
 
       {/* ── Usuario logueado ── */}

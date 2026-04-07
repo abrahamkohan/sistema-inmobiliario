@@ -365,9 +365,9 @@ export function ConfiguracionPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/admin/onboarding')}
+              onClick={() => navigate('/admin')}
             >
-              Ir al onboarding
+              Panel Admin SaaS
             </Button>
           </div>
         </div>

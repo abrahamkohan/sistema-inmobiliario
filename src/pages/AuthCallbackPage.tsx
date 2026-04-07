@@ -10,8 +10,9 @@ export function AuthCallbackPage() {
   const [status, setStatus] = useState<Status>('loading')
   const [msg,    setMsg]    = useState('')
   const { engine, nombre }  = useBrand()
-  const colors  = engine.getColors()
-  const logoUrl = engine.getLogo('crm')
+  const colors     = engine.getColors()
+  const logoUrl    = engine.getLogo('landing')
+  const logoFilter = engine.getLogoFilter('landing')
 
   useEffect(() => {
     let settled = false
@@ -22,48 +23,35 @@ export function AuthCallbackPage() {
       navigate(dest, { replace: true })
     }
 
-    // Supabase procesa automáticamente el hash fragment (#access_token=...)
-    // o el code param (?code=...) al inicializar el cliente.
-    // onAuthStateChange dispara cuando termina.
+    // El SDK de Supabase procesa el hash (#access_token=...) o el code (?code=...)
+    // automáticamente al inicializar — ya lo limpió antes de que este efecto corra.
+    // Solo escuchamos onAuthStateChange y dejamos que el SDK haga su trabajo.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         settle('/reset-password')
       } else if (event === 'PASSWORD_RECOVERY') {
         settle('/reset-password')
-      } else if (event === 'SIGNED_OUT') {
-        setStatus('error')
-        setMsg('El enlace ya fue usado o no es válido.')
       }
     })
 
-    // PKCE: intercambiar el code por sesión
+    // PKCE: si llegó ?code= hay que intercambiarlo explícitamente
     const code = new URLSearchParams(window.location.search).get('code')
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) {
+        if (error && !settled) {
           setStatus('error')
           setMsg('El enlace expiró o ya fue utilizado.')
         }
       })
     }
 
-    // Si llegamos sin token ni code y el hash está vacío → error inmediato
-    const hash       = window.location.hash.replace('#', '')
-    const hasToken   = hash.includes('access_token') || hash.includes('token=')
-    const hasCode    = !!code
-    if (!hasToken && !hasCode) {
-      setStatus('error')
-      setMsg('Enlace inválido. Pedile al administrador que te reenvíe la invitación.')
-      return () => subscription.unsubscribe()
-    }
-
-    // Timeout de seguridad — si en 12 segundos no pasó nada, mostrar error
+    // Timeout: si en 10 segundos no llegó ningún evento, el link es inválido
     const timer = setTimeout(() => {
       if (!settled) {
         setStatus('error')
-        setMsg('El enlace expiró. Pedile al administrador que te reenvíe la invitación.')
+        setMsg('El enlace expiró o ya fue utilizado. Pedile al administrador que te reenvíe la invitación.')
       }
-    }, 12_000)
+    }, 10_000)
 
     return () => {
       subscription.unsubscribe()
@@ -98,7 +86,7 @@ export function AuthCallbackPage() {
           borderBottom: `3px solid ${colors.primary}`,
         }}>
           {logoUrl
-            ? <img src={logoUrl} alt={nombre} style={{ height: 36, maxWidth: 180, objectFit: 'contain', display: 'block', margin: '0 auto' }} />
+            ? <img src={logoUrl} alt={nombre} style={{ height: 36, maxWidth: 180, objectFit: 'contain', display: 'block', margin: '0 auto', filter: logoFilter }} />
             : <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#ffffff', letterSpacing: '0.08em' }}>{nombre.toUpperCase()}</p>
           }
         </div>

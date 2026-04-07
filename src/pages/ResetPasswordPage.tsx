@@ -10,8 +10,9 @@ export function ResetPasswordPage() {
   const [loading,  setLoading]  = useState(false)
   const navigate = useNavigate()
   const { engine, nombre } = useBrand()
-  const colors  = engine.getColors()
-  const logoUrl = engine.getLogo('crm')
+  const colors     = engine.getColors()
+  const logoUrl    = engine.getLogo('landing')
+  const logoFilter = engine.getLogoFilter('landing')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -52,7 +53,7 @@ export function ResetPasswordPage() {
           borderBottom: `3px solid ${colors.primary}`,
         }}>
           {logoUrl
-            ? <img src={logoUrl} alt={nombre} style={{ height: 36, maxWidth: 180, objectFit: 'contain', display: 'block', margin: '0 auto' }} />
+            ? <img src={logoUrl} alt={nombre} style={{ height: 36, maxWidth: 180, objectFit: 'contain', display: 'block', margin: '0 auto', filter: logoFilter }} />
             : <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#ffffff', letterSpacing: '0.08em' }}>{nombre.toUpperCase()}</p>
           }
         </div>

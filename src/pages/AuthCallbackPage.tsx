@@ -23,29 +23,36 @@ export function AuthCallbackPage() {
       navigate(dest, { replace: true })
     }
 
-    // El SDK de Supabase procesa el hash (#access_token=...) o el code (?code=...)
-    // automáticamente al inicializar — ya lo limpió antes de que este efecto corra.
-    // Solo escuchamos onAuthStateChange y dejamos que el SDK haga su trabajo.
+    // El SDK procesa el hash (#access_token=...) al inicializar y lo limpia
+    // antes de que este efecto corra. Puede que SIGNED_IN ya haya disparado.
+    // Estrategia dual: getSession() captura si ya está listo, onAuthStateChange
+    // captura si todavía está procesando.
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        settle('/reset-password')
-      } else if (event === 'PASSWORD_RECOVERY') {
+      if ((event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY') && session) {
         settle('/reset-password')
       }
+    })
+
+    // Capturar sesión que el SDK ya procesó antes de que suscribiéramos
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && !settled) settle('/reset-password')
     })
 
     // PKCE: si llegó ?code= hay que intercambiarlo explícitamente
     const code = new URLSearchParams(window.location.search).get('code')
     if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
         if (error && !settled) {
           setStatus('error')
           setMsg('El enlace expiró o ya fue utilizado.')
+        } else if (data?.session && !settled) {
+          settle('/reset-password')
         }
       })
     }
 
-    // Timeout: si en 10 segundos no llegó ningún evento, el link es inválido
+    // Timeout: si en 10 segundos no llegó nada, el link es inválido
     const timer = setTimeout(() => {
       if (!settled) {
         setStatus('error')

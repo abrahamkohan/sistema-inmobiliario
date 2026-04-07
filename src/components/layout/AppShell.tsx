@@ -125,7 +125,10 @@ export function AppShell() {
           </div>
         )}
 
-        <main ref={mainRef} className="flex-1 overflow-y-auto">
+        <main 
+          ref={mainRef} 
+          className="flex-1 overflow-y-auto max-w-[1024px] w-full mx-auto px-4 md:px-6 lg:px-8"
+        >
           <Outlet />
         </main>
       </div>

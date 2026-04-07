@@ -20,7 +20,8 @@ export async function getProfile(userId: string): Promise<{ id: string; full_nam
 export async function updateProfile(userId: string, updates: ProfileUpdate & { whatsapp?: string | null }): Promise<{ id: string; full_name: string | null }> {
   const { error } = await supabase
     .from('profiles')
-    .upsert({ id: userId, ...updates } as unknown as never, { onConflict: 'id' })
+    .update(updates as unknown as never)
+    .eq('id', userId as unknown as never)
   if (error) {
     console.error('[updateProfile] error:', error)
     throw error

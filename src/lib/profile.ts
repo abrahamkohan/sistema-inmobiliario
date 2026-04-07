@@ -18,15 +18,14 @@ export async function getProfile(userId: string): Promise<{ id: string; full_nam
 }
 
 export async function updateProfile(userId: string, updates: ProfileUpdate & { whatsapp?: string | null }): Promise<{ id: string; full_name: string | null }> {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('profiles')
     .update(updates as unknown as never)
     .eq('id', userId as unknown as never)
-    .select('id, full_name')
-    .single()
   if (error) {
     console.error('[updateProfile] error:', error)
     throw error
   }
-  return data as unknown as { id: string; full_name: string | null }
+  // Devolvemos los datos que mandamos — no necesitamos SELECT permission
+  return { id: userId, full_name: (updates.full_name as string | null) ?? null }
 }

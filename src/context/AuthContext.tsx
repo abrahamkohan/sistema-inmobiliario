@@ -19,7 +19,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // TOKEN_REFRESHED no debe disparar re-renders que desmontan formularios
+      if (event === 'TOKEN_REFRESHED') return
       setSession(session)
     })
 

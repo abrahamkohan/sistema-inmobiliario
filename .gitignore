@@ -30,3 +30,5 @@ dist-ssr
 .playwright-cli/
 .mcp.json
 .vercel
+FIX_TYPESCRIPT_REPORT.md
+resumen_06-04-2026.md

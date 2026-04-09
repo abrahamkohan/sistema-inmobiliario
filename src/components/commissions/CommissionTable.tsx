@@ -98,14 +98,14 @@ function Row({ c, onView, onEdit, onDelete }: { c: CommissionFull } & Omit<Props
           </button>
           {onEdit && (
             <button onClick={() => onEdit(c)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
               title="Editar">
               <Pencil className="w-3.5 h-3.5" />
             </button>
           )}
           {onDelete && (
             <button onClick={handleDelete}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
               title="Eliminar">
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -129,8 +129,8 @@ function Row({ c, onView, onEdit, onDelete }: { c: CommissionFull } & Omit<Props
 
 export function CommissionTable({ commissions, onView, onEdit, onDelete }: Props) {
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
-      <table className="w-full text-sm">
+    <div className="rounded-xl border border-border overflow-x-auto">
+      <table className="w-full text-sm min-w-[780px]">
         <thead>
           <tr className="border-b border-border bg-muted/40">
             <th className="px-4 py-3 text-center font-semibold text-foreground w-10"></th>

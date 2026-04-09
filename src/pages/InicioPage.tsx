@@ -754,11 +754,11 @@ function QuickActionsBar() {
 
 const WIDGET_LABELS: Record<string, string> = {
   kpis:      'Estado del negocio',
-  radar:     'Radar de oportunidades',
-  mercado:   'Indicadores de mercado',
+  radar:     'Proyectos en venta',
+  mercado:   'Cotizaciones y clima',
   grafico:   'Simulaciones por mes',
-  actividad: 'Actividad reciente',
-  proyectos: 'Proyectos',
+  actividad: 'Simulaciones recientes',
+  proyectos: 'Proyectos recientes',
   recursos:  'Recursos',
 }
 

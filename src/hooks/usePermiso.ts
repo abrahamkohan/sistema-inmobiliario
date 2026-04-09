@@ -13,12 +13,12 @@ export function usePermisoLevel(module: ModuleKey): PermissionLevel | null {
   if (isLoading) return 'full'
   if (!session?.user?.id) return null
 
+  const OWNER_ID = '62eb703e-6cc6-46d9-a664-e64295f61d31'
   const current = team.find(m => m.id === session.user.id)
-  if (!current) {
-    // Fallback: si es el usuario actual y está en la sesión, dar full por defecto
-    if (session.user.id === '62eb703e-6cc6-46d9-a664-e64295f61d31') {
-      return 'full'
-    }
+
+  // Fallback para el owner: si no está en el team O si está pero sin roles cargados
+  if (!current || (current.id === OWNER_ID && !current.is_owner && !current.permisos)) {
+    if (session.user.id === OWNER_ID) return 'full'
     return null
   }
   if (current.is_owner) return 'full'

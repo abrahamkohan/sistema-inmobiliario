@@ -89,7 +89,7 @@ function Row({ c, onView, onEdit, onDelete }: { c: CommissionFull } & Omit<Props
       <td className="px-4 py-3">{facturacionBadge}</td>
 
       {/* Acciones */}
-      <td className="px-4 py-3">
+      <td className="px-4 py-3 sticky right-0 bg-background border-l border-border/30">
         <div className="flex items-center gap-1">
           <button onClick={() => onView(c)}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
@@ -141,7 +141,7 @@ export function CommissionTable({ commissions, onView, onEdit, onDelete }: Props
             <th className="px-4 py-3 text-left font-semibold text-foreground">Cobrado</th>
             <th className="px-4 py-3 text-left font-semibold text-foreground">Saldo</th>
             <th className="px-4 py-3 text-left font-semibold text-foreground">Facturado</th>
-            <th className="px-4 py-3 text-left font-semibold text-foreground">Acciones</th>
+            <th className="px-4 py-3 text-left font-semibold text-foreground sticky right-0 bg-muted/40 border-l border-border/30"></th>
           </tr>
         </thead>
         <tbody>

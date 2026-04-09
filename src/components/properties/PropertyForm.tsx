@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { X, Camera, Home, Key, Building2, Map, Store, Link as LinkIcon, Check, MapPin } from 'lucide-react'
+import { X, Camera, Home, Key, Building2, Map, Store, Link as LinkIcon, Check, MapPin, Clipboard } from 'lucide-react'
 import { toast } from 'sonner'
 import { LocationPicker } from './LocationPicker'
 import type { LocationValue } from './LocationPicker'
@@ -261,7 +261,9 @@ export function PropertyForm({
 
   // Create-mode photo state
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const pasteZoneRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [pasteZoneFocused, setPasteZoneFocused] = useState(false)
   const previewUrls = useRef<Record<string, string>>({})
 
   const isShortUrl = (url: string) => url.includes('goo.gl') || url.includes('maps.app.goo.gl')
@@ -325,6 +327,21 @@ export function PropertyForm({
     if (url) URL.revokeObjectURL(url)
     delete previewUrls.current[key]
     update({ fotos: s.fotos.filter((_, idx) => idx !== i) })
+  }
+  function setFileCover(i: number) {
+    if (i === 0) return
+    const next = [...s.fotos]
+    const [cover] = next.splice(i, 1)
+    next.unshift(cover)
+    update({ fotos: next })
+  }
+  function handlePasteZone(e: React.ClipboardEvent) {
+    const items = Array.from(e.clipboardData.items)
+    const imageItems = items.filter(item => item.type.startsWith('image/'))
+    if (imageItems.length === 0) return
+    e.preventDefault()
+    const files = imageItems.map(item => item.getAsFile()).filter(Boolean) as File[]
+    addFiles(files)
   }
 
   // LocationPicker (edit mode)
@@ -746,9 +763,16 @@ export function PropertyForm({
                     <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
                       <img src={getPreviewUrl(file)} alt="" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-                      {i === 0 && (
-                        <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">Portada</span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setFileCover(i)}
+                        title={i === 0 ? 'Portada' : 'Usar como portada'}
+                        className={`absolute bottom-1 left-1 transition-all ${i === 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                      >
+                        <span className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${
+                          i === 0 ? 'bg-amber-400 text-white' : 'bg-black/60 text-white/80 hover:bg-amber-400 hover:text-white'
+                        }`}>⭐ Portada</span>
+                      </button>
                       <button
                         type="button"
                         onClick={() => removeFile(i)}
@@ -759,12 +783,13 @@ export function PropertyForm({
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-400">{s.fotos.length}/20 fotos · La primera se usa como portada y en la ficha PDF</p>
+                <p className="text-xs text-gray-400">{s.fotos.length}/20 fotos · Tocá ⭐ en una foto para hacerla portada</p>
               </>
             )}
 
             {/* Upload area */}
             {mode === 'create' ? (
+              <>
               <div
                 onClick={() => fileInputRef.current?.click()}
                 onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
@@ -786,6 +811,28 @@ export function PropertyForm({
                   onChange={e => e.target.files && addFiles(e.target.files)}
                 />
               </div>
+              <div
+                ref={pasteZoneRef}
+                tabIndex={0}
+                onFocus={() => setPasteZoneFocused(true)}
+                onBlur={() => setPasteZoneFocused(false)}
+                onPaste={handlePasteZone}
+                onClick={() => pasteZoneRef.current?.focus()}
+                className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 cursor-pointer transition-all outline-none ${
+                  pasteZoneFocused
+                    ? 'border-gray-900 bg-gray-900/5 ring-2 ring-gray-900/10'
+                    : 'border-dashed border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                <Clipboard className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-sm text-gray-500">
+                  {pasteZoneFocused
+                    ? <><span className="font-semibold text-gray-700">Listo</span> — presioná <kbd className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-xs">Ctrl+V</kbd></>
+                    : <>Hacé clic acá y presioná <kbd className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-xs">Ctrl+V</kbd> para pegar imagen</>
+                  }
+                </span>
+              </div>
+              </>
             ) : (
               <>
                 <button

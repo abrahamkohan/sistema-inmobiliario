@@ -1,5 +1,5 @@
 // src/components/typologies/TypologiesSheet.tsx
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -31,16 +31,23 @@ export function TypologiesSheet({
   const deleteTypology = useDeleteTypology(projectId)
 
   const [editing, setEditing] = useState<TypologyRow | null>(null)
-  const [showForm, setShowForm] = useState(false)
+  const [showCreate, setShowCreate] = useState(false)
+  const createFormRef = useRef<HTMLDivElement>(null)
 
   function openCreate() {
     setEditing(null)
-    setShowForm(true)
+    setShowCreate(true)
+    setTimeout(() => createFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   function openEdit(typology: TypologyRow) {
     setEditing(typology)
-    setShowForm(true)
+    setShowCreate(false)
+  }
+
+  function cancelEdit() {
+    setEditing(null)
+    setShowCreate(false)
   }
 
   function handleDelete(typology: TypologyRow) {
@@ -58,13 +65,11 @@ export function TypologiesSheet({
     keptImages: string[]
   ) {
     try {
-      // 1. Upload floor plan (if new file selected)
       let floorPlanPath: string | null | undefined = undefined
       if (floorPlanFile) {
         floorPlanPath = await uploadFloorPlan(projectId, floorPlanFile)
       }
 
-      // 2. Upload new gallery images
       const typologyId = editing?.id ?? crypto.randomUUID()
       const uploadedImages = await Promise.all(
         newImageFiles.map(file => uploadTypologyImage(projectId, typologyId, file))
@@ -80,8 +85,7 @@ export function TypologiesSheet({
       }
 
       toast.success(editing ? 'Tipología actualizada' : 'Tipología creada')
-      setShowForm(false)
-      setEditing(null)
+      cancelEdit()
     } catch (err) {
       console.error('[TypologiesSheet] handleSubmit error:', err)
       toast.error('Error al guardar la tipología. Revisá los datos e intentá nuevamente.')
@@ -92,48 +96,63 @@ export function TypologiesSheet({
 
   return (
     <Modal open={open} onClose={() => onOpenChange(false)} title={`Tipologías — ${projectName}`}>
-        <div className="flex flex-col gap-4">
-          {!showForm && (
-            <Button variant="outline" size="sm" onClick={openCreate} className="w-full">
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
-              Agregar tipología
-            </Button>
-          )}
+      <div className="flex flex-col gap-4">
 
-          {showForm && (
-            <div className="border rounded-lg p-4">
-              <p className="text-sm font-medium mb-3">
-                {editing ? 'Editar tipología' : 'Nueva tipología'}
-              </p>
+        {/* Botón agregar — siempre visible (salvo que ya esté abierto el create) */}
+        {!showCreate && !editing && (
+          <Button variant="outline" size="sm" onClick={openCreate} className="w-full">
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            Agregar tipología
+          </Button>
+        )}
+
+        {/* Formulario de CREAR — aparece arriba */}
+        {showCreate && (
+          <div ref={createFormRef} className="border rounded-lg p-4">
+            <p className="text-sm font-medium mb-3">Nueva tipología</p>
+            <TypologyForm
+              key="new"
+              onSubmit={handleSubmit}
+              onCancel={cancelEdit}
+              isSubmitting={isMutating}
+            />
+          </div>
+        )}
+
+        {isLoading && (
+          <p className="text-sm text-muted-foreground text-center py-4">Cargando...</p>
+        )}
+
+        {!isLoading && typologies.length === 0 && !showCreate && (
+          <p className="text-sm text-muted-foreground text-center py-6">
+            No hay tipologías todavía.
+          </p>
+        )}
+
+        {/* Cards — la que está siendo editada se reemplaza por el form inline */}
+        {typologies.map((typology) => (
+          editing?.id === typology.id ? (
+            <div key={typology.id} className="border border-blue-200 rounded-lg p-4 bg-blue-50/30">
+              <p className="text-sm font-medium mb-3 text-blue-700">Editando: {typology.name}</p>
               <TypologyForm
-                key={editing?.id ?? 'new'}
-                defaultValues={editing ?? undefined}
+                key={typology.id}
+                defaultValues={typology}
                 onSubmit={handleSubmit}
-                onCancel={() => { setShowForm(false); setEditing(null) }}
+                onCancel={cancelEdit}
                 isSubmitting={isMutating}
               />
             </div>
-          )}
-
-          {isLoading && (
-            <p className="text-sm text-muted-foreground text-center py-4">Cargando...</p>
-          )}
-
-          {!isLoading && typologies.length === 0 && !showForm && (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              No hay tipologías todavía.
-            </p>
-          )}
-
-          {typologies.map((typology) => (
+          ) : (
             <TypologyCard
               key={typology.id}
               typology={typology}
               onEdit={openEdit}
               onDelete={handleDelete}
             />
-          ))}
-        </div>
+          )
+        ))}
+
+      </div>
     </Modal>
   )
 }

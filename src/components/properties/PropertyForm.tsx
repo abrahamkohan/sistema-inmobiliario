@@ -3,6 +3,7 @@ import { X, Camera, Home, Key, Building2, Map, Store, Link as LinkIcon, Check, M
 import { toast } from 'sonner'
 import { LocationPicker } from './LocationPicker'
 import type { LocationValue } from './LocationPicker'
+import { formatPrice } from '@/lib/properties'
 import type { PropertyPhotoRow } from '@/lib/properties'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -385,7 +386,7 @@ export function PropertyForm({
 
   // Header summary
   const precioDisplay = s.precio && parseFloat(s.precio) > 0
-    ? `${s.moneda === 'USD' ? '$' : '₲'} ${parseFloat(s.precio).toLocaleString(s.moneda === 'USD' ? 'en-US' : 'es-PY')}`
+    ? formatPrice(parseFloat(s.precio), s.moneda as 'USD' | 'PYG')
     : null
 
   return (
@@ -521,11 +522,10 @@ export function PropertyForm({
             </div>
             {s.precio && parseFloat(s.precio) > 0 && (
               <p className="text-xs text-gray-400 mt-1.5">
-                {s.moneda === 'USD' ? 'USD ' : '₲ '}
-                {parseFloat(s.precio).toLocaleString(s.moneda === 'USD' ? 'en-US' : 'es-PY')}
+                {formatPrice(parseFloat(s.precio), s.moneda as 'USD' | 'PYG')}
                 {s.superficie_m2 && parseFloat(s.superficie_m2) > 0 && (
                   <span className="ml-2">
-                    · {s.moneda === 'USD' ? '$' : '₲'} {Math.round(parseFloat(s.precio) / parseFloat(s.superficie_m2)).toLocaleString('es-PY')}/m²
+                    · {formatPrice(Math.round(parseFloat(s.precio) / parseFloat(s.superficie_m2)), s.moneda as 'USD' | 'PYG')}/m²
                   </span>
                 )}
               </p>

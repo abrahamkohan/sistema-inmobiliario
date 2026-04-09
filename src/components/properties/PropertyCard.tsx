@@ -4,7 +4,7 @@ import { Bed, Bath, Maximize2, MapPin, Trash2 } from 'lucide-react'
 import { useDeleteProperty } from '@/hooks/useProperties'
 import { useAgentName } from '@/hooks/useTeam'
 import { usePuedeBorrar } from '@/hooks/usePermiso'
-import { getPhotoUrl } from '@/lib/properties'
+import { getPhotoUrl, formatPrice } from '@/lib/properties'
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog'
 import type { PropertyRow } from '@/lib/properties'
 
@@ -104,7 +104,7 @@ export function PropertyCard({ property }: Props) {
         <div className="flex items-end justify-between mt-auto pt-1 gap-2">
           {property.precio != null ? (
             <p className="text-sm font-bold text-gray-900">
-              {property.moneda === 'USD' ? '$' : '₲'}{property.precio.toLocaleString()}
+              {formatPrice(property.precio, property.moneda as 'USD' | 'PYG')}
             </p>
           ) : <span />}
           <div className="flex items-center gap-1.5 flex-shrink-0">

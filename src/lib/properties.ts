@@ -76,9 +76,9 @@ export function getPhotoUrl(storagePath: string): string {
 
 export function formatPrice(price: number, moneda: 'USD' | 'PYG'): string {
   if (moneda === 'PYG') {
-    return '₲ ' + price.toLocaleString('es-PY')
+    return 'Gs. ' + price.toLocaleString('es-PY')
   }
-  return '$ ' + price.toLocaleString('en-US')
+  return 'USD ' + price.toLocaleString('es-PY')
 }
 
 export async function addPropertyPhoto(

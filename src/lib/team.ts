@@ -22,7 +22,7 @@ export type TeamMember = {
 export async function getTeam(): Promise<TeamMember[]> {
   const [profilesRes, rolesRes, emailsRes] = await Promise.all([
     supabase.from('profiles').select('*').order('created_at', { ascending: true }),
-    supabase.from('user_roles').select('user_id, role, is_owner, permisos'),
+    supabase.from('user_roles').select('user_id, role, is_owner, permisos, consultant_id'),
     (supabase.rpc as any)('get_team_emails'),
   ])
 

@@ -6,7 +6,6 @@ import {
   useAddPropertyPhoto, useDeletePropertyPhoto,
 } from '@/hooks/useProperties'
 import { getPhotoUrl, reorderPropertyPhotos } from '@/lib/properties'
-import type { ExistingPhoto } from '@/components/properties/PropertyForm'
 import {
   PropertyForm,
   PropertyFormState,

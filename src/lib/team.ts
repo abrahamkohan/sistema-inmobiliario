@@ -26,11 +26,11 @@ export async function getTeam(): Promise<TeamMember[]> {
     (supabase.rpc as any)('get_team_emails'),
   ])
 
-  const roleMap = new Map<string, { role: string; is_owner: boolean; permisos: Record<string, boolean> | null }>()
+  const roleMap = new Map<string, { role: string; is_owner: boolean; permisos: Record<string, boolean> | null; consultant_id: string | null }>()
   const rolesData = rolesRes.data as UserRoleRow[] | null
   if (rolesData) {
     rolesData.forEach(r => {
-      roleMap.set(r.user_id, { role: r.role, is_owner: r.is_owner, permisos: r.permisos as Record<string, boolean> | null })
+      roleMap.set(r.user_id, { role: r.role, is_owner: r.is_owner, permisos: r.permisos as Record<string, boolean> | null, consultant_id: (r as any).consultant_id ?? null })
     })
   }
 
@@ -55,7 +55,7 @@ export async function getTeam(): Promise<TeamMember[]> {
       role: roleRow?.role ?? null,
       is_owner: roleRow?.is_owner ?? false,
       permisos: roleRow?.permisos ?? null,
-      consultant_id: null,
+      consultant_id: roleRow?.consultant_id ?? null,
       email: emailMap.get(p.id) ?? null,
     }
   })

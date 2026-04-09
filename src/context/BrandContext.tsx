@@ -29,7 +29,9 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
   const [notFound, setNotFound] = useState(false)
   const [isDefault, setIsDefault] = useState(true)
 
-  // Cargar consultant cuando cambia hostname/subdomain o cuando cambia la sesión
+  const userId = session?.user?.id
+
+  // Cargar consultant cuando cambia hostname/subdomain o el USER ID (no el token)
   useEffect(() => {
     let cancelled = false
 
@@ -39,11 +41,11 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
       // Obtener consultant_id desde user_roles (fuente de verdad)
       let consultantId: string | null = null
       
-      if (session?.user?.id) {
+      if (userId) {
         const { data } = await supabase
           .from('user_roles')
           .select('consultant_id')
-          .eq('user_id', session.user.id as unknown as never)
+          .eq('user_id', userId as unknown as never)
           .maybeSingle() as { data: { consultant_id: string | null } | null }
         
         consultantId = data?.consultant_id ?? null
@@ -70,7 +72,7 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [hostname, subdomain, session])
+  }, [hostname, subdomain, userId])
 
   // Crear engine con settings del consultant
   const engine = useMemo(() => {

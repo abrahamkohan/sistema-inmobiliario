@@ -137,7 +137,7 @@ export function PropiedadEditarPage() {
     setIsSaving(false)
   }
 
-  async function handleAddPhotos(files: FileList) {
+  async function handleAddPhotos(files: FileList | File[]) {
     if (!property) return
     const base = photos.length
     let firstUploaded: string | null = null

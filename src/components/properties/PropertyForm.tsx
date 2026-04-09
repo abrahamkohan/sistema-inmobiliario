@@ -221,7 +221,7 @@ interface PropertyFormProps {
   // edit mode: existing photos from DB
   existingPhotos?: ExistingPhoto[]
   fotoPortada?: string | null
-  onAddPhotos?: (files: FileList) => Promise<void>
+  onAddPhotos?: (files: FileList | File[]) => Promise<void>
   onDeletePhoto?: (photo: ExistingPhoto) => Promise<void>
   onSetPortada?: (path: string) => Promise<void>
   getPhotoUrl?: (path: string) => string
@@ -341,7 +341,11 @@ export function PropertyForm({
     if (imageItems.length === 0) return
     e.preventDefault()
     const files = imageItems.map(item => item.getAsFile()).filter(Boolean) as File[]
-    addFiles(files)
+    if (mode === 'edit') {
+      onAddPhotos?.(files)
+    } else {
+      addFiles(files)
+    }
   }
 
   // LocationPicker (edit mode)
@@ -835,22 +839,48 @@ export function PropertyForm({
               </>
             ) : (
               <>
-                <button
-                  type="button"
+                <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                  onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={e => { e.preventDefault(); setIsDragging(false); onAddPhotos?.(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))) }}
+                  className={`border-2 border-dashed rounded-2xl px-6 py-5 text-center cursor-pointer transition-colors ${
+                    isDragging ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:border-gray-400'
+                  }`}
                 >
-                  <Camera className="w-4 h-4" />
-                  Agregar fotos
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={e => e.target.files && onAddPhotos?.(e.target.files)}
-                />
+                  <Camera className="w-6 h-6 text-gray-300 mx-auto mb-1.5" />
+                  <p className="text-sm text-gray-500">Tocá para agregar fotos</p>
+                  <p className="text-xs text-gray-400 mt-0.5">JPG, PNG · máx. 20</p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={e => e.target.files && onAddPhotos?.(e.target.files)}
+                  />
+                </div>
+                <div
+                  ref={pasteZoneRef}
+                  tabIndex={0}
+                  onFocus={() => setPasteZoneFocused(true)}
+                  onBlur={() => setPasteZoneFocused(false)}
+                  onPaste={handlePasteZone}
+                  onClick={() => pasteZoneRef.current?.focus()}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 cursor-pointer transition-all outline-none ${
+                    pasteZoneFocused
+                      ? 'border-gray-900 bg-gray-900/5 ring-2 ring-gray-900/10'
+                      : 'border-dashed border-gray-200 hover:border-gray-400'
+                  }`}
+                >
+                  <Clipboard className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <span className="text-sm text-gray-500">
+                    {pasteZoneFocused
+                      ? <><span className="font-semibold text-gray-700">Listo</span> — presioná <kbd className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-xs">Ctrl+V</kbd></>
+                      : <>Hacé clic acá y presioná <kbd className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-xs">Ctrl+V</kbd> para pegar imagen</>
+                    }
+                  </span>
+                </div>
               </>
             )}
           </div>

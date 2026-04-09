@@ -101,6 +101,14 @@ export async function addPropertyPhoto(
   return data as unknown as PropertyPhotoRow
 }
 
+export async function reorderPropertyPhotos(photos: { id: string; sort_order: number }[]): Promise<void> {
+  await Promise.all(
+    photos.map(({ id, sort_order }) =>
+      supabase.from('property_photos').update({ sort_order } as any).eq('id', id as any)
+    )
+  )
+}
+
 export async function deletePropertyPhoto(photo: PropertyPhotoRow): Promise<void> {
   await supabase.storage.from('property-photos').remove([photo.storage_path])
   const { error } = await supabase.from('property_photos').delete().eq('id', photo.id as any)

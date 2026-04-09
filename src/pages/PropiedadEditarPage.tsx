@@ -5,7 +5,8 @@ import {
   useProperty, usePropertyPhotos, useUpdateProperty,
   useAddPropertyPhoto, useDeletePropertyPhoto,
 } from '@/hooks/useProperties'
-import { getPhotoUrl } from '@/lib/properties'
+import { getPhotoUrl, reorderPropertyPhotos } from '@/lib/properties'
+import type { ExistingPhoto } from '@/components/properties/PropertyForm'
 import {
   PropertyForm,
   PropertyFormState,
@@ -170,6 +171,14 @@ export function PropiedadEditarPage() {
     }
   }
 
+  async function handleReorderPhotos(ordered: ExistingPhoto[]) {
+    try {
+      await reorderPropertyPhotos(ordered.map((p, i) => ({ id: p.id, sort_order: i })))
+    } catch {
+      toast.error('Error al reordenar fotos')
+    }
+  }
+
   async function handleSetPortada(storagePath: string) {
     if (!property) return
     try {
@@ -202,6 +211,7 @@ export function PropiedadEditarPage() {
       onAddPhotos={handleAddPhotos}
       onDeletePhoto={handleDeletePhoto}
       onSetPortada={handleSetPortada}
+      onReorderPhotos={handleReorderPhotos}
       getPhotoUrl={getPhotoUrl}
     />
   )

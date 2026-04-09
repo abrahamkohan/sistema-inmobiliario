@@ -224,6 +224,7 @@ interface PropertyFormProps {
   onAddPhotos?: (files: FileList | File[]) => Promise<void>
   onDeletePhoto?: (photo: ExistingPhoto) => Promise<void>
   onSetPortada?: (path: string) => Promise<void>
+  onReorderPhotos?: (photos: ExistingPhoto[]) => Promise<void>
   getPhotoUrl?: (path: string) => string
 }
 
@@ -242,6 +243,7 @@ export function PropertyForm({
   onAddPhotos,
   onDeletePhoto,
   onSetPortada,
+  onReorderPhotos,
   getPhotoUrl,
 }: PropertyFormProps) {
   const update = useCallback((patch: Partial<PropertyFormState>) => onChange(patch), [onChange])
@@ -265,6 +267,27 @@ export function PropertyForm({
   const [isDragging, setIsDragging] = useState(false)
   const [pasteZoneFocused, setPasteZoneFocused] = useState(false)
   const previewUrls = useRef<Record<string, string>>({})
+
+  // Edit-mode photo drag-and-drop reorder
+  const dragIdx = useRef<number | null>(null)
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  const [localPhotos, setLocalPhotos] = useState<ExistingPhoto[]>(existingPhotos)
+  useEffect(() => { setLocalPhotos(existingPhotos) }, [existingPhotos])
+
+  function handleDragStart(i: number) { dragIdx.current = i }
+  function handleDragEnter(i: number) { setDragOverIdx(i) }
+  function handleDragEnd() {
+    const from = dragIdx.current
+    if (from === null || dragOverIdx === null || from === dragOverIdx) {
+      dragIdx.current = null; setDragOverIdx(null); return
+    }
+    const next = [...localPhotos]
+    const [moved] = next.splice(from, 1)
+    next.splice(dragOverIdx, 0, moved)
+    dragIdx.current = null; setDragOverIdx(null)
+    setLocalPhotos(next)
+    onReorderPhotos?.(next)
+  }
 
   const isShortUrl = (url: string) => url.includes('goo.gl') || url.includes('maps.app.goo.gl')
   const mapsData = resolvedEmbed ?? parseMapsUrl(s.mapsLink)
@@ -723,39 +746,55 @@ export function PropertyForm({
         <Block title="Fotos">
           <div className="flex flex-col gap-4">
 
-            {/* Edit: fotos existentes en DB */}
-            {mode === 'edit' && existingPhotos.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {existingPhotos.map(photo => {
-                  const isPortada = photo.storage_path === fotoPortada
-                  return (
-                    <div key={photo.id} className="relative group aspect-square">
-                      <img
-                        src={getPhotoUrl?.(photo.storage_path)}
-                        alt=""
-                        className={`w-full h-full object-cover rounded-xl ${isPortada ? 'ring-2 ring-gray-900' : ''}`}
-                      />
-                      {isPortada ? (
-                        <span className="absolute top-1 left-1 bg-gray-900/80 text-white text-[10px] px-1.5 py-0.5 rounded-md">Portada · Ficha PDF</span>
-                      ) : (
+            {/* Edit: fotos existentes en DB — drag para reordenar */}
+            {mode === 'edit' && localPhotos.length > 0 && (
+              <div>
+                <p className="text-[10px] text-gray-400 mb-1.5">Arrastrá las fotos para reordenarlas</p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {localPhotos.map((photo, i) => {
+                    const isPortada = photo.storage_path === fotoPortada
+                    return (
+                      <div
+                        key={photo.id}
+                        draggable
+                        onDragStart={() => handleDragStart(i)}
+                        onDragEnter={() => handleDragEnter(i)}
+                        onDragOver={e => e.preventDefault()}
+                        onDragEnd={handleDragEnd}
+                        className={`relative group aspect-square cursor-grab active:cursor-grabbing transition-all ${
+                          dragOverIdx === i && dragIdx.current !== i
+                            ? 'ring-2 ring-blue-400 scale-105'
+                            : ''
+                        }`}
+                      >
+                        <img
+                          src={getPhotoUrl?.(photo.storage_path)}
+                          alt=""
+                          draggable={false}
+                          className={`w-full h-full object-cover rounded-xl pointer-events-none ${isPortada ? 'ring-2 ring-gray-900' : ''}`}
+                        />
+                        {isPortada ? (
+                          <span className="absolute top-1 left-1 bg-gray-900/80 text-white text-[10px] px-1.5 py-0.5 rounded-md">Portada · Ficha PDF</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => onSetPortada?.(photo.storage_path)}
+                            className="absolute top-1 left-1 bg-white/80 text-gray-700 text-[10px] px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                          >
+                            ★ Portada
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => onSetPortada?.(photo.storage_path)}
-                          className="absolute top-1 left-1 bg-white/80 text-gray-700 text-[10px] px-1.5 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                          onClick={() => onDeletePhoto?.(photo)}
+                          className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          ★ Usar como portada y ficha PDF
+                          <X className="w-3.5 h-3.5" />
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => onDeletePhoto?.(photo)}
-                        className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )
-                })}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )}
 

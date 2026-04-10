@@ -71,6 +71,8 @@ export function AmenitiesEditor({ projectId }: AmenitiesEditorProps) {
 
   const existingNames = amenities.map(a => a.name.toLowerCase())
 
+  const isSaving = addAmenity.isPending || updateName.isPending || updateIcon.isPending || deleteAmenity.isPending || addImage.isPending || deleteImage.isPending
+
   // ─── Toggle chip predefinido ──────────────────────────────────────────────
 
   function toggleChip(name: string, categoria: string) {
@@ -134,6 +136,18 @@ export function AmenitiesEditor({ projectId }: AmenitiesEditorProps) {
 
   return (
     <div className="flex flex-col gap-3">
+
+      {/* ── Auto-save indicator ────────────────────────────────────────────── */}
+      <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+        {isSaving ? (
+          <>
+            <Loader2 className="h-3 w-3 animate-spin" />
+            <span>Guardando...</span>
+          </>
+        ) : (
+          <span>Los cambios se guardan automáticamente</span>
+        )}
+      </div>
 
       {/* ── Interior chips ─────────────────────────────────────────────────── */}
       <div>

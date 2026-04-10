@@ -64,7 +64,6 @@ export function TypologiesSheet({
     newImageFiles: File[],
     keptImages: string[]
   ) {
-    console.log('[TypologiesSheet] handleSubmit called, editing:', editing?.id, 'values:', values)
     try {
       let floorPlanPath: string | null | undefined = undefined
       if (floorPlanFile) {

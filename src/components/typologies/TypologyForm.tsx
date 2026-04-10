@@ -174,7 +174,6 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
 
   async function doSubmit() {
     const valid = await form.trigger()
-    console.log('[TypologyForm] trigger result:', valid, 'errors:', form.formState.errors)
     if (!valid) {
       const idMap: Record<string, string> = { area_m2: 'ty-area', name: 'ty-name' }
       const firstKey = Object.keys(form.formState.errors)[0]
@@ -183,7 +182,6 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
       return
     }
     const values = form.getValues()
-    console.log('[TypologyForm] values to submit:', values)
     await onSubmit({ ...values, features }, floorPlanFile, newImageFiles, keptImages)
   }
 

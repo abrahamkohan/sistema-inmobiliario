@@ -60,9 +60,9 @@ function unitTypeToBedrooms(unitType: string | null): number | null {
 
 const typologySchema = z.object({
   name:      z.string().min(1, 'Requerido'),
-  area_m2:   z.coerce.number().positive('Debe ser mayor a 0'),
-  bedrooms:  z.coerce.number().nullable().optional(),
-  bathrooms: z.coerce.number().nullable().optional(),
+  area_m2:   z.number().positive('Debe ser mayor a 0'),
+  bedrooms:  z.number().nullable().optional(),
+  bathrooms: z.number().nullable().optional(),
 })
 
 export type TypologyFormValues = z.infer<typeof typologySchema> & { features: string[] }
@@ -232,7 +232,7 @@ export function TypologyForm({ defaultValues, onSubmit, onCancel, isSubmitting }
         <div className="grid gap-1.5">
           <Label htmlFor="ty-area" className="text-xs text-gray-500">m² *</Label>
           <Input id="ty-area" type="number" min={1} step={0.01}
-            {...form.register('area_m2')}
+            {...form.register('area_m2', { valueAsNumber: true })}
           />
           {form.formState.errors.area_m2 && <p className="text-xs text-destructive">{form.formState.errors.area_m2.message}</p>}
         </div>

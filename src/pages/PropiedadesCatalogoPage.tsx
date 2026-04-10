@@ -231,13 +231,13 @@ export function PropiedadesCatalogoPage() {
       </div>
 
       {/* ── Grilla ── */}
-      <main className="flex-1 max-w-[940px] w-full mx-auto px-4 pt-8 pb-12">
+      <main className="flex-1 max-w-[940px] w-full mx-auto px-3 pt-4 pb-12">
         {properties.length === 0 ? (
           <EmptyState config={config} />
         ) : filtered.length === 0 ? (
           <EmptyFiltered onClear={clearFilters} />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
             {filtered.map(p => (
               <PropertyPublicCard key={p.id} property={p} />
             ))}
